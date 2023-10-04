@@ -9,6 +9,7 @@ __all__ = (
     "USER",
     "TempDir",
     "ami",
+    "toiter",
 )
 
 import getpass
@@ -16,8 +17,9 @@ import os
 import pwd
 import sys
 import tempfile
+from collections.abc import Iterable
 from pathlib import Path
-from typing import ParamSpec, TypeVar
+from typing import Any, ParamSpec, TypeVar
 
 EXECUTABLE = Path(sys.executable)
 EXECUTABLE_SITE = Path(EXECUTABLE).resolve()
@@ -74,3 +76,35 @@ def ami(user: str = "root") -> bool:
         CompletedProcess if the current user is not the same as user, None otherwise
     """
     return os.getuid() == pwd.getpwnam(user or getpass.getuser()).pw_uid
+
+
+def toiter(obj: Any, always: bool = False, split: str = " ") -> Any:
+    """To iter.
+
+    Examples:
+        >>> import pathlib
+        >>> from nodeps import toiter
+        >>>
+        >>> assert toiter('test1') == ['test1']
+        >>> assert toiter('test1 test2') == ['test1', 'test2']
+        >>> assert toiter({'a': 1}) == {'a': 1}
+        >>> assert toiter({'a': 1}, always=True) == [{'a': 1}]
+        >>> assert toiter('test1.test2') == ['test1.test2']
+        >>> assert toiter('test1.test2', split='.') == ['test1', 'test2']
+        >>> assert toiter(pathlib.Path("/tmp/foo")) == ('/', 'tmp', 'foo')
+
+    Args:
+        obj: obj.
+        always: return any iterable into a list.
+        split: split for str.
+
+    Returns:
+        Iterable.
+    """
+    if isinstance(obj, str):
+        obj = obj.split(split)
+    elif hasattr(obj, "parts"):
+        obj = obj.parts
+    elif not isinstance(obj, Iterable) or always:
+        obj = [obj]
+    return obj
