@@ -2,8 +2,11 @@
 from __future__ import annotations
 
 __all__ = (
+    "GIT",
+    "GITHUB_TOKEN",
     "LINUX",
     "MACOS",
+    "NODEPS_PROJECT_NAME",
     "PW_ROOT",
     "PW_USER",
     "USER",
@@ -12,17 +15,33 @@ __all__ = (
     "PathIsLiteral",
     "AnyPath",
     "StrOrBytesPath",
+    "CalledProcessError",
     "CmdError",
     "CommandNotFoundError",
     "Passwd",
     "PathStat",
     "Path",
+    "PipMetaPathFinder",
     "TempDir",
     "aiocmd",
     "aiocommand",
     "ami",
+    "chdir",
     "cmd",
+    "cmdrun",
+    "cmdsudo",
+    "command",
+    "findfile",
+    "findup",
+    "flatten",
+    "in_tox",
+    "parent",
+    "returncode",
+    "stdout",
+    "suppress",
+    "syssudo",
     "toiter",
+    "urljson",
     "which",
     "EXECUTABLE",
     "EXECUTABLE_SITE",
@@ -31,25 +50,41 @@ __all__ = (
 import asyncio
 import contextlib
 import dataclasses
+import fnmatch
 import getpass
 import grp
 import hashlib
+import importlib.abc
+import importlib.metadata
+import json
 import os
 import pathlib
 import pwd
 import shutil
+import signal
 import stat
 import subprocess
 import sys
+import sysconfig
 import tempfile
 import tokenize
-from collections.abc import Iterable, Iterator
-from typing import IO, Any, AnyStr, Generic, Literal, ParamSpec, TypeAlias, TypeVar, cast
+import urllib.request
+from collections.abc import Callable, Iterable, Iterator, Sequence
+from typing import IO, TYPE_CHECKING, Any, AnyStr, Generic, Literal, ParamSpec, TypeAlias, TypeVar, cast
 
+if TYPE_CHECKING:
+    from types import ModuleType
+
+GIT = os.environ.get("GIT", "j5pu")
+"""GitHub user name"""
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", os.environ.get("GH_TOKEN", os.environ.get("TOKEN")))
+"""GitHub Token"""
 LINUX = sys.platform == "linux"
 """Is Linux? sys.platform == 'linux'"""
 MACOS = sys.platform == "darwin"
 """Is macOS? sys.platform == 'darwin'"""
+NODEPS_PROJECT_NAME = "nodeps"
+"""NoDeps Project Name"""
 USER = os.getenv("USER")
 """"Environment Variable $USER"""
 PW_ROOT = pwd.getpwnam("root")
@@ -69,6 +104,112 @@ StrOrBytesPath = str | bytes | os.PathLike[str] | os.PathLike[bytes]
 
 class _NoDepsBaseError(Exception):
     """Base Exception from which all other custom Exceptions defined in semantic_release inherit."""
+
+
+class CalledProcessError(subprocess.SubprocessError):
+    """Patched :class:`subprocess.CalledProcessError`.
+
+    Raised when run() and the process returns a non-zero exit status.
+
+    Attributes:
+        cmd: The command that was run.
+        returncode: The exit code of the process.
+        output: The output of the process.
+        stderr: The error output of the process.
+        completed: :class:`subprocess.CompletedProcess` object.
+    """
+
+    returncode: int
+    cmd: StrOrBytesPath | Sequence[StrOrBytesPath]
+    output: AnyStr | None
+    stderr: AnyStr | None
+    completed: subprocess.CompletedProcess | None
+
+    # noinspection PyShadowingNames
+    def __init__(
+        self,
+        returncode: int | None = None,
+        cmd: StrOrBytesPath | Sequence[StrOrBytesPath] | None = None,
+        output: AnyStr | None = None,
+        stderr: AnyStr | None = None,
+        completed: subprocess.CompletedProcess | None = None,
+    ) -> None:
+        r"""Patched :class:`subprocess.CalledProcessError`.
+
+        Args:
+            cmd: The command that was run.
+            returncode: The exit code of the process.
+            output: The output of the process.
+            stderr: The error output of the process.
+            completed: :class:`subprocess.CompletedProcess` object.
+
+        Examples:
+            >>> import subprocess
+            >>> 3/0  # doctest: +IGNORE_EXCEPTION_DETAIL
+            Traceback (most recent call last):
+            ZeroDivisionError: division by zero
+            >>> subprocess.run(["ls", "foo"], capture_output=True, check=True)  # doctest: +IGNORE_EXCEPTION_DETAIL
+            Traceback (most recent call last):
+            project.CalledProcessError:
+              Return Code:
+                1
+            <BLANKLINE>
+              Command:
+                ['ls', 'foo']
+            <BLANKLINE>
+              Stderr:
+                b'ls: foo: No such file or directory\n'
+            <BLANKLINE>
+              Stdout:
+                b''
+            <BLANKLINE>
+        """
+        self.returncode = returncode
+        self.cmd = cmd
+        self.output = output
+        self.stderr = stderr
+        self.completed = completed
+        if self.returncode is None:
+            self.returncode = self.completed.returncode
+            self.cmd = self.completed.args
+            self.output = self.completed.stdout
+            self.stderr = self.completed.stderr
+
+    def _message(self):
+        if self.returncode and self.returncode < 0:
+            try:
+                return f"Died with {signal.Signals(-self.returncode)!r}."
+            except ValueError:
+                return f"Died with with unknown signal {-self.returncode}."
+        else:
+            return f"{self.returncode:d}"
+
+    def __str__(self):
+        """Returns str."""
+        return f"""
+  Return Code:
+    {self._message()}
+
+  Command:
+    {self.cmd}
+
+  Stderr:
+    {self.stderr}
+
+  Stdout:
+    {self.output}
+"""
+
+    @property
+    def stdout(self) -> str:
+        """Alias for output attribute, to match stderr."""
+        return self.output
+
+    @stdout.setter
+    def stdout(self, value):
+        # There's no obvious reason to set this, but allow it anyway so
+        # .stdout is a transparent alias for .output
+        self.output = value
 
 
 class CmdError(subprocess.CalledProcessError):
@@ -1888,6 +2029,27 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
 AnyPath: TypeAlias = Path | AnyPath
 
 
+class PipMetaPathFinder(importlib.abc.MetaPathFinder):
+    """A importlib.abc.MetaPathFinder to auto-install missing modules using pip."""
+
+    # noinspection PyMethodOverriding,PyMethodParameters
+    def find_spec(
+        fullname: str,
+        path: Sequence[str | bytes] | None,
+        target: ModuleType | None = None,
+    ) -> importlib._bootstrap.ModuleSpec | None:
+        """Try to find a module spec for the specified module."""
+        if path is None and fullname is not None:
+            package = fullname.split(".")[0].replace("_", "-")
+            try:
+                importlib.metadata.Distribution.from_name(package)
+                if subprocess.run([sys.executable, "-m", "pip", "install", "-q", package]).returncode == 0:
+                    return importlib.import_module(fullname)
+            except importlib.metadata.PackageNotFoundError:
+                pass
+        return None
+
+
 class TempDir(tempfile.TemporaryDirectory):
     """Wrapper for :class:`tempfile.TemporaryDirectory` that provides Path-like.
 
@@ -1995,6 +2157,64 @@ def ami(user: str = "root") -> bool:
     return os.getuid() == pwd.getpwnam(user or getpass.getuser()).pw_uid
 
 
+@contextlib.contextmanager
+def chdir(data: StrOrBytesPath | bool = True) -> Iterable[tuple[Path, Path]]:
+    """Change directory and come back to previous directory.
+
+    Examples:
+        # FIXME: Ubuntu
+        >>> from pathlib import Path
+
+        >>> from nodeps import chdir
+        >>> from nodeps import MACOS
+        >>>
+        >>> previous = Path.cwd()
+        >>> new = Path('/usr/local')
+        >>> with chdir(new) as (pr, ne):
+        ...     assert previous == pr
+        ...     assert new == ne
+        ...     assert ne == Path.cwd()
+        >>>
+        >>> new = Path('/bin/ls')
+        >>> with chdir(new) as (pr, ne):
+        ...     assert previous == pr
+        ...     assert new.parent == ne
+        ...     assert ne == Path.cwd()
+        >>>
+        >>> new = Path('/bin/foo')
+        >>> with chdir(new) as (pr, ne):
+        ...     assert previous == pr
+        ...     assert new.parent == ne
+        ...     assert ne == Path.cwd()
+        >>>
+        >>> with chdir() as (pr, ne):
+        ...     assert previous == pr
+        ...     if MACOS:
+        ...         assert "var" in str(ne)
+        ...     assert ne == Path.cwd() # doctest: +SKIP
+
+    Args:
+        data: directory or parent if file or True for temp directory
+
+    Returns:
+        Old directory and new directory
+    """
+
+    def y(new):
+        os.chdir(new)
+        return oldpwd, new
+
+    oldpwd = Path.cwd()
+    try:
+        if data is True:
+            with TempDir() as tmp:
+                yield y(tmp)
+        else:
+            yield y(parent(data, none=False))
+    finally:
+        os.chdir(oldpwd)
+
+
 def cmd(*args, **kwargs) -> subprocess.CompletedProcess:
     """Exec Command.
 
@@ -2020,6 +2240,366 @@ def cmd(*args, **kwargs) -> subprocess.CompletedProcess:
     if completed.returncode != 0:
         raise CmdError(completed)
     return completed
+
+
+def cmdrun(
+    data: Iterable, exc: bool = False, lines: bool = True, shell: bool = True, py: bool = False, pysite: bool = True
+) -> subprocess.CompletedProcess | int | list | str:
+    r"""Runs a cmd.
+
+    Examples:
+        >>> from nodeps import cmdrun
+        >>> from nodeps import in_tox
+        >>>
+        >>> cmdrun('ls a')  # doctest: +ELLIPSIS
+        CompletedProcess(args='ls a', returncode=..., stdout=[], stderr=[...])
+        >>> assert 'Requirement already satisfied' in cmdrun('pip install pip', py=True).stdout[0]
+        >>> cmdrun('ls a', shell=False, lines=False)  # doctest: +ELLIPSIS
+        CompletedProcess(args=['ls', 'a'], returncode=..., stdout='', stderr=...)
+        >>> cmdrun('echo a', lines=False)  # Extra '\' added to avoid docstring error.
+        CompletedProcess(args='echo a', returncode=0, stdout='a\n', stderr='')
+        >>> assert "venv" not in cmdrun("sysconfig", py=True, lines=False).stdout
+        >>> if not in_tox():
+        ...     assert "venv" in cmdrun("sysconfig", py=True, pysite=False, lines=False).stdout
+
+    Args:
+        data: command.
+        exc: raise exception.
+        lines: split lines so ``\\n`` is removed from all lines (extra '\' added to avoid docstring error).
+        py: runs with python executable.
+        shell: expands shell variables and one line (shell True expands variables in shell).
+        pysite: run on site python if running on a VENV.
+
+    Returns:
+        Union[CompletedProcess, int, list, str]: Completed process output.
+
+    Raises:
+        CmdError:
+    """
+    if py:
+        m = "-m"
+        if isinstance(data, str) and data.startswith("/"):
+            m = ""
+        data = f"{EXECUTABLE_SITE if pysite else EXECUTABLE} {m} {data}"
+    elif not shell:
+        data = toiter(data)
+
+    text = not lines
+
+    proc = subprocess.run(data, shell=shell, capture_output=True, text=text)
+
+    def std(out=True):
+        if out:
+            if lines:
+                return proc.stdout.decode("utf-8").splitlines()
+            return proc.stdout
+        if lines:
+            return proc.stderr.decode("utf-8").splitlines()
+        return proc.stderr
+
+    rv = subprocess.CompletedProcess(proc.args, proc.returncode, std(), std(False))
+    if rv.returncode != 0 and exc:
+        raise CmdError(rv)
+    return rv
+
+
+def cmdsudo(*args, user: str = "root", **kwargs) -> subprocess.CompletedProcess | None:
+    """Run Program with sudo if user is different that the current user.
+
+    Arguments:
+        *args: command and args to run
+        user: run as user (Default: False)
+        **kwargs: subprocess.run kwargs
+
+    Returns:
+        CompletedProcess if the current user is not the same as user, None otherwise
+    """
+    if not ami(user):
+        return cmd(["sudo", "-u", user, *args], **kwargs)
+    return None
+
+
+def command(*args, **kwargs) -> subprocess.CompletedProcess:
+    """Exec Command with the following defaults compared to :func:`subprocess.run`.
+
+        - capture_output=True
+        - text=True
+        - check=True
+
+    Examples:
+        >>> from nodeps import TempDir
+        >>> with TempDir() as tmp:
+        ...     rv = command("git", "clone", "https://github.com/octocat/Hello-World.git", tmp)
+        ...     assert rv.returncode == 0
+        ...     assert (tmp / ".git").exists()
+
+    Args:
+        *args: command and args
+        **kwargs: `subprocess.run` kwargs
+
+    Raises:
+        CmdError
+
+    Returns:
+        None
+    """
+    completed = subprocess.run(args, **kwargs, capture_output=True, text=True)
+
+    if completed.returncode != 0:
+        raise CalledProcessError(completed=completed)
+    return completed
+
+
+def findfile(pattern, path: StrOrBytesPath = None) -> list[Path]:
+    """Find file with pattern.
+
+    Examples:
+        >>> from pathlib import Path
+        >>> import nodeps
+        >>> from nodeps import findfile
+        >>>
+        >>> assert Path(nodeps.__file__) in findfile("*.py")
+
+    Args:
+        pattern: pattern to search files
+        path: default cwd
+
+    Returns:
+        list of files found
+    """
+    result = []
+    for root, _, files in os.walk(path or Path.cwd()):
+        for name in files:
+            if fnmatch.fnmatch(name, pattern):
+                result.append(Path(root, name))
+    return result
+
+
+def findup(
+    path: StrOrBytesPath = None,
+    kind: Literal["exists", "is_dir", "is_file"] = "is_file",
+    name: str | Path = ".env",
+    uppermost: bool = False,
+) -> Path | None:
+    """Find up if name exists or is file or directory.
+
+    Examples:
+        >>> import email
+        >>> import email.mime
+        >>> from pathlib import Path
+        >>> import nodeps
+        >>> from nodeps import chdir, findup, parent
+        >>>
+        >>>
+        >>> file = Path(email.mime.__file__)
+        >>>
+        >>> with chdir(parent(nodeps.__file__)):
+        ...     pyproject_toml = findup(nodeps.__file__, name="pyproject.toml")
+        ...     assert pyproject_toml.is_file()
+        >>>
+        >>> with chdir(parent(email.mime.__file__)):
+        ...     email_mime_py = findup(name="__init__.py")
+        ...     assert email_mime_py.is_file()
+        ...     assert email_mime_py == Path(email.mime.__file__)
+        ...     email_py = findup(name="__init__.py", uppermost=True)
+        ...     assert email_py.is_file()
+        ...     assert email_py == Path(email.__file__)
+        >>>
+        >>> assert findup(kind="is_dir", name=nodeps.__name__) == Path(nodeps.__name__).parent.resolve()
+        >>>
+        >>> assert findup(file, kind="exists", name="__init__.py") == file.parent / "__init__.py"
+        >>> assert findup(file, name="__init__.py") == file.parent / "__init__.py"
+        >>> assert findup(file, name="__init__.py", uppermost=True) == file.parent.parent / "__init__.py"
+
+    Args:
+        path: CWD if None or Path.
+        kind: Exists, file or directory.
+        name: File or directory name.
+        uppermost: Find uppermost found if True (return the latest found if more than one) or first if False.
+
+    Returns:
+        Path if found.
+    """
+    name = name.name if isinstance(name, Path) else name
+    start = parent(path or Path.cwd())
+    latest = None
+    while True:
+        if getattr(find := start / name, kind)():
+            if not uppermost:
+                return find
+            latest = find
+        if (start := start.parent) == Path("/"):
+            return latest
+
+
+def flatten(
+    data: tuple | list | set,
+    recurse: bool = False,
+    unique: bool = False,
+    sort: bool = True,
+) -> tuple | list | set:
+    """Flattens an Iterable.
+
+    Examples:
+        >>> from nodeps import flatten
+        >>>
+        >>> assert flatten([1, 2, 3, [1, 5, 7, [2, 4, 1, ], 7, 6, ]]) == [1, 2, 3, 1, 5, 7, [2, 4, 1], 7, 6]
+        >>> assert flatten([1, 2, 3, [1, 5, 7, [2, 4, 1, ], 7, 6, ]], recurse=True) == [1, 1, 1, 2, 2, 3, 4, 5, 6, 7, 7]
+        >>> assert flatten((1, 2, 3, [1, 5, 7, [2, 4, 1, ], 7, 6, ]), unique=True) == (1, 2, 3, 4, 5, 6, 7)
+
+    Args:
+        data: iterable
+        recurse: recurse
+        unique: when recurse
+        sort: sort
+
+    Returns:
+        Union[list, Iterable]:
+    """
+    if unique:
+        recurse = True
+
+    cls = data.__class__
+
+    flat = []
+    _ = [
+        flat.extend(flatten(item, recurse, unique) if recurse else item)
+        if isinstance(item, list)
+        else flat.append(item)
+        for item in data
+        if item
+    ]
+    value = set(flat) if unique else flat
+    if sort:
+        try:
+            value = cls(sorted(value))
+        except TypeError:
+            value = cls(value)
+    return value
+
+
+def in_tox() -> bool:
+    """Running in tox."""
+    return ".tox" in sysconfig.get_paths()["purelib"]
+
+
+def parent(path: StrOrBytesPath = __file__, none: bool = True) -> Path | None:
+    """Parent if File or None if it does not exist.
+
+    Examples:
+        >>> from nodeps import parent
+        >>>
+        >>> parent("/bin/ls")
+        Path('/bin')
+        >>> parent("/bin")
+        Path('/bin')
+        >>> parent("/bin/foo", none=False)
+        Path('/bin')
+        >>> parent("/bin/foo")
+
+    Args:
+        path: file or dir.
+        none: return None if it is not a directory and does not exist (default: True)
+
+    Returns:
+        Path
+    """
+    return path.parent if (path := Path(path)).is_file() else path if path.is_dir() else None if none else path.parent
+
+
+def returncode(c: str | list[str], shell: bool = True) -> int:
+    """Runs command in shell and returns returncode showing stdout and stderr.
+
+    No exception is raised
+
+    Examples:
+        >>> from nodeps import returncode
+        >>>
+        >>> assert returncode("ls /bin/ls") == 0
+        >>> assert returncode("ls foo") == 1
+
+    Arguments:
+        c: command to run
+        shell: run in shell (default: True)
+
+    Returns:
+        return code
+
+    """
+    return subprocess.call(c, shell=shell)
+
+
+def stdout(shell: AnyStr, keepends: bool = False, split: bool = False) -> list[str] | str | None:
+    """Return stdout of executing cmd in a shell or None if error.
+
+    Execute the string 'cmd' in a shell with 'subprocess.getstatusoutput' and
+    return a stdout if success. The locale encoding is used
+    to decode the output and process newlines.
+
+    A trailing newline is stripped from the output.
+
+    Examples:
+        >>> from nodeps import stdout
+        >>>
+        >>> stdout("ls /bin/ls")
+        '/bin/ls'
+        >>> stdout("true")
+        ''
+        >>> stdout("ls foo")
+        >>> stdout("ls /bin/ls", split=True)
+        ['/bin/ls']
+
+    Args:
+        shell: command to be executed
+        keepends: line breaks when ``split`` if true, are not included in the resulting list unless keepends
+            is given and true.
+        split: return a list of the stdout lines in the string, breaking at line boundaries.(default: False)
+
+    Returns:
+        Stdout or None if error.
+    """
+    exitcode, data = subprocess.getstatusoutput(shell)
+
+    if exitcode == 0:
+        if split:
+            return data.splitlines(keepends=keepends)
+        return data
+    return None
+
+
+def suppress(
+    func: Callable[P, T],
+    *args: P.args,
+    exception: ExcType | None = Exception,
+    **kwargs: P.kwargs,
+) -> T:
+    """Try and supress exception.
+
+    Args:
+        func: function to call
+        *args: args to pass to func
+        exception: exception to suppress (default: Exception)
+        **kwargs: kwargs to pass to func
+
+    Returns:
+        result of func
+    """
+    with contextlib.suppress(exception or Exception):
+        return func(*args, **kwargs)
+
+
+def syssudo(user: str = "root") -> subprocess.CompletedProcess | None:
+    """Rerun Program with sudo ``sys.executable`` and ``sys.argv`` if user is different that the current user.
+
+    Arguments:
+        user: run as user (Default: False)
+
+    Returns:
+        CompletedProcess if the current user is not the same as user, None otherwise
+    """
+    if not ami(user):
+        return cmd(["sudo", "-u", user, sys.executable, *sys.argv])
+    return None
 
 
 def toiter(obj: Any, always: bool = False, split: str = " ") -> Any:
@@ -2052,6 +2632,40 @@ def toiter(obj: Any, always: bool = False, split: str = " ") -> Any:
     elif not isinstance(obj, Iterable) or always:
         obj = [obj]
     return obj
+
+
+def urljson(
+    url: str,
+) -> dict:
+    """Url open json.
+
+    Examples:
+        >>> import os
+        >>> from nodeps import urljson
+        >>> from nodeps import GIT
+        >>> from nodeps import GITHUB_TOKEN
+        >>> from nodeps import NODEPS_PROJECT_NAME
+        >>>
+        >>> if os.environ.get('GITHUB_TOKEN'):
+        ...     github = urljson(f"https://api.github.com/repos/{GIT}/{NODEPS_PROJECT_NAME}")
+        ...     assert github['name'] == NODEPS_PROJECT_NAME
+        >>>
+        >>> pypi = urljson(f"https://pypi.org/pypi/{NODEPS_PROJECT_NAME}/json")
+        >>> assert pypi['info']['name'] == NODEPS_PROJECT_NAME
+
+
+    Returns:
+        dict: pypi information
+    """
+    if url.lower().startswith("https"):
+        request = urllib.request.Request(url)
+    else:
+        msg = f"Non-HTTPS URL: {url}"
+        raise ValueError(msg)
+    if "github" in url:
+        request.add_header("Authorization", f"token {GITHUB_TOKEN}")
+    with urllib.request.urlopen(request) as response:  # noqa: S310
+        return json.loads(response.read().decode())
 
 
 def which(data="sudo", raises: bool = False) -> str:
@@ -2095,3 +2709,6 @@ def which(data="sudo", raises: bool = False) -> str:
 
 EXECUTABLE = Path(sys.executable)
 EXECUTABLE_SITE = Path(EXECUTABLE).resolve()
+
+subprocess.CalledProcessError = CalledProcessError
+sys.meta_path.append(PipMetaPathFinder)
