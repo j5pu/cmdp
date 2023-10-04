@@ -4,7 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bf31d71b-78d7-4bdd-9f09-b7f6e0f14454" name="Changes" comment="" />
+    <list default="true" id="bf31d71b-78d7-4bdd-9f09-b7f6e0f14454" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/tests/test_import.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/tox.ini" beforeDir="false" afterPath="$PROJECT_DIR$/../ppath/tox.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pproj/src/pproj/project.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pproj/src/pproj/project.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -27,6 +31,7 @@
   &quot;associatedIndex&quot;: 7
 }</component>
   <component name="ProjectId" id="2WI4Bc4V7Ttja476AHam7dZWtLh" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showExcludedFiles" value="false" />
@@ -46,6 +51,9 @@
   }
 }</component>
   <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/../Desktop/JetBrains/scratch/scratches" />
     </key>

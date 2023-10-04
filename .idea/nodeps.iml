@@ -12,6 +12,7 @@
     <orderEntry type="jdk" jdkName="Python 3.11 (nodeps)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="ppath" />
+    <orderEntry type="module" module-name="pproj" />
   </component>
   <component name="PyDocumentationSettings">
     <option name="format" value="GOOGLE" />
