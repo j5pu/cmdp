@@ -27,10 +27,10 @@ LINUX = sys.platform == "linux"
 """Is Linux? sys.platform == 'linux'"""
 MACOS = sys.platform == "darwin"
 """Is macOS? sys.platform == 'darwin'"""
-PW_ROOT = pwd.getpwnam("root")
-PW_USER = pwd.getpwnam(os.environ["USER"])
 USER = os.getenv("USER")
 """"Environment Variable $USER"""
+PW_ROOT = pwd.getpwnam("root")
+PW_USER = pwd.getpwnam(USER) if USER else PW_ROOT
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -70,10 +70,10 @@ def ami(user: str = "root") -> bool:
         False
 
     Arguments:
-        user: to check against current user (Default: False)
+        user: to check against current user (Default: root)
 
     Returns:
-        CompletedProcess if the current user is not the same as user, None otherwise
+        bool True if I am user, False otherwise
     """
     return os.getuid() == pwd.getpwnam(user or getpass.getuser()).pw_uid
 
