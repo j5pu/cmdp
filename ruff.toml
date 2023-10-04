@@ -1,4 +1,5 @@
 exclude = ["docs", "tests"]
+include = ["src/**"]
 fix = true
 ignore-init-module-imports = true
 ignore = [
