@@ -6,9 +6,28 @@
   <component name="ChangeListManager">
     <list default="true" id="bf31d71b-78d7-4bdd-9f09-b7f6e0f14454" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/../gitp/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../gitp/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ruff.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nodeps/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/nodeps/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/.coveragerc" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/.dockerignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/.editorconfig" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/.readthedocs.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/Dockerfile" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/LICENSE" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/Makefile" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/codecov.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/docs/conf.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/docs/index.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/docs/license.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/docs/reference.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/docs/requirements.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/pyproject.toml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/pytest.ini" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/ruff.toml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/setup.cfg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/tests/test_import.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/tox.ini" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../pproj/src/pproj/project.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pproj/src/pproj/project.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
