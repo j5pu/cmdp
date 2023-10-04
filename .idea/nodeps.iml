@@ -13,6 +13,8 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="ppath" />
     <orderEntry type="module" module-name="pproj" />
+    <orderEntry type="module" module-name="gitp" />
+    <orderEntry type="module" module-name="ppip" />
   </component>
   <component name="PyDocumentationSettings">
     <option name="format" value="GOOGLE" />

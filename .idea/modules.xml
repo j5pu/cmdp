@@ -2,8 +2,10 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/../gitp/.idea/gitp.iml" filepath="$PROJECT_DIR$/../gitp/.idea/gitp.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/nodeps.iml" filepath="$PROJECT_DIR$/.idea/nodeps.iml" />
       <module fileurl="file://$PROJECT_DIR$/../ppath/.idea/ppath.iml" filepath="$PROJECT_DIR$/../ppath/.idea/ppath.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../ppip/.idea/ppip.iml" filepath="$PROJECT_DIR$/../ppip/.idea/ppip.iml" />
       <module fileurl="file://$PROJECT_DIR$/../pproj/.idea/pproj.iml" filepath="$PROJECT_DIR$/../pproj/.idea/pproj.iml" />
     </modules>
   </component>

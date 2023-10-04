@@ -5,8 +5,35 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bf31d71b-78d7-4bdd-9f09-b7f6e0f14454" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/backup/.devcontainer/devcontainer.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backup/.github/dependabot.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backup/.github/workflows/deploy.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backup/.github/workflows/test.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backup/Dockerfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backup/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backup/docker-compose.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backup/sudoers.conf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../gitp/.idea/gitp.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../gitp/.idea/gitp.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../gitp/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../gitp/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../gitp/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../gitp/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../gitp/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../gitp/.idea/ruff.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../gitp/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../gitp/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../gitp/src/gitp/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/../gitp/src/gitp/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nodeps/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/nodeps/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/backup/.devcontainer/devcontainer.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/backup/.github/dependabot.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/backup/.github/workflows/deploy.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/backup/.github/workflows/test.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/backup/Dockerfile" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/backup/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/backup/docker-compose.yml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/backup/sudoers.conf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/src/ppath/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppath/src/ppath/__init__.pyi" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../ppath/tox.ini" beforeDir="false" afterPath="$PROJECT_DIR$/../ppath/tox.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppip/src/ppip/utils/classes.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ppip/src/ppip/utils/classes.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppip/src/ppip/utils/functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ppip/src/ppip/utils/functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pproj/src/pproj/project.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pproj/src/pproj/project.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -55,6 +82,7 @@
       <recent name="$PROJECT_DIR$" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/../Desktop/JetBrains/scratch/scratches" />
     </key>
   </component>
