@@ -3,6 +3,8 @@ from __future__ import annotations
 
 __all__ = (
     "AUTHOR",
+    "COLOR_FIRST_OTHER",
+    "COLORIZE",
     "GIT",
     "GIT_DEFAULT_SCHEME",
     "GITHUB_DOMAIN",
@@ -14,11 +16,9 @@ __all__ = (
     "NODEPS_PROJECT_NAME",
     "PYTHON_FTP",
     "USER",
-
     "EMAIL",
     "PW_ROOT",
     "PW_USER",
-
     "AnyIO",
     "ChainLiteral",
     "ExcType",
@@ -28,10 +28,8 @@ __all__ = (
     "StrOrBytesPath",
     "ThreadLock",
     "RunningLoop",
-
     "AnyPath",
     "LockClass",
-
     "CalledProcessError",
     "Chain",
     "CmdError",
@@ -51,7 +49,6 @@ __all__ = (
     "Path",
     "PipMetaPathFinder",
     "TempDir",
-
     "aioclone",
     "aioclosed",
     "aiocmd",
@@ -113,8 +110,31 @@ __all__ = (
     "toiter",
     "urljson",
     "which",
+    "black",
+    "red",
+    "green",
+    "yellow",
+    "blue",
+    "magenta",
+    "cyan",
+    "white",
+    "bblack",
+    "bred",
+    "bgreen",
+    "byellow",
+    "bblue",
+    "bmagenta",
+    "bcyan",
+    "bwhite",
+    "reset",
+
+    "EnumLower",
+    "Color",
+    "Symbol",
+
     "EXECUTABLE",
     "EXECUTABLE_SITE",
+    "SYMBOL",
 )
 
 import abc
@@ -190,6 +210,12 @@ except ModuleNotFoundError:
     structlog = None
 
 try:
+    # nodeps[echo] extras
+    import typer  # type: ignore[attr-defined]
+except ModuleNotFoundError:
+    typer = None
+
+try:
     # nodeps[log] extras
     from loguru import logger as loguru_logger  # type: ignore[attr-defined]
 except ModuleNotFoundError:
@@ -223,6 +249,19 @@ if TYPE_CHECKING:
 
 
 AUTHOR = "José Antonio Puértolas Montañés"
+COLOR_FIRST_OTHER = {
+    "first": {
+        "bold": True,
+        "italic": False,
+    },
+    "other": {
+        "bold": False,
+        "italic": True,
+    },
+}
+"""Print format for the `first` part of text and the `other` part when calling :class:`Symbol`."""
+COLORIZE = os.environ.get("COLORIZE")
+"""Force showing or hiding colors and other styles colorized output."""
 GIT = os.environ.get("GIT", "j5pu")
 """GitHub user name"""
 GIT_DEFAULT_SCHEME = "https"
@@ -243,9 +282,11 @@ GitHub: api, git+file, git+https, git+ssh, https, ssh and git URLs
 """
 LINUX = sys.platform == "linux"
 """Is Linux? sys.platform == 'linux'"""
-LOGGER_DEFAULT_FMT = ("<level>{level: <8}</level> <red>|</red> "
-                      "<cyan>{name}</cyan> <red>|</red> <red>|</red> "
-                      "<level>{message}</level>")
+LOGGER_DEFAULT_FMT = (
+    "<level>{level: <8}</level> <red>|</red> "
+    "<cyan>{name}</cyan> <red>|</red> <red>|</red> "
+    "<level>{message}</level>"
+)
 MACOS = sys.platform == "darwin"
 """Is macOS? sys.platform == 'darwin'"""
 NODEPS_PROJECT_NAME = "nodeps"
@@ -503,6 +544,7 @@ Test1(a=1, b=2), <....Test4 object at 0x...>)
         >>> assert maps[0]['a'] == chain['a'] == 9
         >>> assert maps[1]['a'] == 2
     """
+
     rv: ChainLiteral = "unique"
     default: Any = None
     maps: list[Iterable | NamedtupleMeta | MutableMapping] = []  # noqa: RUF012
@@ -519,13 +561,13 @@ Test1(a=1, b=2), <....Test4 object at 0x...>)
         for mapping in self.maps:
             if hasattr(mapping, "_field_defaults"):
                 mapping = mapping._asdict()  # noqa: PLW2901
-            elif hasattr(mapping, 'asdict'):
+            elif hasattr(mapping, "asdict"):
                 to_dict = mapping.__class__.asdict
                 if isinstance(to_dict, property):
                     mapping = mapping.asdict  # noqa: PLW2901
                 elif callable(to_dict):
                     mapping = mapping.asdict()  # noqa: PLW2901
-            if hasattr(mapping, '__getitem__'):
+            if hasattr(mapping, "__getitem__"):
                 try:
                     value = mapping[key]
                     if self.rv == "first":
@@ -534,8 +576,11 @@ Test1(a=1, b=2), <....Test4 object at 0x...>)
                         rv.append(value)
                 except KeyError:
                     pass
-            elif hasattr(mapping, '__getattribute__') and isinstance(key, str) and \
-                    not isinstance(mapping, (tuple | bool | int | str | bytes)):
+            elif (
+                hasattr(mapping, "__getattribute__")
+                and isinstance(key, str)
+                and not isinstance(mapping, (tuple | bool | int | str | bytes))
+            ):
                 try:
                     value = getattr(mapping, key)
                     if self.rv == "first":
@@ -554,12 +599,12 @@ Test1(a=1, b=2), <....Test4 object at 0x...>)
         for mapping in self.maps:
             if mapping:
                 if not isinstance(mapping, (tuple | bool | int | str | bytes)):
-                    if hasattr(mapping, '__delitem__'):
+                    if hasattr(mapping, "__delitem__"):
                         if key in mapping:
                             del mapping[key]
                             if self.rv == "first":
                                 found = True
-                    elif hasattr(mapping, '__delattr__') and hasattr(mapping, key) and isinstance(key, str):
+                    elif hasattr(mapping, "__delattr__") and hasattr(mapping, key) and isinstance(key, str):
                         delattr(mapping.__class__, key) if key in dir(mapping.__class__) else delattr(mapping, key)
                         if self.rv == "first":
                             found = True
@@ -583,21 +628,21 @@ Test1(a=1, b=2), <....Test4 object at 0x...>)
         for mapping in self.maps:
             if mapping:
                 if not isinstance(mapping, (tuple | bool | int | str | bytes)):
-                    if hasattr(mapping, '__setitem__'):
+                    if hasattr(mapping, "__setitem__"):
                         if key in mapping:
                             mapping[key] = value
                             if self.rv == "first":
                                 found = True
-                    elif hasattr(mapping, '__setattr__') and hasattr(mapping, key) and isinstance(key, str):
+                    elif hasattr(mapping, "__setattr__") and hasattr(mapping, key) and isinstance(key, str):
                         setattr(mapping, key, value)
                         if self.rv == "first":
                             found = True
                 if found:
                     break
         if not found and not isinstance(self.maps[0], (tuple | bool | int | str | bytes)):
-            if hasattr(self.maps[0], '__setitem__'):
+            if hasattr(self.maps[0], "__setitem__"):
                 self.maps[0][key] = value
-            elif hasattr(self.maps[0], '__setattr__') and isinstance(key, str):
+            elif hasattr(self.maps[0], "__setattr__") and isinstance(key, str):
                 setattr(self.maps[0], key, value)
         return self
 
@@ -633,6 +678,7 @@ class CommandNotFoundError(_NoDepsBaseError):
 
 class EnumLower(enum.Enum):
     """EnumLower class."""
+
     def _generate_next_value_(self: str, start, count: int, last_values) -> str:
         return str(self).lower()
 
@@ -1007,11 +1053,7 @@ class Env:
                 except :func:`Env.as_int` (default: True)
         """
         # TODO: python-decouple
-        self.__dict__.update(
-            {k: self.as_int(k, v) for k, v in os.environ.items()}
-            if parsed
-            else os.environ
-        )
+        self.__dict__.update({k: self.as_int(k, v) for k, v in os.environ.items()} if parsed else os.environ)
 
     def __contains__(self, item):
         """Check if item is in self.__dict__."""
@@ -1034,9 +1076,7 @@ class Env:
         return self.__getattr__(item)
 
     @classmethod
-    def as_int(
-        cls, key: str, value: str = ""
-    ) -> bool | Path | ParseResult | IPv4Address | IPv6Address | int | str:
+    def as_int(cls, key: str, value: str = "") -> bool | Path | ParseResult | IPv4Address | IPv6Address | int | str:
         """Parse as int if environment variable should be forced to be parsed as int checking if:.
 
             - has value,
@@ -1062,7 +1102,7 @@ class Env:
 
     @staticmethod
     def parse_as_bool(
-            variable: str = "USER",
+        variable: str = "USER",
     ) -> bool | Path | ParseResult | IPv4Address | IPv6Address | int | str | None:
         """Parses variable from environment 1 and 0 as bool instead of int.
 
@@ -1145,9 +1185,10 @@ class Env:
         return value
 
     @classmethod
-    def parse_as_int(cls,
-                     name: str = "USER",
-                     ) -> bool | Path | ParseResult | IPv4Address | IPv6Address | int | str | None:
+    def parse_as_int(
+        cls,
+        name: str = "USER",
+    ) -> bool | Path | ParseResult | IPv4Address | IPv6Address | int | str | None:
         """Parses variable from environment using :func:`mreleaser.parse_str`,.
 
         except ``SUDO_UID`` or ``SUDO_GID`` which are parsed as int instead of bool.
@@ -1258,6 +1299,7 @@ class EnvBuilder(venv.EnvBuilder):
         env_dir: bool
             The target directory to create an environment in.
     """
+
     system_site_packages: bool = False
     clear: bool = False
     symlinks: bool = True
@@ -1270,9 +1312,15 @@ class EnvBuilder(venv.EnvBuilder):
 
     def __post_init__(self):
         """Initialize the environment builder and also creates the environment is does not exist."""
-        super().__init__(system_site_packages=self.system_site_packages, clear=self.clear, symlinks=self.symlinks,
-                         upgrade=self.upgrade, with_pip=self.with_pip, prompt=self.prompt,
-                         **({"upgrade_deps": self.upgrade_deps} if sys.version_info >= (3, 9) else {}))
+        super().__init__(
+            system_site_packages=self.system_site_packages,
+            clear=self.clear,
+            symlinks=self.symlinks,
+            upgrade=self.upgrade,
+            with_pip=self.with_pip,
+            prompt=self.prompt,
+            **({"upgrade_deps": self.upgrade_deps} if sys.version_info >= (3, 9) else {}),
+        )
         if self.env_dir:
             self.env_dir = Path(self.env_dir)
             if self.env_dir.exists():
@@ -1315,6 +1363,7 @@ class EnvBuilder(venv.EnvBuilder):
 @dataclasses.dataclass
 class FileConfig:
     """FileConfig class."""
+
     file: Path | None = None
     config: dict = dataclasses.field(default_factory=dict)
 
@@ -1322,6 +1371,7 @@ class FileConfig:
 @dataclasses.dataclass
 class FrameSimple:
     """Simple frame class."""
+
     back: types.FrameType
     code: types.CodeType
     frame: types.FrameType
@@ -1338,6 +1388,7 @@ class FrameSimple:
 @dataclasses.dataclass
 class GroupUser:
     """GroupUser class."""
+
     group: int | str
     user: int | str
 
@@ -1358,7 +1409,7 @@ class LetterCounter:
         >>> assert c.increment() == 'AA'
     """
 
-    def __init__(self, start: str = 'A') -> None:
+    def __init__(self, start: str = "A") -> None:
         """Init."""
         self.current_value = [string.ascii_uppercase.index(v) for v in start[::-1]]
 
@@ -1388,7 +1439,7 @@ class LetterCounter:
                 self.current_value.append(0)
                 break
         # Form the string and return
-        return ''.join(reversed([string.ascii_uppercase[i] for i in self.current_value]))
+        return "".join(reversed([string.ascii_uppercase[i] for i in self.current_value]))
 
 
 class NamedtupleMeta(metaclass=abc.ABCMeta):
@@ -1406,6 +1457,7 @@ class NamedtupleMeta(metaclass=abc.ABCMeta):
         >>> assert issubclass(named, NamedtupleMeta) == True
         >>> assert issubclass(named, tuple) == True
     """
+
     _fields: tuple[str, ...] = ()
     _field_defaults: dict[str, Any] = {}  # noqa: RUF012
 
@@ -1418,8 +1470,9 @@ class NamedtupleMeta(metaclass=abc.ABCMeta):
     def __subclasshook__(cls, C: type) -> bool:  # noqa: N803
         """Subclass hook."""
         if cls is NamedtupleMeta:
-            return (hasattr(C, "_asdict") and callable(C._asdict)) and all([issubclass(C, tuple), hasattr(C, "_fields"),
-                                                                            hasattr(C, "_field_defaults")])
+            return (hasattr(C, "_asdict") and callable(C._asdict)) and all(
+                [issubclass(C, tuple), hasattr(C, "_fields"), hasattr(C, "_field_defaults")]
+            )
         return NotImplemented
 
 
@@ -1471,6 +1524,7 @@ class OwnerRepo:
     Raises:
         InvalidArgumentError: if invalid argument to get URL
     """
+
     owner: str = dataclasses.field(default=GIT)
     repo: str = dataclasses.field(default=None)
     scheme: str = dataclasses.field(default=GIT_DEFAULT_SCHEME)
@@ -1625,12 +1679,8 @@ class Passwd:
         Returns:
             Instance of :class:`ppip:Passwd`
         """
-        if (isinstance(data, str) and not data.isnumeric()) or isinstance(
-                data, pathlib.PurePosixPath
-        ):
-            passwd = pwd.getpwnam(
-                cast(str, getattr(data, "owner", lambda: None)() or data)
-            )
+        if (isinstance(data, str) and not data.isnumeric()) or isinstance(data, pathlib.PurePosixPath):
+            passwd = pwd.getpwnam(cast(str, getattr(data, "owner", lambda: None)() or data))
         else:
             passwd = pwd.getpwuid(int(data) if data or data == 0 else os.getuid())
 
@@ -1643,10 +1693,7 @@ class Passwd:
 
         group = grp.getgrgid(self.gid)
         self.group = group.gr_name
-        self.groups = {
-            grp.getgrgid(gid).gr_name: gid
-            for gid in os.getgrouplist(self.user, self.gid)
-        }
+        self.groups = {grp.getgrgid(gid).gr_name: gid for gid in os.getgrouplist(self.user, self.gid)}
 
     @property
     def is_su(self) -> bool:
@@ -1721,13 +1768,13 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
     """Path helper class."""
 
     def __call__(
-            self,
-            name: AnyPath = "",
-            file: PathIsLiteral = "is_dir",
-            passwd: Passwd | None = None,
-            mode: int | str | None = None,
-            effective_ids: bool = False,
-            follow_symlinks: bool = False,
+        self,
+        name: AnyPath = "",
+        file: PathIsLiteral = "is_dir",
+        passwd: Passwd | None = None,
+        mode: int | str | None = None,
+        effective_ids: bool = False,
+        follow_symlinks: bool = False,
     ) -> Path:
         """Make dir or touch file and create subdirectories as needed.
 
@@ -1784,11 +1831,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         Returns:
             bool
         """
-        value = (
-            self.__class__(value)
-            if isinstance(value, str) and "/" in value
-            else toiter(value)
-        )
+        value = self.__class__(value) if isinstance(value, str) and "/" in value else toiter(value)
         return all(item in self.resolve().parts for item in value)
 
     def __eq__(self, other: Path) -> bool:
@@ -1845,12 +1888,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return self.parts >= other.parts
 
     def access(
-            self,
-            os_mode: int = os.W_OK,
-            *,
-            dir_fd: int | None = None,
-            effective_ids: bool = False,
-            follow_symlinks: bool = False,
+        self,
+        os_mode: int = os.W_OK,
+        *,
+        dir_fd: int | None = None,
+        effective_ids: bool = False,
+        follow_symlinks: bool = False,
     ) -> bool | None:
         # noinspection LongLine
         """Checks if file or directory exists and has access (returns None if file/directory does not exist.
@@ -2028,8 +2071,11 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         os.chdir(path)
         return path
 
-    def checksum(self, algorithm: Literal["md5", "sha1", "sha224", "sha256", "sha384", "sha512"] = "sha256",
-                 block_size: int = 65536) -> str:
+    def checksum(
+        self,
+        algorithm: Literal["md5", "sha1", "sha224", "sha256", "sha384", "sha512"] = "sha256",
+        block_size: int = 65536,
+    ) -> str:
         """Calculate the checksum of a file.
 
         Examples:
@@ -2053,12 +2099,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return sha.hexdigest()
 
     def chmod(
-            self,
-            mode: int | str | None = None,
-            effective_ids: bool = False,
-            exception: bool = True,
-            follow_symlinks: bool = False,
-            recursive: bool = False,
+        self,
+        mode: int | str | None = None,
+        effective_ids: bool = False,
+        exception: bool = True,
+        follow_symlinks: bool = False,
+        recursive: bool = False,
     ) -> Path:
         """Change mode of self.
 
@@ -2111,12 +2157,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return self
 
     def chown(
-            self,
-            passwd=None,
-            effective_ids: bool = False,
-            exception: bool = True,
-            follow_symlinks: bool = False,
-            recursive: bool = False,
+        self,
+        passwd=None,
+        effective_ids: bool = False,
+        exception: bool = True,
+        follow_symlinks: bool = False,
+        recursive: bool = False,
     ) -> Path:
         """Change owner of path.
 
@@ -2183,9 +2229,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
                 ),
                 f"{self.chown.__name__}",
                 *(["-R"] if recursive and self.is_dir() else []),
-                f"{passwd.user}:{passwd.group}"
-                if isinstance(passwd, Passwd)
-                else passwd,
+                f"{passwd.user}:{passwd.group}" if isinstance(passwd, Passwd) else passwd,
                 self.resolve() if follow_symlinks else self,
             ],
             check=True,
@@ -2217,12 +2261,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return self.checksum() == self.__class__(other).checksum()
 
     def cp(
-            self,
-            dest: AnyPath,
-            contents: bool = False,
-            effective_ids: bool = False,
-            follow_symlinks: bool = False,
-            preserve: bool = False,
+        self,
+        dest: AnyPath,
+        contents: bool = False,
+        effective_ids: bool = False,
+        follow_symlinks: bool = False,
+        preserve: bool = False,
     ) -> Path:
         """Wrapper for shell `cp` command to copy file recursivily and adding sudo if necessary.
 
@@ -2295,9 +2339,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
 
         subprocess.run(
             [
-                *dest.sudo(
-                    effective_ids=effective_ids, follow_symlinks=follow_symlinks
-                ),
+                *dest.sudo(effective_ids=effective_ids, follow_symlinks=follow_symlinks),
                 f"{self.cp.__name__}",
                 *(["-R"] if self.is_dir() else []),
                 *(["-L"] if follow_symlinks else []),
@@ -2387,14 +2429,13 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
                     raise NotADirectoryError(msg)
                 return path
             if path.is_dir() or (
-                    path := path.parent.resolve()
-                    if follow_symlinks
-                    else path.parent.absolute()
+                path := path.parent.resolve() if follow_symlinks else path.parent.absolute()
             ) == self.__class__("/"):
                 return None
 
-    def find_up(self, function: PathIsLiteral = "is_file",
-                name: str = "__init__.py", uppermost: bool = False) -> Path | None:
+    def find_up(
+        self, function: PathIsLiteral = "is_file", name: str = "__init__.py", uppermost: bool = False
+    ) -> Path | None:
         """Find file or dir up.
 
         Examples:
@@ -2448,11 +2489,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         Returns:
             bool
         """
-        value = (
-            self.__class__(value)
-            if isinstance(value, str) and "/" in value
-            else toiter(value)
-        )
+        value = self.__class__(value) if isinstance(value, str) and "/" in value else toiter(value)
         return all(item in self.parts for item in value)
 
     def ln(self, dest: AnyPath, force: bool = True) -> Path:
@@ -2499,12 +2536,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return dest
 
     def mkdir(
-            self,
-            name: AnyPath = "",
-            passwd: Passwd | None = None,
-            mode: int | str | None = None,
-            effective_ids: bool = False,
-            follow_symlinks: bool = False,
+        self,
+        name: AnyPath = "",
+        passwd: Passwd | None = None,
+        mode: int | str | None = None,
+        effective_ids: bool = False,
+        follow_symlinks: bool = False,
     ) -> Path:
         """Add directory, make directory, change mode and return new Path.
 
@@ -2547,15 +2584,10 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             Path:
         """
         path = (self / str(name)).resolve() if follow_symlinks else (self / str(name))
-        if (
-                not path.is_dir()
-                and path.file_in_parents(follow_symlinks=follow_symlinks) is None
-        ):
+        if not path.is_dir() and path.file_in_parents(follow_symlinks=follow_symlinks) is None:
             subprocess.run(
                 [
-                    *path.sudo(
-                        effective_ids=effective_ids, follow_symlinks=follow_symlinks
-                    ),
+                    *path.sudo(effective_ids=effective_ids, follow_symlinks=follow_symlinks),
                     f"{self.mkdir.__name__}",
                     "-p",
                     *(["-m", str(mode)] if mode else []),
@@ -2605,13 +2637,13 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return dest
 
     def open(  # noqa: A003
-            self,
-            mode: str = "r",
-            buffering: int = -1,
-            encoding: str | None = None,
-            errors: str | None = None,
-            newline: str | None = None,
-            token: bool = False,
+        self,
+        mode: str = "r",
+        buffering: int = -1,
+        encoding: str | None = None,
+        errors: str | None = None,
+        newline: str | None = None,
+        token: bool = False,
     ) -> AnyIO | None:
         """Open the file pointed by this path and return a file object, as the built-in open function does."""
         if token:
@@ -2670,8 +2702,9 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         p = Path(path).absolute()
         return self.relative_to(p) if self.absolute().is_relative_to(p) else None
 
-    def rm(self, *args: str, effective_ids: bool = False, follow_symlinks: bool = False,
-           missing_ok: bool = True) -> None:
+    def rm(
+        self, *args: str, effective_ids: bool = False, follow_symlinks: bool = False, missing_ok: bool = True
+    ) -> None:
         """Delete a folder/file (even if the folder is not empty).
 
         Examples:
@@ -2747,13 +2780,16 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         """
         for directory, _, _ in os.walk(self, topdown=False):
             d = self.__class__(directory).absolute()
-            if len(list(d.iterdir())) == 0 and (
-                    not preserve or (d != self.absolute() and preserve)
-            ):
+            if len(list(d.iterdir())) == 0 and (not preserve or (d != self.absolute() and preserve)):
                 self.__class__(d).rmdir()
 
-    def setid(self, name: bool | str | None = None, uid: bool = True, effective_ids: bool = False,
-              follow_symlinks: bool = False) -> Path:
+    def setid(
+        self,
+        name: bool | str | None = None,
+        uid: bool = True,
+        effective_ids: bool = False,
+        follow_symlinks: bool = False,
+    ) -> Path:
         """Sets the set-user-ID-on-execution or set-group-ID-on-execution bits.
 
         Works if interpreter binary is setuid `u+s,+x` (-rwsr-xr-x), and:
@@ -2802,17 +2838,10 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         """
         change = False
         chmod = f'{"u" if uid else "g"}+s,+x'
-        mod = (
-                (stat.S_ISUID if uid else stat.S_ISGID)
-                | stat.S_IXUSR
-                | stat.S_IXGRP
-                | stat.S_IXOTH
-        )
+        mod = (stat.S_ISUID if uid else stat.S_ISGID) | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
         target = self.with_name(name) if name else self
         if name and (not target.exists() or not self.cmp(target)):
-            self.cp(
-                target, effective_ids=effective_ids, follow_symlinks=follow_symlinks
-            )
+            self.cp(target, effective_ids=effective_ids, follow_symlinks=follow_symlinks)
             change = True
         elif target.stats().result.st_mode & mod != mod:
             change = True
@@ -2829,8 +2858,13 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             )
         return target
 
-    def setid_cp(self, name: bool | str | None = None, uid: bool = True, effective_ids: bool = False,
-                 follow_symlinks: bool = False) -> Path:
+    def setid_cp(
+        self,
+        name: bool | str | None = None,
+        uid: bool = True,
+        effective_ids: bool = False,
+        follow_symlinks: bool = False,
+    ) -> Path:
         """Sets the set-user-ID-on-execution or set-group-ID-on-execution bits.
 
         Examples:
@@ -2872,17 +2906,10 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         """
         change = False
         chmod = f'{"u" if uid else "g"}+s,+x'
-        mod = (
-                (stat.S_ISUID if uid else stat.S_ISGID)
-                | stat.S_IXUSR
-                | stat.S_IXGRP
-                | stat.S_IXOTH
-        )
+        mod = (stat.S_ISUID if uid else stat.S_ISGID) | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
         target = self.with_name(name) if name else self
         if name and (not target.exists() or not self.cmp(target)):
-            self.cp(
-                target, effective_ids=effective_ids, follow_symlinks=follow_symlinks
-            )
+            self.cp(target, effective_ids=effective_ids, follow_symlinks=follow_symlinks)
             change = True
         elif target.stats().result.st_mode & mod != mod:
             change = True
@@ -2985,12 +3012,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         )
 
     def sudo(
-            self,
-            force: bool = False,
-            to_list: bool = True,
-            os_mode: int = os.W_OK,
-            effective_ids: bool = False,
-            follow_symlinks: bool = False,
+        self,
+        force: bool = False,
+        to_list: bool = True,
+        os_mode: int = os.W_OK,
+        effective_ids: bool = False,
+        follow_symlinks: bool = False,
     ) -> list[str] | str | None:
         """Returns sudo command if path or ancestors exist and is not own by user and sudo command not installed.
 
@@ -3020,28 +3047,18 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         Returns:
             `sudo` or "", str or list.
         """
-        if (rv := which()) and (
-                os.geteuid if effective_ids else os.getuid
-        )() != 0:
+        if (rv := which()) and (os.geteuid if effective_ids else os.getuid)() != 0:
             path = self
             while path:
                 if path.access(
-                        os_mode=os_mode,
-                        effective_ids=effective_ids,
-                        follow_symlinks=follow_symlinks,
+                    os_mode=os_mode,
+                    effective_ids=effective_ids,
+                    follow_symlinks=follow_symlinks,
                 ):
                     if not force:
                         rv = ""
                     break
-                if (
-                        path.exists()
-                        or str(
-                        path := (
-                            path.parent.resolve() if follow_symlinks else path.parent
-                        )
-                        )
-                        == "/"
-                ):
+                if path.exists() or str(path := (path.parent.resolve() if follow_symlinks else path.parent)) == "/":
                     break
         return ([rv] if rv else []) if to_list else rv
 
@@ -3061,8 +3078,9 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
 
     @classmethod
     @contextlib.contextmanager
-    def tempcd(cls, suffix: AnyStr | None = None, prefix: AnyStr | None = None,
-               directory: AnyPath | None = None) -> Path:
+    def tempcd(
+        cls, suffix: AnyStr | None = None, prefix: AnyStr | None = None, directory: AnyPath | None = None
+    ) -> Path:
         """Create temporaly directory, change to it and return it.
 
         This has the same behavior as mkdtemp but can be used as a context manager.
@@ -3091,9 +3109,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         Returns:
             Directory Path.
         """
-        with cls.tempdir(
-                suffix=suffix, prefix=prefix, directory=directory
-        ) as tmpdir, tmpdir.cd():
+        with cls.tempdir(suffix=suffix, prefix=prefix, directory=directory) as tmpdir, tmpdir.cd():
             try:
                 yield tmpdir
             finally:
@@ -3101,8 +3117,9 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
 
     @classmethod
     @contextlib.contextmanager
-    def tempdir(cls, suffix: AnyStr | None = None, prefix: AnyStr | None = None,
-                directory: AnyPath | None = None) -> Path:
+    def tempdir(
+        cls, suffix: AnyStr | None = None, prefix: AnyStr | None = None, directory: AnyPath | None = None
+    ) -> Path:
         """Create and return tmp directory.  This has the same behavior as mkdtemp but can be used as a context manager.
 
         Upon exiting the context, the directory and everything contained in it are removed.
@@ -3128,9 +3145,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         Returns:
             Directory Path.
         """
-        with tempfile.TemporaryDirectory(
-                suffix=suffix, prefix=prefix, dir=directory
-        ) as tmp:
+        with tempfile.TemporaryDirectory(suffix=suffix, prefix=prefix, dir=directory) as tmp:
             try:
                 yield cls(tmp)
             finally:
@@ -3139,34 +3154,34 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
     @classmethod
     @contextlib.contextmanager
     def tempfile(
-            cls,
-            mode: Literal[
-                "r",
-                "w",
-                "a",
-                "x",
-                "r+",
-                "w+",
-                "a+",
-                "x+",
-                "rt",
-                "wt",
-                "at",
-                "xt",
-                "r+t",
-                "w+t",
-                "a+t",
-                "x+t",
-            ] = "w",
-            buffering: int = -1,
-            encoding: str | None = None,
-            newline: str | None = None,
-            suffix: AnyStr | None = None,
-            prefix: AnyStr | None = None,
-            directory: AnyPath | None = None,
-            delete: bool = True,
-            *,
-            errors: str | None = None,
+        cls,
+        mode: Literal[
+            "r",
+            "w",
+            "a",
+            "x",
+            "r+",
+            "w+",
+            "a+",
+            "x+",
+            "rt",
+            "wt",
+            "at",
+            "xt",
+            "r+t",
+            "w+t",
+            "a+t",
+            "x+t",
+        ] = "w",
+        buffering: int = -1,
+        encoding: str | None = None,
+        newline: str | None = None,
+        suffix: AnyStr | None = None,
+        prefix: AnyStr | None = None,
+        directory: AnyPath | None = None,
+        delete: bool = True,
+        *,
+        errors: str | None = None,
     ) -> Path:
         """Create and return a temporary file.
 
@@ -3194,15 +3209,15 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             deleted when it is closed unless the 'delete' argument is set to False.
         """
         with tempfile.NamedTemporaryFile(
-                mode=mode,
-                buffering=buffering,
-                encoding=encoding,
-                newline=newline,
-                suffix=suffix,
-                prefix=prefix,
-                dir=directory,
-                delete=delete,
-                errors=errors,
+            mode=mode,
+            buffering=buffering,
+            encoding=encoding,
+            newline=newline,
+            suffix=suffix,
+            prefix=prefix,
+            dir=directory,
+            delete=delete,
+            errors=errors,
         ) as tmp:
             try:
                 yield cls(tmp.name)
@@ -3223,12 +3238,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return self.parent if self.is_file() else self
 
     def touch(
-            self,
-            name: AnyPath = "",
-            passwd: Passwd | None = None,
-            mode: int | str | None = None,
-            effective_ids: bool = False,
-            follow_symlinks: bool = False,
+        self,
+        name: AnyPath = "",
+        passwd: Passwd | None = None,
+        mode: int | str | None = None,
+        effective_ids: bool = False,
+        follow_symlinks: bool = False,
     ) -> Path:
         """Add file, touch and return post_init Path. Parent paths are created.
 
@@ -3269,9 +3284,9 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         path = self / str(name)
         path = path.resolve() if follow_symlinks else path.absolute()
         if (
-                not path.is_file()
-                and not path.is_dir()
-                and path.parent.file_in_parents(follow_symlinks=follow_symlinks) is None
+            not path.is_file()
+            and not path.is_dir()
+            and path.parent.file_in_parents(follow_symlinks=follow_symlinks) is None
         ):
             if not (d := path.parent).exists():
                 d.mkdir(
@@ -3281,18 +3296,14 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
                 )
             subprocess.run(
                 [
-                    *path.sudo(
-                        effective_ids=effective_ids, follow_symlinks=follow_symlinks
-                    ),
+                    *path.sudo(effective_ids=effective_ids, follow_symlinks=follow_symlinks),
                     f"{self.touch.__name__}",
                     path,
                 ],
                 capture_output=True,
                 check=True,
             )
-            path.chmod(
-                mode=mode, effective_ids=effective_ids, follow_symlinks=follow_symlinks
-            )
+            path.chmod(mode=mode, effective_ids=effective_ids, follow_symlinks=follow_symlinks)
             if passwd is not None:
                 path.chown(
                     passwd=passwd,
@@ -3365,6 +3376,7 @@ class Repo(GitRepo):
 
     'working_tree_dir' is the working tree directory, but will raise AssertionError if we are a bare repository.
     """
+
     git: GitCmd = dataclasses.field(init=False)
     """
     The Repo class manages communication with the Git binary.
@@ -3394,8 +3406,9 @@ class Repo(GitRepo):
     search_parent_directories: dataclasses.InitVar[bool] = True
     """if True, all parent directories will be searched for a valid repo as well."""
 
-    def __post_init__(self, path: AnyPath | None, expand_vars: bool,
-                      odbt: type[LooseObjectDB], search_parent_directories: bool):
+    def __post_init__(
+        self, path: AnyPath | None, expand_vars: bool, odbt: type[LooseObjectDB], search_parent_directories: bool
+    ):
         """Create a new Repo instance.
 
         Examples:
@@ -3430,8 +3443,12 @@ class Repo(GitRepo):
             msg = f"GitPython is not installed: installed with 'pip install {NODEPS_PROJECT_NAME}[repo]'"
             raise ImportError(msg)
 
-        super().__init__(path if path is None else Path(path).to_parent(), expand_vars=expand_vars,
-                         odbt=odbt, search_parent_directories=search_parent_directories)
+        super().__init__(
+            path if path is None else Path(path).to_parent(),
+            expand_vars=expand_vars,
+            odbt=odbt,
+            search_parent_directories=search_parent_directories,
+        )
 
     @classmethod
     def bare(cls, name: str | None = None, repo: Repo = None) -> Repo:
@@ -3488,7 +3505,7 @@ class Repo(GitRepo):
             >>> Repo(nodeps.__file__).origin_url.geturl()   # doctest: +ELLIPSIS
             'https://github.com/.../nodeps'
         """
-        return urllib.parse.urlparse(self.git_config.get_value("remote \"origin\"", "url", ""))
+        return urllib.parse.urlparse(self.git_config.get_value('remote "origin"', "url", ""))
 
     @property
     def top(self) -> Path:
@@ -3518,8 +3535,12 @@ class TempDir(tempfile.TemporaryDirectory):
         return Path(self.name)
 
 
-async def aioclone(owner: str | None = None, repo: str = "ppip", scheme: GitSchemeLiteral = GIT_DEFAULT_SCHEME,
-                   path: Path | str | None = None) -> Path:
+async def aioclone(
+    owner: str | None = None,
+    repo: str = "ppip",
+    scheme: GitSchemeLiteral = GIT_DEFAULT_SCHEME,
+    path: Path | str | None = None,
+) -> Path:
     """Async Clone Repository.
 
     Examples:
@@ -3784,7 +3805,7 @@ def anyin(origin: Iterable, destination: Iterable) -> Any | None:
 
 
 def cache(
-        func: Callable[..., _T | Coroutine[Any, Any, _T]] = ...
+    func: Callable[..., _T | Coroutine[Any, Any, _T]] = ...
 ) -> Callable[[Callable[..., _T]], _CacheWrapper[_T]] | _T | Coroutine[Any, Any, _T] | Any:
     """Caches previous calls to the function if object can be encoded.
 
@@ -3885,6 +3906,7 @@ def cache(
     structlog.configure(logger_factory=structlog.stdlib.LoggerFactory())
     coro = inspect.iscoroutinefunction(func)
     if coro:
+
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
             """Async Cache Wrapper."""
@@ -3902,6 +3924,7 @@ def cache(
                 memo[key] = value
             return value
     else:
+
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             """Cache Wrapper."""
@@ -3979,8 +4002,9 @@ def chdir(data: StrOrBytesPath | bool = True) -> Iterable[tuple[Path, Path]]:
         os.chdir(oldpwd)
 
 
-def clone(owner: str | None = None, repo: str = "ppip", scheme: GitSchemeLiteral = GIT_DEFAULT_SCHEME,
-          path: Path | str = None) -> Path:
+def clone(
+    owner: str | None = None, repo: str = "ppip", scheme: GitSchemeLiteral = GIT_DEFAULT_SCHEME, path: Path | str = None
+) -> Path:
     """Clone Repository.
 
     Examples:
@@ -4153,7 +4177,7 @@ def current_task_name() -> str:
 
 
 def dict_sort(
-        data: dict[_KT, _VT], ordered: bool = False, reverse: bool = False
+    data: dict[_KT, _VT], ordered: bool = False, reverse: bool = False
 ) -> dict[_KT, _VT] | collections.OrderedDict[_KT, _VT]:
     """Order a dict based on keys.
 
@@ -4282,7 +4306,7 @@ def exec_module_from_file(file: Path | str, name: str | None = None) -> ModuleTy
 
 
 def filterm(
-        d: MutableMapping[_KT, _VT], k: Callable[..., bool] = lambda x: True, v: Callable[..., bool] = lambda x: True
+    d: MutableMapping[_KT, _VT], k: Callable[..., bool] = lambda x: True, v: Callable[..., bool] = lambda x: True
 ) -> MutableMapping[_KT, _VT]:
     """Filter Mutable Mapping.
 
@@ -4647,14 +4671,22 @@ def group_user(name: int | str = USER) -> GroupUser:
     """
     if isinstance(name, str):
         struct = (
-            struct if name ==   # noqa: PLR1714
-                      (struct := PW_USER).pw_name or name == (struct := PW_ROOT).pw_name
+            struct
+            if name  # noqa: PLR1714
+            == (struct := PW_USER).pw_name
+            or name == (struct := PW_ROOT).pw_name
             else pwd.getpwnam(name)
         )
         return GroupUser(group=struct.pw_gid, user=struct.pw_uid)
-    struct = struct if (name ==  # noqa: PLR1714
-                        (struct := PW_USER).pw_uid or name == (struct := PW_ROOT).pw_uid) \
+    struct = (
+        struct
+        if (
+            name  # noqa: PLR1714
+            == (struct := PW_USER).pw_uid
+            or name == (struct := PW_ROOT).pw_uid
+        )
         else pwd.getpwuid(name)
+    )
     return GroupUser(group=grp.getgrgid(struct.pw_gid).gr_name, user=struct.pw_name)
 
 
@@ -4713,7 +4745,7 @@ def logger(fmt: str = LOGGER_DEFAULT_FMT) -> Logger:
 
 
 def noexc(
-        func: Callable[..., _T], *args: Any, default_: Any = None, exc_: ExcType = Exception, **kwargs: Any
+    func: Callable[..., _T], *args: Any, default_: Any = None, exc_: ExcType = Exception, **kwargs: Any
 ) -> _T | Any:
     """Execute function suppressing exceptions.
 
@@ -4821,8 +4853,7 @@ def parse_str(  # noqa: PLR0911
             return urllib.parse.urlparse(data)
         if (
             (
-                data[0] in ["/", "~"]
-                or (len(data) >= 2 and f"{data[0]}{data[1]}" == "./")  # noqa: PLR2004
+                data[0] in ["/", "~"] or (len(data) >= 2 and f"{data[0]}{data[1]}" == "./")  # noqa: PLR2004
             )
             and ":" not in data
         ) or data == ".":
@@ -4937,7 +4968,7 @@ def python_versions() -> list[str]:
     for link in bs4.BeautifulSoup(requests.get(PYTHON_FTP, timeout=2).text, "html.parser").find_all("a"):
         if link := re.match(r"((3\.([7-9]|[1-9][0-9]))|4).*", link.get("href").rstrip("/")):
             rv.append(link.string)
-    rv.sort(key=lambda s: [int(u) for u in s.split('.')])
+    rv.sort(key=lambda s: [int(u) for u in s.split(".")])
     return rv
 
 
@@ -5087,6 +5118,7 @@ def strip(obj: str | Iterable[str], ansi: bool = False, new: bool = True) -> str
     Returns:
         Same type with NEWLINE removed.
     """
+
     def rv(x):
         if isinstance(x, str):
             x = x.removesuffix("\n") if new else x
@@ -5352,9 +5384,9 @@ def which(data="sudo", raises: bool = False) -> str:
         Cmd path or ""
     """
     rv = (
-            shutil.which(data, mode=os.X_OK)
-            or subprocess.run(f"command -v {data}", shell=True, text=True, capture_output=True).stdout.rstrip("\n")
-            or ""
+        shutil.which(data, mode=os.X_OK)
+        or subprocess.run(f"command -v {data}", shell=True, text=True, capture_output=True).stdout.rstrip("\n")
+        or ""
     )
 
     if raises and not rv:
@@ -5362,7 +5394,472 @@ def which(data="sudo", raises: bool = False) -> str:
     return rv
 
 
+# <editor-fold desc="Color">
+def _msg_typer():
+    if typer is None:
+        msg = f"typer is not installed: installed with 'pip install {NODEPS_PROJECT_NAME}[echo]'"
+        raise ImportError(msg)
+
+
+def black(msg="", bold=False, underline=False, blink=False, err=False):
+    """black."""
+    _msg_typer()
+    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="black", err=err)
+
+
+def red(msg="", bold=False, underline=False, blink=False, err=True):
+    """red."""
+    _msg_typer()
+    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="red", err=err)
+
+
+def green(msg="", bold=False, underline=False, blink=False, err=False):
+    """green."""
+    _msg_typer()
+    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="green", err=err)
+
+
+def yellow(msg="", bold=False, underline=False, blink=False, err=False):
+    """yellow."""
+    _msg_typer()
+    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="yellow", err=err)
+
+
+def blue(msg="", bold=False, underline=False, blink=False, err=False):
+    """blue."""
+    _msg_typer()
+    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="blue", err=err)
+
+
+def magenta(msg="", bold=False, underline=False, blink=False, err=False):
+    """magenta."""
+    _msg_typer()
+    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="magenta", err=err)
+
+
+def cyan(msg="", bold=False, underline=False, blink=False, err=False):
+    """cyan."""
+    _msg_typer()
+    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="cyan", err=err)
+
+
+def white(msg="", bold=False, underline=False, blink=False, err=False):
+    """white."""
+    _msg_typer()
+    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="white", err=err)
+
+
+def bblack(msg="", bold=False, underline=False, blink=False, err=False):
+    """bblack."""
+    _msg_typer()
+    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="bright_black", err=err)
+
+
+def bred(msg="", bold=False, underline=False, blink=False, err=False):
+    """bred."""
+    _msg_typer()
+    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="bright_red", err=err)
+
+
+def bgreen(msg="", bold=False, underline=False, blink=False, err=False):
+    """bgreen."""
+    _msg_typer()
+    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="bright_green", err=err)
+
+
+def byellow(msg="", bold=False, underline=False, blink=False, err=False):
+    """byellow."""
+    _msg_typer()
+    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="bright_yellow", err=err)
+
+
+def bblue(msg="", bold=False, underline=False, blink=False, err=False):
+    """bblue."""
+    _msg_typer()
+    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="bright_blue", err=err)
+
+
+def bmagenta(msg="", bold=False, underline=False, blink=False, err=False):
+    """bmagenta."""
+    _msg_typer()
+    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="bright_magenta", err=err)
+
+
+def bcyan(msg="", bold=False, underline=False, blink=False, err=False):
+    """bcyan."""
+    _msg_typer()
+    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="bright_cyan", err=err)
+
+
+def bwhite(msg="", bold=False, underline=False, blink=False, err=False):
+    """bwhite."""
+    _msg_typer()
+    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="bright_white", err=err)
+
+
+def reset(msg="", bold=False, underline=False, blink=False, err=False):
+    """reset."""
+    _msg_typer()
+    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="reset", err=err)
+
+
+class _Color(EnumLower):
+    # noinspection PyShadowingBuiltins
+    def __call__(
+        self,
+        message: Any = "",
+        exit: int | None = None,  # noqa: A002
+        stderr: bool = True,
+        file: IO[Any] | str | None = None,
+        newline: bool = True,
+        bg: str | int | tuple[int, int, int] | None = None,
+        bold: bool | None = None,
+        dim: bool | None = None,
+        underline: bool | None = None,
+        overline: bool | None = None,
+        italic: bool | None = None,
+        blink: bool | None = None,
+        reverse: bool | None = None,
+        strikethrough: bool | None = None,
+        reset: bool = True,
+        colorize: bool | None = None,
+    ) -> None:
+        """Wrapper for :func:`click.secho` getting the `fg` color from the enum.
+
+        To force showing or hiding colors and other styles colorized output use ``COLORIZE`` environment variable,
+        or set `colorize` to True or False respectively.
+
+        This function combines echo and style into one call. As such the following two calls are the same:
+
+            - click.secho('Hello World!', fg='green')
+            - click.echo(click.style('Hello World!', fg='green'))
+
+        All keyword arguments are forwarded to the underlying functions depending on which one they go with.
+
+        Non-string types will be converted to str. However, bytes are passed directly to echo without applying style.
+        If you want to style bytes that represent text, call `bytes.decode` first
+
+        See `click.secho <https://click.palletsprojects.com/en/8.0.x/api/#click.secho>`_ for more information.
+
+        Examples:
+            >>> from nodeps import Color
+            >>> Color.GREEN('Hello World!',)
+
+        Arguments:
+            message: Text to append to symbol (default: "")
+            exit: Exit code, will exit if not None (default: None)
+            stderr: Write to ``stderr`` instead of ``stdout`` (default: True)
+            file: The file to write to. (default: ``stdout``)
+            newline: Output new line (default: False)
+            bg: Background color (default: None)
+            bold: Bold text (default: None)
+            dim: Dim (default: None)
+            underline: Underline (default: None)
+            overline: Overline (default: None)
+            italic: Italic (default: None)
+            blink: Blink (default: None)
+            reverse: Reverse (default: None)
+            strikethrough: Strikethrough (default: None)
+            reset: Reset (default: True)
+            colorize: Force showing or hiding colors and other styles. By default, click will remove color
+                if the output does not look like an interactive terminal (default: ``COLORIZE`` environment variable)
+
+        Returns:
+            None
+        """
+        _msg_typer()
+        click.secho(
+            message,
+            err=stderr,
+            file=file,
+            nl=newline,
+            color=colorize or COLORIZE,
+            fg=self.value,
+            bg=bg,
+            bold=bold,
+            dim=dim,
+            underline=underline,
+            overline=overline,
+            italic=italic,
+            blink=blink,
+            reverse=reverse,
+            strikethrough=strikethrough,
+            reset=reset,
+        )
+        if exit is not None:
+            raise typer.Exit(exit)
+
+
+class _ColorAuto:
+    """Instances are replaced with an appropriate value in Enum class suites."""
+
+    value = enum._auto_null
+
+
+class Color(_Color):
+    """:func:`click.secho` and :func:`click.style` foreground color wrapper class."""
+    BLACK = enum.auto()
+    """might be a gray"""
+    BLUE = enum.auto()
+    CYAN = enum.auto()
+    GREEN = enum.auto()
+    MAGENTA = enum.auto()
+    RED = enum.auto()
+    WHITE = enum.auto()
+    """might be an grey"""
+    YELLOW = enum.auto()
+    """might be an orange"""
+    BRIGHT_BLACK = enum.auto()
+    BRIGHT_BLUE = enum.auto()
+    BRIGHT_CYAN = enum.auto()
+    BRIGHT_GREEN = enum.auto()
+    BRIGHT_MAGENTA = enum.auto()
+    BRIGHT_RED = enum.auto()
+    BRIGHT_WHITE = enum.auto()
+    BRIGHT_YELLOW = enum.auto()
+    RESET = enum.auto()
+    """reset the color only, not styles: bold, underline, etc."""
+
+    def style(
+        self,
+        text: Any,
+        bg: str | int | tuple[int, int, int] | None = None,
+        bold: bool | None = None,
+        dim: bool | None = None,
+        underline: bool | None = None,
+        overline: bool | None = None,
+        italic: bool | None = None,
+        blink: bool | None = None,
+        reverse: bool | None = None,
+        strikethrough: bool | None = None,
+        reset: bool = True,
+    ) -> str:
+        """Wrapper for :func:`click.style` getting the `fg` color from the enum.
+
+        Styles a text with ANSI styles and returns the new string.
+
+        By default, the styling is self-contained which means that at the end of the string a
+            reset code is issued (this can be prevented by passing reset=False.
+
+        If the terminal supports it, color may also be specified as:
+
+            - An integer in the interval [0, 255]. The terminal must support 8-bit/256-color mode.
+            - An RGB tuple of three integers in [0, 255]. The terminal must support 24-bit/true-color mode
+
+        See `click.style <https://click.palletsprojects.com/en/8.0.x/api/#click.style>`_ for more information.
+
+        Arguments:
+          text: Text to apply style
+          bg: Background color (default: None)
+          bold: Bold text (default: None)
+          dim: Dim (default: None)
+          underline: Underline (default: None)
+          overline: Overline (default: None)
+          italic: Italic (default: None)
+          blink: Blink (default: None)
+          reverse: Reverse (default: None)
+          strikethrough: Strikethrough (default: None)
+          reset: Reset (default: True)
+
+        Returns:
+            Formatted text
+        """
+        _msg_typer()
+        return click.style(
+            text,
+            fg=self.BLACK.value,
+            bg=bg,
+            bold=bold,
+            dim=dim,
+            underline=underline,
+            overline=overline,
+            italic=italic,
+            blink=blink,
+            reverse=reverse,
+            strikethrough=strikethrough,
+            reset=reset,
+        )
+
+
+class _Symbol(enum.Enum):
+    def _generate_next_value_(self, start, count, last_values):
+        if typer is None:
+            return self
+        return click.style(self, fg=cast(str, SYMBOL[self]["fg"].value), blink=SYMBOL[self].get("blink"), bold=True)
+
+    # noinspection PyShadowingBuiltins
+    def __call__(
+        self,
+        first: Any = "",
+        other: Any = "",
+        separator: str = ":",
+        exit: int | None = None,  # noqa: A002
+        stderr: bool = True,
+        file: IO[Any] | str | None = None,
+        newline: bool = True,
+        colorize: bool | None = None,
+    ) -> None:
+        """Print symbol from :obj:`SYMBOL`, with text in `first` and `other` according to :obj:`FIRST_OTHER` format.
+
+        Wrapper for :func:`click.echo` getting the `fg` color for the symbol from the :obj:`SYMBOL["fg"]`.
+
+        If `other` is specified will be appended to `first` text in :obj:`FIRST_OTHER["other"]` format with `separator`.
+
+        To force showing or hiding colors and other styles colorized output use ``COLORIZE`` environment variable,
+        or set `colorize` to True or False respectively.
+
+        Print a message and newline to stdout or a file. This should be used instead of print because it
+        provides better support for different data, files, and environments.
+
+        Compared to print, this does the following:
+
+            - Ensures that the output encoding is not misconfiguration on Linux.
+            - Supports Unicode in the Windows console.
+            - Supports writing to binary outputs, and supports writing bytes to text outputs.
+            - Supports colors and styles on Windows.
+            - Removes ANSI color and style codes if the output does not look like an interactive terminal.
+            - Always flushes the output.
+
+        Arguments:
+            first: First part of the text to append to :obj:`SYMBOL["text"]`
+                in :obj:`FIRST_OTHER["first"]` format (default: "")
+            other: Other parts to append to the `first` text in italic with `separator`
+                in :obj:`FIRST_OTHER["other"]` format (default: "None")
+            separator: Separator between `first` and `after` (default: ":")
+            exit: Exit code, will exit if not None (default: None)
+            stderr: Write to ``stderr`` instead of ``stdout`` (default: True)
+            file: The file to write to. (default: ``stdout``)
+            newline: Output new line (default: False)
+            colorize: Force showing or hiding colors and other styles. By default, click will remove color
+                if the output does not look like an interactive terminal (default: ``COLORIZE`` environment variable)
+        """
+        _msg_typer()
+        click.echo(
+            " ".join(
+                [
+                    self.value,
+                    click.style(f"{first}{separator if other else ''}", **COLOR_FIRST_OTHER["first"]),
+                    click.style(other, **COLOR_FIRST_OTHER["other"]),
+                ]
+            ),
+            err=stderr,
+            file=Path(file) if file else file,
+            nl=newline,
+            color=colorize or COLORIZE,
+        )
+        if exit is not None:
+            raise typer.Exit(exit)
+
+
+class _SymbolAuto:
+    """Instances are replaced with an appropriate value in Enum class suites."""
+
+    value = enum._auto_null
+
+
+class Symbol(_Symbol):
+    """:func:`click.echo` and :func:`click.style` wrapper class for :data:`SYMBOLS`.
+
+    Examples:
+        >>> from nodeps import Symbol
+        >>>
+        >>> Symbol.OK() # OK
+        >>>
+        >>> Symbol.OK("Install")  # OK Install
+        >>>
+        >>> Symbol.OK("Install", "Complete")  # OK Install: Complete
+        >>>
+        >>> Symbol.OK("Install", "Complete", stderr=False)
+        OK Install: Complete
+        >>>
+        >>> Symbol.OK("Debug", "Error", " |", stderr=False)
+        OK Debug | Error
+        >>>
+        >>> Symbol.OK("Value", "2", " ==", file="/tmp/test.txt")  # doctest: +SKIP
+        >>>
+        >>> Symbol.OK("Value", "2", newline=False)  # OK Value: 2
+    """
+    CRITICAL = enum.auto()
+    """symbol: '…', color: YELLOW (blink)"""
+    ERROR = enum.auto()
+    """symbol: '✘', color: RED"""
+    OK = enum.auto()
+    """symbol: '✔', color: GREEN"""
+    NOTICE = enum.auto()
+    """symbol: '‼', color: CYAN"""
+    SUCCESS = enum.auto()
+    """symbol: '◉', color: BLUE"""
+    VERBOSE = enum.auto()
+    """symbol: '＋', color: MAGENTA"""  # noqa: RUF001
+    WARNING = enum.auto()
+    """symbol: '！', color: YELLOW"""  # noqa: RUF001
+    MINUS = enum.auto()
+    """letter: '-', color: RED"""
+    MORE = enum.auto()
+    """letter: '>, color: MAGENTA"""
+    MULTIPLY = enum.auto()
+    """letter: 'x', color: BLUE"""
+    PLUS = enum.auto()
+    """letter: '+', color: GREEN"""
+    WAIT = enum.auto()
+    """symbol: '…', color: YELLOW (blink)"""
+# </editor-fold>
+
+
 EXECUTABLE = Path(sys.executable)
 EXECUTABLE_SITE = Path(EXECUTABLE).resolve()
+
+SYMBOL = {
+    "CRITICAL": {
+        "text": "✘",
+        "fg": Color.RED,
+        "blink": True,
+    },
+    "ERROR": {
+        "text": "✘",
+        "fg": Color.RED,
+    },
+    "OK": {
+        "text": "✔",
+        "fg": Color.GREEN,
+    },
+    "NOTICE": {
+        "text": "‼",
+        "fg": Color.CYAN,
+    },
+    "SUCCESS": {
+        "text": "◉",
+        "fg": Color.BLUE,
+    },
+    "VERBOSE": {
+        "text": "＋",
+        "fg": Color.MAGENTA,
+    },  # noqa: RUF001
+    "WARNING": {
+        "text": "！",
+        "fg": Color.YELLOW,
+    },  # noqa: RUF001
+    "MINUS": {
+        "text": "－",
+        "fg": Color.RED,
+    },  # noqa: RUF001
+    "MORE": {
+        "text": ">",
+        "fg": Color.MAGENTA,
+    },
+    "MULTIPLY": {
+        "text": "×",
+        "fg": Color.BLUE,
+    },  # noqa: RUF001
+    "PLUS": {
+        "text": "+",
+        "fg": Color.RED,
+    },
+    "WAIT": {
+        "text": "…",
+        "fg": Color.YELLOW,
+    },
+}
+
 
 subprocess.CalledProcessError = CalledProcessError

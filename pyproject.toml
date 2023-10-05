@@ -16,6 +16,9 @@ cache = [
 dev = [
     "pproj[all]",
 ]
+echo = [
+    "typer[all] >= 0.9, <1"
+]
 log = [
     "loguru >=0.7.2, <1",
 ]
@@ -29,6 +32,7 @@ requests = [
 all = [
     "nodeps[ansi]",
     "nodeps[cache]",
+    "nodeps[echo]",
     "nodeps[log]",
     "nodeps[repo]",
     "nodeps[requests]",
