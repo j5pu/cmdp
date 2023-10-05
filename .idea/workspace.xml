@@ -6,32 +6,6 @@
   <component name="BlackConnectSettings" lineLength="120" previewMode="true" triggerOnReformat="true" showSyntaxErrorMsgs="true" />
   <component name="ChangeListManager">
     <list default="true" id="bf31d71b-78d7-4bdd-9f09-b7f6e0f14454" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.github/workflows/qodana_code_quality.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backup/.github/workflows/codeql-analysis.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backup/.github/workflows/main.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backup/.github/workflows/pypirm.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backup/setup.cfg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/qodana.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/scripts/git-mod-add" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/scripts/git-mod-clean" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/scripts/git-mod-rm" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/nodeps/variables/builtin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../envg/.idea/envg.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../envg/.idea/envg.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../envg/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../envg/pyproject.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../envg/src/envg/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/../envg/src/envg/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../envg/src/envg/env.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../envg/src/envg/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/../envg/src/envg/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../gitp/.idea/gitp.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../gitp/.idea/gitp.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../gitp/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../gitp/.idea/ruff.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../gitp/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../gitp/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../gitp/backup/.github/workflows/codeql-analysis.yml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../gitp/backup/.github/workflows/main.yml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../gitp/backup/.github/workflows/pypirm.yml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../gitp/backup/setup.cfg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../gitp/scripts/git-mod-add" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../gitp/scripts/git-mod-clean" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../gitp/scripts/git-mod-rm" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../gitp/src/gitp/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/../gitp/src/gitp/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../huti/.idea/huti.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../huti/.idea/huti.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../huti/src/huti/classes.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../huti/src/huti/classes.pyi" beforeDir="false" />
@@ -43,20 +17,12 @@
       <change beforePath="$PROJECT_DIR$/../huti/src/huti/meta.pyi" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../huti/src/huti/project.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../huti/src/huti/variables.py" beforeDir="false" afterPath="$PROJECT_DIR$/../huti/src/huti/variables.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/nodeps.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/nodeps.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ruff.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nodeps/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/nodeps/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../ppip/.idea/ppip.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../ppip/.idea/ppip.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../ppip/src/ppip/utils/classes.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../ppip/src/ppip/utils/functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ppip/src/ppip/utils/functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pproj/.idea/pproj.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../pproj/.idea/pproj.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pproj/src/pproj/alias.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pproj/src/pproj/alias.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pproj/src/pproj/project.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pproj/src/pproj/project.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppip/src/ppip/utils/constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ppip/src/ppip/utils/constants.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppip/src/ppip/utils/functions.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../secho/src/secho/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/../secho/src/secho/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../secrets/profile.d/secrets.sh" beforeDir="false" afterPath="$PROJECT_DIR$/../secrets/profile.d/secrets.sh" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -108,7 +74,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
     "git-widget-placeholder": "main",
-    "last_opened_file_path": "/Users/j5pu/nodeps",
+    "last_opened_file_path": "/Users/j5pu/nodeps/src/nodeps",
     "run.code.analysis.last.selected.profile": "pProject Default",
     "settings.editor.selected.configurable": "PyConsoleConfigurable.Python Console"
   }
@@ -123,7 +89,7 @@
     </option>
   </component>
   <component name="QodanaCloudProjectLink">
-    <option name="lastReportId" value="WbXxn" />
+    <option name="lastReportId" value="NYLPb" />
     <option name="linkedProjectId" value="p0KVQ" />
     <option name="linkedProjectName" value="nodeps" />
     <option name="organizationId" value="ANQgy" />
@@ -135,14 +101,17 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/nodeps" />
       <recent name="$PROJECT_DIR$" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/backup" />
+      <recent name="$PROJECT_DIR$/backup/.github/workflows" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/../Desktop/JetBrains/scratch/scratches" />
     </key>
   </component>
-  <component name="RunManager" selected="Python tests.Doctest Repo.__post_init__">
+  <component name="RunManager" selected="Python tests.Doctest python_latest">
     <configuration name="Doctest Repo.__post_init__" type="tests" factoryName="Doctests" temporary="true" nameIsGenerated="true">
       <module name="nodeps" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -200,7 +169,7 @@
       <option name="USE_PATTERN" value="false" />
       <method v="2" />
     </configuration>
-    <configuration name="Doctest aioclone" type="tests" factoryName="Doctests" temporary="true" nameIsGenerated="true">
+    <configuration name="Doctest cache" type="tests" factoryName="Doctests" temporary="true" nameIsGenerated="true">
       <module name="nodeps" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -212,14 +181,14 @@
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/nodeps/__init__.py" />
       <option name="CLASS_NAME" value="" />
-      <option name="METHOD_NAME" value="aioclone" />
+      <option name="METHOD_NAME" value="cache" />
       <option name="FOLDER_NAME" value="" />
       <option name="TEST_TYPE" value="TEST_FUNCTION" />
       <option name="PATTERN" value="" />
       <option name="USE_PATTERN" value="false" />
       <method v="2" />
     </configuration>
-    <configuration name="Doctest clone" type="tests" factoryName="Doctests" temporary="true" nameIsGenerated="true">
+    <configuration name="Doctest python_latest" type="tests" factoryName="Doctests" temporary="true" nameIsGenerated="true">
       <module name="nodeps" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -231,7 +200,7 @@
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/nodeps/__init__.py" />
       <option name="CLASS_NAME" value="" />
-      <option name="METHOD_NAME" value="clone" />
+      <option name="METHOD_NAME" value="python_latest" />
       <option name="FOLDER_NAME" value="" />
       <option name="TEST_TYPE" value="TEST_FUNCTION" />
       <option name="PATTERN" value="" />
@@ -240,11 +209,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python tests.Doctest python_latest" />
+        <item itemvalue="Python tests.Doctest cache" />
         <item itemvalue="Python tests.Doctest Repo.__post_init__" />
         <item itemvalue="Python tests.Doctest Repo.origin_url" />
         <item itemvalue="Python tests.Doctest Repo.git_config" />
-        <item itemvalue="Python tests.Doctest clone" />
-        <item itemvalue="Python tests.Doctest aioclone" />
       </list>
     </recent_temporary>
   </component>
@@ -263,9 +232,11 @@
     <SUITE FILE_PATH="coverage/nodeps$Doctest_Env_parse_as_bool.coverage" NAME="Doctest Env.parse_as_bool Coverage Results" MODIFIED="1696499261417" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_cmdrun.coverage" NAME="Doctest cmdrun Coverage Results" MODIFIED="1696435385096" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_parse_str.coverage" NAME="Doctest parse_str Coverage Results" MODIFIED="1696484994454" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
+    <SUITE FILE_PATH="coverage/nodeps$Doctest_python_latest.coverage" NAME="Doctest python_latest Coverage Results" MODIFIED="1696522244693" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctests_in_Chain.coverage" NAME="Doctests in Chain Coverage Results" MODIFIED="1696495615414" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_allin.coverage" NAME="Doctest allin Coverage Results" MODIFIED="1696495498855" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_Repo_git_config.coverage" NAME="Doctest Repo.git_config Coverage Results" MODIFIED="1696511148261" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
+    <SUITE FILE_PATH="coverage/nodeps$Doctest_cache.coverage" NAME="Doctest cache Coverage Results" MODIFIED="1696521852352" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_Env_parse_as_int.coverage" NAME="Doctest Env.parse_as_int Coverage Results" MODIFIED="1696498355061" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_to_latin9.coverage" NAME="Doctest to_latin9 Coverage Results" MODIFIED="1696495836340" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_aiogz.coverage" NAME="Doctest aiogz Coverage Results" MODIFIED="1696495962159" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />

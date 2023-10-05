@@ -3,11 +3,18 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/../envg/.idea/envg.iml" filepath="$PROJECT_DIR$/../envg/.idea/envg.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../gitp/.idea/gitp.iml" filepath="$PROJECT_DIR$/../gitp/.idea/gitp.iml" />
       <module fileurl="file://$PROJECT_DIR$/../huti/.idea/huti.iml" filepath="$PROJECT_DIR$/../huti/.idea/huti.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../mongodata/.idea/mongodata.iml" filepath="$PROJECT_DIR$/../mongodata/.idea/mongodata.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/nodeps.iml" filepath="$PROJECT_DIR$/.idea/nodeps.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../pdf/.idea/pdf.iml" filepath="$PROJECT_DIR$/../pdf/.idea/pdf.iml" />
       <module fileurl="file://$PROJECT_DIR$/../ppip/.idea/ppip.iml" filepath="$PROJECT_DIR$/../ppip/.idea/ppip.iml" />
       <module fileurl="file://$PROJECT_DIR$/../pproj/.idea/pproj.iml" filepath="$PROJECT_DIR$/../pproj/.idea/pproj.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../puntos/.idea/puntos.iml" filepath="$PROJECT_DIR$/../puntos/.idea/puntos.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../sbit/.idea/sbit.iml" filepath="$PROJECT_DIR$/../sbit/.idea/sbit.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../secho/.idea/secho.iml" filepath="$PROJECT_DIR$/../secho/.idea/secho.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../secrets/.idea/secrets.iml" filepath="$PROJECT_DIR$/../secrets/.idea/secrets.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../shrc/.idea/shrc.iml" filepath="$PROJECT_DIR$/../shrc/.idea/shrc.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../sitec/.idea/sitec.iml" filepath="$PROJECT_DIR$/../sitec/.idea/sitec.iml" />
     </modules>
   </component>
 </project>

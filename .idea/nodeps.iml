@@ -13,10 +13,17 @@
     <orderEntry type="jdk" jdkName="Python 3.11 (nodeps)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="pproj" />
-    <orderEntry type="module" module-name="gitp" />
     <orderEntry type="module" module-name="ppip" />
     <orderEntry type="module" module-name="envg" />
     <orderEntry type="module" module-name="huti" />
+    <orderEntry type="module" module-name="pdf" />
+    <orderEntry type="module" module-name="mongodata" />
+    <orderEntry type="module" module-name="puntos" />
+    <orderEntry type="module" module-name="sbit" />
+    <orderEntry type="module" module-name="secho" />
+    <orderEntry type="module" module-name="shrc" />
+    <orderEntry type="module" module-name="sitec" />
+    <orderEntry type="module" module-name="secrets" />
   </component>
   <component name="PackageRequirementsSettings">
     <option name="requirementsPath" value="$MODULE_DIR$/pyproject.toml" />
