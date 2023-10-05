@@ -23,12 +23,31 @@
 
 ## Features
 
+Extras:
+- `ansi`: for `getstdout` and `strip` function using `strip-ansi` library
+- `cache`: for `cache` function using `jsonpickle` and `structlog` libraries
+- `log`: for `logger` function using `loguru` library
+- `repo`: for `Repo` class using `gitpython` library
+- `requests`: for `python_latest`, `python_versions` and `request_x_api_key_json` functions that use the `requests` and `beautifulsoup4` libraries
+
 ## Installation
 
 You can install _nodeps_ via [pip] from [PyPI]:
 
 ```console
 $ pip install nodeps
+```
+
+You can install _nodeps_ with extras [pip] from [PyPI]:
+
+```console
+$ pip install nodeps[repo]
+```
+
+To install all extras (not including development extras):
+
+```console
+$ pip install nodeps[all]
 ```
 
 ## License

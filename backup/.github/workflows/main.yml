@@ -1,0 +1,33 @@
+name: main
+
+on:
+  push:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+env:
+  GITHUB_TOKEN: ${{ secrets.TOKEN }}
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      - id: TAG
+        uses: j5pu/actions/tag@main
+      - uses: j5pu/actions/pypi@main
+        with:
+          pypi_password: ${{ secrets.PYPI_CLEANUP_PASSWORD }}
+          pypi_token: ${{ secrets.PYPI_API_TOKEN }}
+          version: "3.10"
+        if: steps.TAG.outputs.CHANGED == 'true'
+#      - uses: j5pu/actions/tap@main
+#        with:
+#          github_token: ${{ secrets.TOKEN }}
+#          depends_on: |
+#            "gh"
+#            "dopplerhq/doppler/doppler"
+#          install: 'bin.install Dir["bin/*"]'
+#          test: |
+#            system "test", "-x", "#{HOMEBREW_PREFIX}/bin/git-top"
+#        if: steps.TAG.outputs.CHANGED == 'true'

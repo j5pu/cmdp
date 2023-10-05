@@ -2,44 +2,114 @@
 from __future__ import annotations
 
 __all__ = (
+    "AUTHOR",
     "GIT",
+    "GIT_DEFAULT_SCHEME",
+    "GITHUB_DOMAIN",
     "GITHUB_TOKEN",
+    "GITHUB_URL",
     "LINUX",
+    "LOGGER_DEFAULT_FMT",
     "MACOS",
     "NODEPS_PROJECT_NAME",
+    "PYTHON_FTP",
+    "USER",
+
+    "EMAIL",
     "PW_ROOT",
     "PW_USER",
-    "USER",
+
     "AnyIO",
+    "ChainLiteral",
     "ExcType",
+    "GitSchemeLiteral",
+    "ModuleSpec",
     "PathIsLiteral",
-    "AnyPath",
     "StrOrBytesPath",
+    "ThreadLock",
+    "RunningLoop",
+
+    "AnyPath",
+    "LockClass",
+
     "CalledProcessError",
+    "Chain",
     "CmdError",
     "CommandNotFoundError",
+    "EnumLower",
+    "Env",
+    "EnvBuilder",
+    "FileConfig",
+    "FrameSimple",
+    "GroupUser",
+    "InvalidArgumentError",
+    "LetterCounter",
+    "NamedtupleMeta",
+    "OwnerRepo",
     "Passwd",
     "PathStat",
     "Path",
     "PipMetaPathFinder",
     "TempDir",
+
+    "aioclone",
+    "aioclosed",
     "aiocmd",
     "aiocommand",
+    "aiodmg",
+    "aiogz",
+    "aioloop",
+    "aioloopid",
+    "aiorunning",
+    "allin",
     "ami",
+    "anyin",
+    "cache",
     "chdir",
+    "clone",
     "cmd",
     "cmdrun",
     "cmdsudo",
     "command",
+    "current_task_name",
+    "dict_sort",
+    "dmg",
+    "effect",
+    "elementadd",
+    "exec_module_from_file",
+    "filterm",
     "findfile",
     "findup",
+    "firstfound",
     "flatten",
+    "framesimple",
+    "from_latin9",
+    "fromiter",
+    "getpths",
+    "getsitedir",
+    "getstdout",
+    "group_user",
+    "gz",
     "in_tox",
+    "logger",
+    "noexc",
     "parent",
+    "parse_str",
     "returncode",
+    "python_latest",
+    "python_version",
+    "python_versions",
+    "request_x_api_key_json",
+    "sourcepath",
+    "split_pairs",
     "stdout",
+    "stdquiet",
+    "strip",
     "suppress",
     "syssudo",
+    "tardir",
+    "tilde",
+    "timestamp_now",
     "toiter",
     "urljson",
     "which",
@@ -47,59 +117,174 @@ __all__ = (
     "EXECUTABLE_SITE",
 )
 
+import abc
 import asyncio
+import collections
 import contextlib
+import copy
 import dataclasses
+import enum
 import fnmatch
+import functools
 import getpass
 import grp
 import hashlib
 import importlib.abc
 import importlib.metadata
+import importlib.util
+import inspect
+import io
+import ipaddress
 import json
 import os
 import pathlib
+import platform
 import pwd
+import re
 import shutil
 import signal
 import stat
+import string
 import subprocess
 import sys
 import sysconfig
+import tarfile
 import tempfile
+import threading
+import time
 import tokenize
+import types
 import urllib.request
-from collections.abc import Callable, Iterable, Iterator, Sequence
-from typing import IO, TYPE_CHECKING, Any, AnyStr, Generic, Literal, ParamSpec, TypeAlias, TypeVar, cast
+import venv
+from collections.abc import Callable, Coroutine, Hashable, Iterable, Iterator, MutableMapping, Sequence
+from ipaddress import IPv4Address, IPv6Address
+from typing import (
+    IO,
+    TYPE_CHECKING,
+    Any,
+    AnyStr,
+    ClassVar,
+    Generic,
+    Literal,
+    ParamSpec,
+    TextIO,
+    TypeAlias,
+    TypeVar,
+    cast,
+)
+from urllib.parse import ParseResult
+
+try:
+    # nodeps[ansi] extras
+    import strip_ansi  # type: ignore[attr-defined]
+except ModuleNotFoundError:
+    strip_ansi = None
+
+try:
+    # nodeps[cache] extras
+    import jsonpickle  # type: ignore[attr-defined]
+    import structlog  # type: ignore[attr-defined]
+    import structlog.stdlib  # type: ignore[attr-defined]
+except ModuleNotFoundError:
+    jsonpickle = None
+    structlog = None
+
+try:
+    # nodeps[log] extras
+    from loguru import logger as loguru_logger  # type: ignore[attr-defined]
+except ModuleNotFoundError:
+    loguru_logger = None
+
+try:
+    # nodeps[repo] extras
+    from git import Git as GitCmd  # type: ignore[attr-defined]
+    from git import GitCmdObjectDB, GitConfigParser  # type: ignore[attr-defined]
+    from git import Repo as GitRepo  # type: ignore[attr-defined]
+    from gitdb import LooseObjectDB  # type: ignore[attr-defined]
+except ModuleNotFoundError:
+    GitCmd = None
+    GitCmdObjectDB = None
+    GitConfigParser = None
+    GitRepo = object
+    LooseObjectDB = None
+
+try:
+    # nodeps[requests] extras
+    import bs4  # type: ignore[attr-defined]
+    import requests  # type: ignore[attr-defined]
+except ModuleNotFoundError:
+    bs4 = None
+    requests = None
 
 if TYPE_CHECKING:
+    with contextlib.suppress(ModuleNotFoundError):
+        from loguru import Logger  # type: ignore[attr-defined]
     from types import ModuleType
 
+
+AUTHOR = "José Antonio Puértolas Montañés"
 GIT = os.environ.get("GIT", "j5pu")
 """GitHub user name"""
+GIT_DEFAULT_SCHEME = "https"
+GITHUB_DOMAIN = "github.com"
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", os.environ.get("GH_TOKEN", os.environ.get("TOKEN")))
 """GitHub Token"""
+GITHUB_URL = {
+    "api": f"https://api.{GITHUB_DOMAIN}/",
+    "git+file": "git+file://",
+    "git+https": f"git+https://{GITHUB_DOMAIN}/",
+    "git+ssh": f"git+ssh://git@{GITHUB_DOMAIN}/",
+    "https": f"https://{GITHUB_DOMAIN}/",
+    "ssh": f"git@{GITHUB_DOMAIN}:",
+}
+"""
+GitHub: api, git+file, git+https, git+ssh, https, ssh and git URLs
+(join directly the user or path without '/' or ':')
+"""
 LINUX = sys.platform == "linux"
 """Is Linux? sys.platform == 'linux'"""
+LOGGER_DEFAULT_FMT = ("<level>{level: <8}</level> <red>|</red> "
+                      "<cyan>{name}</cyan> <red>|</red> <red>|</red> "
+                      "<level>{message}</level>")
 MACOS = sys.platform == "darwin"
 """Is macOS? sys.platform == 'darwin'"""
 NODEPS_PROJECT_NAME = "nodeps"
 """NoDeps Project Name"""
+PYTHON_FTP = "https://www.python.org/ftp/python"
+"""Python FTP Server URL"""
 USER = os.getenv("USER")
 """"Environment Variable $USER"""
+
+EMAIL = f"63794670+{GIT}@users.noreply.github.com"
 PW_ROOT = pwd.getpwnam("root")
 PW_USER = pwd.getpwnam(USER) if USER else PW_ROOT
 
-P = ParamSpec("P")
-T = TypeVar("T")
-_T = TypeVar("_T")
-
 AnyIO = IO[AnyStr]
+ChainLiteral: TypeAlias = Literal["all", "first", "unique"]
 ExcType: TypeAlias = type[Exception] | tuple[type[Exception], ...]
+GitSchemeLiteral = Literal["git+file", "git+https", "git+ssh", "https", "ssh"]
+ModuleSpec = importlib._bootstrap.ModuleSpec
 PathIsLiteral: TypeAlias = Literal["exists", "is_dir", "is_file"]
 PathType: TypeAlias = "Path"
-AnyPath: TypeAlias = os.PathLike | AnyStr | IO[AnyStr]
 StrOrBytesPath = str | bytes | os.PathLike[str] | os.PathLike[bytes]
+ThreadLock = threading.Lock
+RunningLoop = asyncio.events._RunningLoop
+
+AnyPath: TypeAlias = os.PathLike | AnyStr | IO[AnyStr]
+LockClass = type(ThreadLock())
+
+_KT = TypeVar("_KT")
+_T = TypeVar("_T")
+_VT = TypeVar("_VT")
+P = ParamSpec("P")
+T = TypeVar("T")
+
+
+class _CacheWrapper(Generic[_T]):
+    __wrapped__: Callable[..., _T]
+
+    def __call__(self, *args: Any, **kwargs: Any) -> _T | Coroutine[Any, Any, _T]:
+        ...
 
 
 class _NoDepsBaseError(Exception):
@@ -212,6 +397,215 @@ class CalledProcessError(subprocess.SubprocessError):
         self.output = value
 
 
+class Chain(collections.ChainMap):
+    # noinspection PyUnresolvedReferences
+    """Variant of chain that allows direct updates to inner scopes and returns more than one value, not the first one.
+
+    Examples:
+        >>> from nodeps import Chain
+        >>>
+        >>> class Test3:
+        ...     a = 2
+        >>>
+        >>> class Test4:
+        ...     a = 2
+        >>>
+        >>> Test1 = collections.namedtuple('Test1', 'a b')
+        >>> Test2 = collections.namedtuple('Test2', 'a d')
+        >>> test1 = Test1(1, 2)
+        >>> test2 = Test2(3, 5)
+        >>> test3 = Test3()
+        >>> test4 = Test4()
+        >>>
+        >>> maps = [dict(a=1, b=2), dict(a=2, c=3), dict(a=3, d=4), dict(a=dict(z=1)), dict(a=dict(z=1)), \
+        dict(a=dict(z=2))]
+        >>> chain = Chain(*maps)
+        >>> assert chain['a'] == [1, 2, 3, {'z': 1}, {'z': 2}]
+        >>> chain = Chain(*maps, rv="first")
+        >>> assert chain['a'] == 1
+        >>> chain = Chain(*maps, rv="all")
+        >>> assert chain['a'] == [1, 2, 3, {'z': 1}, {'z': 1}, {'z': 2}]
+        >>>
+        >>> maps = [dict(a=1, b=2), dict(a=2, c=3), dict(a=3, d=4), dict(a=dict(z=1)), dict(a=dict(z=1)),\
+        dict(a=dict(z=2)), test1, test2]
+        >>> chain = Chain(*maps)
+        >>> assert chain['a'] == [1, 2, 3, {'z': 1}, {'z': 2}]
+        >>> chain = Chain(*maps, rv="first")
+        >>> assert chain['a'] == 1
+        >>> chain = Chain(*maps, rv="all")
+        >>> assert chain['a'] == [1, 2, 3, {'z': 1}, {'z': 1}, {'z': 2}, 1, 3]
+        >>>
+        >>> maps = [dict(a=1, b=2), dict(a=2, c=3), dict(a=3, d=4), dict(a=dict(z=1)), dict(a=dict(z=1)), \
+        dict(a=dict(z=2)), test1, test2]
+        >>> chain = Chain(*maps)
+        >>> del chain['a']
+        >>> assert chain == Chain({'b': 2}, {'c': 3}, {'d': 4}, test1, test2)
+        >>> assert chain['a'] == [1, 3]
+        >>>
+        >>> maps = [dict(a=1, b=2), dict(a=2, c=3), dict(a=3, d=4), dict(a=dict(z=1)), dict(a=dict(z=1)), \
+        dict(a=dict(z=2)), test1, test2]
+        >>> chain = Chain(*maps)
+        >>> assert chain.delete('a') == Chain({'b': 2}, {'c': 3}, {'d': 4}, test1, test2)
+        >>> assert chain.delete('a')['a'] == [1, 3]
+        >>>
+        >>> maps = [dict(a=1, b=2), dict(a=2, c=3), dict(a=3, d=4), dict(a=dict(z=1)), dict(a=dict(z=1)), \
+        dict(a=dict(z=2)), test1, test2]
+        >>> chain = Chain(*maps, rv="first")
+        >>> del chain['a']
+        >>> del maps[0]['a'] # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        KeyError:
+        >>>
+        >>> assert chain['a'] == 2
+        >>>
+        >>> maps = [dict(a=1, b=2), dict(a=2, c=3), dict(a=3, d=4), dict(a=dict(z=1)), dict(a=dict(z=1)), \
+        dict(a=dict(z=2)), test1, test2]
+        >>> chain = Chain(*maps, rv="first")
+        >>> new = chain.delete('a')
+        >>> del maps[0]['a'] # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        KeyError:
+        >>> assert new.delete('a')
+        >>> del maps[1]['a'] # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        KeyError:
+        >>>
+        >>> assert new['a'] == 3
+        >>>
+        >>> maps = [dict(a=1, b=2), dict(a=2, c=3), dict(a=3, d=4), dict(a=dict(z=1)), dict(a=dict(z=1)), \
+        dict(a=dict(z=2)), test1, test3]
+        >>> chain = Chain(*maps)
+        >>> del chain['a']
+        >>> assert chain[4] == []
+        >>> assert not hasattr(test3, 'a')
+        >>> assert chain.set('a', 9)
+        >>> assert chain['a'] == [9, 1]
+        >>>
+        >>> maps = [dict(a=1, b=2), dict(a=2, c=3), dict(a=3, d=4), dict(a=dict(z=1)), dict(a=dict(z=1)), \
+        dict(a=dict(z=2)), test1, test4]
+        >>> chain = Chain(*maps)
+        >>> chain.set('j', 9)  # doctest: +ELLIPSIS
+        Chain({'a': 1, 'b': 2, 'j': 9}, {'a': 2, 'c': 3}, {'a': 3, 'd': 4}, {'a': {'z': 1}}, {'a': {'z': 1}}, \
+{'a': {'z': 2}}, Test1(a=1, b=2), <....Test4 object at 0x...>)
+        >>> assert [maps[0]['j']] == chain['j'] == [9]
+        >>> chain.set('a', 10)  # doctest: +ELLIPSIS
+        Chain({'a': 10, 'b': 2, 'j': 9}, {'a': 10, 'c': 3}, {'a': 10, 'd': 4}, {'a': 10}, {'a': 10}, {'a': 10}, \
+Test1(a=1, b=2), <....Test4 object at 0x...>)
+        >>> # noinspection PyUnresolvedReferences
+        >>> assert [maps[0]['a'], 1] == chain['a'] == [maps[7].a, 1] == [10, 1]  # 1 from namedtuple
+        >>>
+        >>> maps = [dict(a=1, b=2), dict(a=2, c=3), dict(a=3, d=4), dict(a=dict(z=1)), dict(a=dict(z=1)), \
+        dict(a=dict(z=2)), test1, test4]
+        >>> chain = Chain(*maps, rv="first")
+        >>> chain.set('a', 9)  # doctest: +ELLIPSIS
+        Chain({'a': 9, 'b': 2}, {'a': 2, 'c': 3}, {'a': 3, 'd': 4}, {'a': {'z': 1}}, {'a': {'z': 1}}, \
+{'a': {'z': 2}}, Test1(a=1, b=2), <....Test4 object at 0x...>)
+        >>> assert maps[0]['a'] == chain['a'] == 9
+        >>> assert maps[1]['a'] == 2
+    """
+    rv: ChainLiteral = "unique"
+    default: Any = None
+    maps: list[Iterable | NamedtupleMeta | MutableMapping] = []  # noqa: RUF012
+
+    def __init__(self, *maps, rv: ChainLiteral = "unique", default: Any = None) -> None:
+        """Init."""
+        super().__init__(*maps)
+        self.rv = rv
+        self.default = default
+
+    def __getitem__(self, key: Hashable) -> Any:  # noqa: PLR0912
+        """Get item."""
+        rv = []
+        for mapping in self.maps:
+            if hasattr(mapping, "_field_defaults"):
+                mapping = mapping._asdict()  # noqa: PLW2901
+            elif hasattr(mapping, 'asdict'):
+                to_dict = mapping.__class__.asdict
+                if isinstance(to_dict, property):
+                    mapping = mapping.asdict  # noqa: PLW2901
+                elif callable(to_dict):
+                    mapping = mapping.asdict()  # noqa: PLW2901
+            if hasattr(mapping, '__getitem__'):
+                try:
+                    value = mapping[key]
+                    if self.rv == "first":
+                        return value
+                    if (self.rv == "unique" and value not in rv) or self.rv == "all":
+                        rv.append(value)
+                except KeyError:
+                    pass
+            elif hasattr(mapping, '__getattribute__') and isinstance(key, str) and \
+                    not isinstance(mapping, (tuple | bool | int | str | bytes)):
+                try:
+                    value = getattr(mapping, key)
+                    if self.rv == "first":
+                        return value
+                    if (self.rv == "unique" and value not in rv) or self.rv == "all":
+                        rv.append(value)
+                except AttributeError:
+                    pass
+        return self.default if self.rv == "first" else rv
+
+    def __delitem__(self, key: Hashable) -> Chain:
+        """Delete item."""
+        index = 0
+        deleted = []
+        found = False
+        for mapping in self.maps:
+            if mapping:
+                if not isinstance(mapping, (tuple | bool | int | str | bytes)):
+                    if hasattr(mapping, '__delitem__'):
+                        if key in mapping:
+                            del mapping[key]
+                            if self.rv == "first":
+                                found = True
+                    elif hasattr(mapping, '__delattr__') and hasattr(mapping, key) and isinstance(key, str):
+                        delattr(mapping.__class__, key) if key in dir(mapping.__class__) else delattr(mapping, key)
+                        if self.rv == "first":
+                            found = True
+                if not mapping:
+                    deleted.append(index)
+                if found:
+                    break
+            index += 1
+        for index in reversed(deleted):
+            del self.maps[index]
+        return self
+
+    def delete(self, key: Hashable) -> Chain:
+        """Delete item."""
+        del self[key]
+        return self
+
+    def __setitem__(self, key: Hashable, value: Any) -> Chain:  # noq: C901
+        """Set item."""
+        found = False
+        for mapping in self.maps:
+            if mapping:
+                if not isinstance(mapping, (tuple | bool | int | str | bytes)):
+                    if hasattr(mapping, '__setitem__'):
+                        if key in mapping:
+                            mapping[key] = value
+                            if self.rv == "first":
+                                found = True
+                    elif hasattr(mapping, '__setattr__') and hasattr(mapping, key) and isinstance(key, str):
+                        setattr(mapping, key, value)
+                        if self.rv == "first":
+                            found = True
+                if found:
+                    break
+        if not found and not isinstance(self.maps[0], (tuple | bool | int | str | bytes)):
+            if hasattr(self.maps[0], '__setitem__'):
+                self.maps[0][key] = value
+            elif hasattr(self.maps[0], '__setattr__') and isinstance(key, str):
+                setattr(self.maps[0], key, value)
+        return self
+
+    def set(self, key: Hashable, value: Any) -> Chain:  # noqa: A003
+        """Set item."""
+        return self.__setitem__(key, value)
+
+
 class CmdError(subprocess.CalledProcessError):
     """Raised when run() and the process returns a non-zero exit status.
 
@@ -219,11 +613,11 @@ class CmdError(subprocess.CalledProcessError):
       process: The CompletedProcess object returned by run().
     """
 
-    def __init__(self, process=None):
+    def __init__(self, process: subprocess.CompletedProcess | None = None) -> None:
         """Init."""
         super().__init__(process.returncode, process.args, output=process.stdout, stderr=process.stderr)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Str."""
         value = super().__str__()
         if self.stderr is not None:
@@ -235,6 +629,909 @@ class CmdError(subprocess.CalledProcessError):
 
 class CommandNotFoundError(_NoDepsBaseError):
     """Raised when command is not found."""
+
+
+class EnumLower(enum.Enum):
+    """EnumLower class."""
+    def _generate_next_value_(self: str, start, count: int, last_values) -> str:
+        return str(self).lower()
+
+
+# noinspection LongLine,SpellCheckingInspection
+@dataclasses.dataclass
+class Env:
+    """GitHub Actions Variables Class.
+
+    See Also: `Environment variables
+    <https://docs.github.com/en/enterprise-cloud@latest/actions/learn-github-actions/environment-variables>`_
+
+    If you need to use a workflow run's URL from within a job, you can combine these environment variables:
+        ``$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID``
+
+    If you generate a value in one step of a job, you can use the value in subsequent ``steps`` of
+        the same job by assigning the value to an existing or new environment variable and then writing
+        this to the ``GITHUB_ENV`` environment file, see `Commands
+        <https://docs.github.com/en/enterprise-cloud@latest/actions/reference/workflow-commands-for-github-actions/#setting-an-environment-variable>`_.
+
+    If you want to pass a value from a step in one job in a ``workflow`` to a step in another job in the workflow,
+        you can define the value as a job output, see `Syntax
+        <https://docs.github.com/en/enterprise-cloud@latest/actions/learn-github-actions/workflow-syntax-for-github-actions#jobsjob_idoutputs>`_.
+    """
+
+    CI: bool | str | None = dataclasses.field(default=None, init=False)
+    """Always set to ``true`` in a GitHub Actions environment."""
+
+    GITHUB_ACTION: str | None = dataclasses.field(default=None, init=False)
+    # noinspection LongLine
+    """
+    The name of the action currently running, or the `id
+    <https://docs.github.com/en/enterprise-cloud@latest/actions/using-workflows/workflow-syntax-for-github-actions#jobs\
+        job_idstepsid>`_ of a step.
+
+    For example, for an action, ``__repo-owner_name-of-action-repo``.
+
+    GitHub removes special characters, and uses the name ``__run`` when the current step runs a script without an id.
+
+    If you use the same script or action more than once in the same job,
+    the name will include a suffix that consists of the sequence number preceded by an underscore.
+
+    For example, the first script you run will have the name ``__run``, and the second script will be named ``__run_2``.
+
+    Similarly, the second invocation of ``actions/checkout`` will be ``actionscheckout2``.
+    """
+
+    GITHUB_ACTION_PATH: Path | str | None = dataclasses.field(default=None, init=False)
+    """
+    The path where an action is located. This property is only supported in composite actions.
+
+    You can use this path to access files located in the same repository as the action.
+
+    For example, ``/home/runner/work/_actions/repo-owner/name-of-action-repo/v1``.
+    """
+
+    GITHUB_ACTION_REPOSITORY: str | None = dataclasses.field(default=None, init=False)
+    """
+    For a step executing an action, this is the owner and repository name of the action.
+
+    For example, ``actions/checkout``.
+    """
+
+    GITHUB_ACTIONS: bool | str | None = dataclasses.field(default=None, init=False)
+    """
+    Always set to ``true`` when GitHub Actions is running the workflow.
+
+    You can use this variable to differentiate when tests are being run locally or by GitHub Actions.
+    """
+
+    GITHUB_ACTOR: str | None = dataclasses.field(default=None, init=False)
+    """
+    The name of the person or app that initiated the workflow.
+
+    For example, ``octocat``.
+    """
+
+    GITHUB_API_URL: ParseResult | str | None = dataclasses.field(default=None, init=False)
+    """
+    API URL.
+
+    For example: ``https://api.github.com``.
+    """
+
+    GITHUB_BASE_REF: str | None = dataclasses.field(default=None, init=False)
+    """
+    The name of the base ref or target branch of the pull request in a workflow run.
+
+    This is only set when the event that triggers a workflow run is either ``pull_request`` or ``pull_request_target``.
+
+    For example, ``main``.
+    """
+
+    GITHUB_ENV: Path | str | None = dataclasses.field(default=None, init=False)
+    """
+    The path on the runner to the file that sets environment variables from workflow commands.
+
+    This file is unique to the current step and changes for each step in a job.
+
+    For example, ``/home/runner/work/_temp/_runner_file_commands/set_env_87406d6e-4979-4d42-98e1-3dab1f48b13a``.
+
+    For more information, see `Workflow commands for GitHub Actions.
+    <https://docs.github.com/en/enterprise-cloud@latest/actions/using-workflows/workflow-commands-for-github-actions#setting-an-environment-variable>`_
+    """
+
+    GITHUB_EVENT_NAME: str | None = dataclasses.field(default=None, init=False)
+    """
+    The name of the event that triggered the workflow.
+
+    For example, ``workflow_dispatch``.
+    """
+
+    GITHUB_EVENT_PATH: Path | str | None = dataclasses.field(default=None, init=False)
+    """
+    The path to the file on the runner that contains the full event webhook payload.
+
+    For example, ``/github/workflow/event.json``.
+    """
+
+    GITHUB_GRAPHQL_URL: ParseResult | str | None = dataclasses.field(default=None, init=False)
+    """
+    Returns the GraphQL API URL.
+
+    For example: ``https://api.github.com/graphql``.
+    """
+
+    GITHUB_HEAD_REF: str | None = dataclasses.field(default=None, init=False)
+    """
+    The head ref or source branch of the pull request in a workflow run.
+
+    This property is only set when the event that triggers a workflow run is either
+    ``pull_request`` or ``pull_request_target``.
+
+    For example, ``feature-branch-1``.
+    """
+
+    GITHUB_JOB: str | None = dataclasses.field(default=None, init=False)
+    """
+    The `job_id
+    <https://docs.github.com/en/enterprise-cloud@latest/actions/reference/workflow-syntax-for-github-actions#jobsjob_id>`_
+    of the current job.
+
+    For example, ``greeting_job``.
+    """
+
+    GITHUB_PATH: Path | str | None = dataclasses.field(default=None, init=False)
+    """
+    The path on the runner to the file that sets system PATH variables from workflow commands.
+    This file is unique to the current step and changes for each step in a job.
+
+    For example, ``/home/runner/work/_temp/_runner_file_commands/add_path_899b9445-ad4a-400c-aa89-249f18632cf5``.
+
+    For more information, see `Workflow commands for GitHub Actions.
+    <https://docs.github.com/en/enterprise-cloud@latest/actions/using-workflows/workflow-commands-for-github-actions#adding-a-system-path>`_
+    """
+
+    GITHUB_REF: str | None = dataclasses.field(default=None, init=False)
+    """
+    The branch or tag ref that triggered the workflow run.
+
+    For branches this is the format ``refs/heads/<branch_name>``,
+    for tags it is ``refs/tags/<tag_name>``,
+    and for pull requests it is ``refs/pull/<pr_number>/merge``.
+
+    This variable is only set if a branch or tag is available for the event type.
+
+    For example, ``refs/heads/feature-branch-1``.
+    """
+
+    GITHUB_REF_NAME: str | None = dataclasses.field(default=None, init=False)
+    """
+    The branch or tag name that triggered the workflow run.
+
+    For example, ``feature-branch-1``.
+    """
+
+    GITHUB_REF_PROTECTED: bool | str | None = dataclasses.field(default=None, init=False)
+    """
+    ``true`` if branch protections are configured for the ref that triggered the workflow run.
+    """
+
+    GITHUB_REF_TYPE: str | None = dataclasses.field(default=None, init=False)
+    """
+    The type of ref that triggered the workflow run.
+
+    Valid values are ``branch`` or ``tag``.
+
+    For example, ``branch``.
+    """
+
+    GITHUB_REPOSITORY: str | None = dataclasses.field(default=None, init=False)
+    """
+    The owner and repository name.
+
+    For example, ``octocat/Hello-World``.
+    """
+
+    GITHUB_REPOSITORY_OWNER: str | None = dataclasses.field(default=None, init=False)
+    """
+    The repository owner's name.
+
+    For example, ``octocat``.
+    """
+
+    GITHUB_RETENTION_DAYS: str | None = dataclasses.field(default=None, init=False)
+    """
+    The number of days that workflow run logs and artifacts are kept.
+
+    For example, ``90``.
+    """
+
+    GITHUB_RUN_ATTEMPT: str | None = dataclasses.field(default=None, init=False)
+    """
+    A unique number for each attempt of a particular workflow run in a repository.
+
+    This number begins at ``1`` for the workflow run's first attempt, and increments with each re-run.
+
+    For example, ``3``.
+    """
+
+    GITHUB_RUN_ID: str | None = dataclasses.field(default=None, init=False)
+    """
+    A unique number for each workflow run within a repository.
+
+    This number does not change if you re-run the workflow run.
+
+    For example, ``1658821493``.
+    """
+
+    GITHUB_RUN_NUMBER: str | None = dataclasses.field(default=None, init=False)
+    """
+    A unique number for each run of a particular workflow in a repository.
+
+    This number begins at ``1`` for the workflow's first run, and increments with each new run.
+    This number does not change if you re-run the workflow run.
+
+    For example, ``3``.
+    """
+
+    GITHUB_SERVER_URL: ParseResult | str | None = dataclasses.field(default=None, init=False)
+    """
+    The URL of the GitHub Enterprise Cloud server.
+
+    For example: ``https://github.com``.
+    """
+
+    GITHUB_SHA: str | None = dataclasses.field(default=None, init=False)
+    """
+    The commit SHA that triggered the workflow.
+
+    The value of this commit SHA depends on the event that triggered the workflow.
+    For more information, see `Events that trigger workflows.
+    <https://docs.github.com/en/enterprise-cloud@latest/actions/using-workflows/events-that-trigger-workflows>`_
+
+    For example, ``ffac537e6cbbf934b08745a378932722df287a53``.
+    """
+
+    GITHUB_WORKFLOW: Path | str | None = dataclasses.field(default=None, init=False)
+    """
+    The name of the workflow.
+
+    For example, ``My test workflow``.
+
+    If the workflow file doesn't specify a name,
+    the value of this variable is the full path of the workflow file in the repository.
+    """
+
+    GITHUB_WORKSPACE: Path | str | None = dataclasses.field(default=None, init=False)
+    """
+    The default working directory on the runner for steps, and the default location of your repository
+    when using the `checkout <https://github.com/actions/checkout>`_ action.
+
+    For example, ``/home/runner/work/my-repo-name/my-repo-name``.
+    """
+
+    RUNNER_ARCH: str | None = dataclasses.field(default=None, init=False)
+    """
+    The architecture of the runner executing the job.
+
+    Possible values are ``X86``, ``X64``, ``ARM``, or ``ARM64``.
+
+    For example, ``X86``.
+    """
+
+    RUNNER_NAME: str | None = dataclasses.field(default=None, init=False)
+    """
+    The name of the runner executing the job.
+
+    For example, ``Hosted Agent``.
+    """
+
+    RUNNER_OS: str | None = dataclasses.field(default=None, init=False)
+    """
+    The operating system of the runner executing the job.
+
+    Possible values are ``Linux``, ``Windows``, or ``macOS``.
+
+    For example, ``Linux``.
+    """
+
+    RUNNER_TEMP: Path | str | None = dataclasses.field(default=None, init=False)
+    """
+    The path to a temporary directory on the runner.
+
+    This directory is emptied at the beginning and end of each job.
+
+    Note that files will not be removed if the runner's user account does not have permission to delete them.
+
+    For example, ``_temp``.
+    """
+
+    RUNNER_TOOL_CACHE: str | None = dataclasses.field(default=None, init=False)
+    # noinspection LongLine
+    """
+    The path to the directory containing preinstalled tools for GitHub-hosted runners.
+
+    For more information, see `About GitHub-hosted runners.
+    <https://docs.github.com/en/enterprise-cloud@latest/actions/reference/specifications-for-github-hosted-runners/#supported-software>`_
+
+    `Ubuntu latest <https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-Readme.md>`_
+    `macOS latest <https://github.com/actions/virtual-environments/blob/main/images/macos/macos-11-Readme.md>`_
+
+    For example, ``C:/hostedtoolcache/windows``.
+    """
+
+    COMMAND_MODE: str | None = dataclasses.field(default=None, init=False)
+    HOME: str | None = dataclasses.field(default=None, init=False)
+    IPYTHONENABLE: str | None = dataclasses.field(default=None, init=False)
+    LC_TYPE: str | None = dataclasses.field(default=None, init=False)
+    LOGNAME: str | None = dataclasses.field(default=None, init=False)
+    OLDPWD: str | None = dataclasses.field(default=None, init=False)
+    PATH: str | None = dataclasses.field(default=None, init=False)
+    PS1: str | None = dataclasses.field(default=None, init=False)
+    PWD: str | None = dataclasses.field(default=None, init=False)
+    PYCHARM_DISPLAY_PORT: str | None = dataclasses.field(default=None, init=False)
+    PYCHARM_HOSTED: str | None = dataclasses.field(default=None, init=False)
+    PYCHARM_MATPLOTLIB_INDEX: str | None = dataclasses.field(default=None, init=False)
+    PYCHARM_MATPLOTLIB_INTERACTIVE: str | None = dataclasses.field(default=None, init=False)
+    PYCHARM_PROPERTIES: str | None = dataclasses.field(default=None, init=False)
+    PYCHARM_VM_OPTIONS: str | None = dataclasses.field(default=None, init=False)
+    PYDEVD_LOAD_VALUES_ASYNC: str | None = dataclasses.field(default=None, init=False)
+    PYTHONIOENCODING: str | None = dataclasses.field(default=None, init=False)
+    PYTHONPATH: str | None = dataclasses.field(default=None, init=False)
+    PYTHONUNBUFFERED: str | None = dataclasses.field(default=None, init=False)
+    SHELL: str | None = dataclasses.field(default=None, init=False)
+    SSH_AUTH_SOCK: str | None = dataclasses.field(default=None, init=False)
+    SUDO_USER: str | None = dataclasses.field(default=None, init=False)
+    TMPDIR: str | None = dataclasses.field(default=None, init=False)
+    XPC_FLAGS: str | None = dataclasses.field(default=None, init=False)
+    XPC_SERVICE_NAME: str | None = dataclasses.field(default=None, init=False)
+    __CFBundleIdentifier: str | None = dataclasses.field(default=None, init=False)
+    __CF_USER_TEXT_ENCODING: str | None = dataclasses.field(default=None, init=False)
+
+    _parse_as_int: ClassVar[tuple[str, ...]] = (
+        "GITHUB_RUN_ATTEMPT",
+        "GITHUB_RUN_ID",
+        "GITHUB_RUN_NUMBER",
+    )
+    _parse_as_int_suffix: ClassVar[tuple[str, ...]] = (
+        "_GID",
+        "_JOBS",
+        "_PORT",
+        "_UID",
+    )
+    parsed: dataclasses.InitVar[bool] = True
+
+    def __post_init__(self, parsed: bool) -> None:
+        """Instance of Env class.
+
+        Args:
+            parsed: Parse the environment variables using :func:`nodeps.parse_str`,
+                except :func:`Env.as_int` (default: True)
+        """
+        # TODO: python-decouple
+        self.__dict__.update(
+            {k: self.as_int(k, v) for k, v in os.environ.items()}
+            if parsed
+            else os.environ
+        )
+
+    def __contains__(self, item):
+        """Check if item is in self.__dict__."""
+        return item in self.__dict__
+
+    def __getattr__(self, name: str) -> str | None:
+        """Get attribute from self.__dict__ if exists, otherwise return None."""
+        if name in self:
+            return self.__dict__[name]
+        return None
+
+    def __getattribute__(self, name: str) -> str | None:
+        """Get attribute from self.__dict__ if exists, otherwise return None."""
+        if hasattr(self, name):
+            return super().__getattribute__(name)
+        return None
+
+    def __getitem__(self, item: str) -> str | None:
+        """Get item from self.__dict__ if exists, otherwise return None."""
+        return self.__getattr__(item)
+
+    @classmethod
+    def as_int(
+        cls, key: str, value: str = ""
+    ) -> bool | Path | ParseResult | IPv4Address | IPv6Address | int | str:
+        """Parse as int if environment variable should be forced to be parsed as int checking if:.
+
+            - has value,
+            - key in :data:`Env._parse_as_int` or
+            - key ends with one of the items in :data:`Env._parse_as_int_suffix`.
+
+        Args:
+            key: Environment variable name.
+            value: Environment variable value (default: "").
+
+        Returns:
+            int, if key should be parsed as int and has value, otherwise according to :func:`parse_str`.
+        """
+        convert = False
+        if value:
+            if key in cls._parse_as_int:
+                convert = True
+            else:
+                for item in cls._parse_as_int_suffix:
+                    if key.endswith(item):
+                        convert = True
+        return int(value) if convert and value.isnumeric() else parse_str(value)
+
+    @staticmethod
+    def parse_as_bool(
+            variable: str = "USER",
+    ) -> bool | Path | ParseResult | IPv4Address | IPv6Address | int | str | None:
+        """Parses variable from environment 1 and 0 as bool instead of int.
+
+        Parses:
+            - bool: 1, 0, True, False, yes, no, on, off (case insensitive)
+            - int: integer only numeric characters but 1 and 0 or SUDO_UID or SUDO_GID
+            - ipaddress: ipv4/ipv6 address
+            - url: if "//" or "@" is found it will be parsed as url
+            - path: start with / or ~ or .
+            - others as string
+
+        Arguments:
+            variable: variable name to parse from environment (default: USER)
+
+        Examples:
+            >>> from nodeps import Path
+            >>> from nodeps import Env
+            >>>
+            >>> assert isinstance(Env.parse_as_bool(), str)
+            >>>
+            >>> os.environ['FOO'] = '1'
+            >>> assert Env.parse_as_bool("FOO") is True
+            >>>
+            >>> os.environ['FOO'] = '0'
+            >>> assert Env.parse_as_bool("FOO") is False
+            >>>
+            >>> os.environ['FOO'] = 'TrUe'
+            >>> assert Env.parse_as_bool("FOO") is True
+            >>>
+            >>> os.environ['FOO'] = 'OFF'
+            >>> assert Env.parse_as_bool("FOO") is False
+            >>>
+            >>> os.environ['FOO'] = '~/foo'
+            >>> assert Env.parse_as_bool("FOO") == Path('~/foo')
+            >>>
+            >>> os.environ['FOO'] = '/foo'
+            >>> assert Env.parse_as_bool("FOO") == Path('/foo')
+            >>>
+            >>> os.environ['FOO'] = './foo'
+            >>> assert Env.parse_as_bool("FOO") == Path('./foo')
+            >>>
+            >>> os.environ['FOO'] = './foo'
+            >>> assert Env.parse_as_bool("FOO") == Path('./foo')
+            >>>
+            >>> v = "https://github.com"
+            >>> os.environ['FOO'] = v
+            >>> assert Env.parse_as_bool("FOO").geturl() == v
+            >>>
+            >>> v = "git@github.com"
+            >>> os.environ['FOO'] = v
+            >>> assert Env.parse_as_bool("FOO").geturl() == v
+            >>>
+            >>> v = "0.0.0.0"
+            >>> os.environ['FOO'] = v
+            >>> assert Env.parse_as_bool("FOO").exploded == v
+            >>>
+            >>> os.environ['FOO'] = "::1"
+            >>> assert Env.parse_as_bool("FOO").exploded.endswith(":0001")
+            >>>
+            >>> v = "2"
+            >>> os.environ['FOO'] = v
+            >>> assert Env.parse_as_bool("FOO") == int(v)
+            >>>
+            >>> v = "2.0"
+            >>> os.environ['FOO'] = v
+            >>> assert Env.parse_as_bool("FOO") == v
+            >>>
+            >>> del os.environ['FOO']
+            >>> assert Env.parse_as_bool("FOO") is None
+
+        Returns:
+            None
+        """
+        if value := os.environ.get(variable):
+            if variable in ("SUDO_UID", "SUDO_GID"):
+                return int(value)
+            if variable == "PATH":
+                return value
+            return parse_str(value)
+        return value
+
+    @classmethod
+    def parse_as_int(cls,
+                     name: str = "USER",
+                     ) -> bool | Path | ParseResult | IPv4Address | IPv6Address | int | str | None:
+        """Parses variable from environment using :func:`mreleaser.parse_str`,.
+
+        except ``SUDO_UID`` or ``SUDO_GID`` which are parsed as int instead of bool.
+
+        Arguments:
+            name: variable name to parse from environment (default: USER)
+
+        Examples:
+            >>> from nodeps import Path
+            >>> from nodeps import Env
+            >>> assert isinstance(Env.parse_as_int(), str)
+            >>>
+            >>> os.environ['FOO'] = '1'
+            >>> assert Env.parse_as_int("FOO") is True
+            >>>
+            >>> os.environ['FOO'] = '0'
+            >>> assert Env.parse_as_int("FOO") is False
+            >>>
+            >>> os.environ['FOO'] = 'TrUe'
+            >>> assert Env.parse_as_int("FOO") is True
+            >>>
+            >>> os.environ['FOO'] = 'OFF'
+            >>> assert Env.parse_as_int("FOO") is False
+            >>>
+            >>> os.environ['FOO'] = '~/foo'
+            >>> assert Env.parse_as_int("FOO") == Path('~/foo')
+            >>>
+            >>> os.environ['FOO'] = '/foo'
+            >>> assert Env.parse_as_int("FOO") == Path('/foo')
+            >>>
+            >>> os.environ['FOO'] = './foo'
+            >>> assert Env.parse_as_int("FOO") == Path('./foo')
+            >>>
+            >>> os.environ['FOO'] = './foo'
+            >>> assert Env.parse_as_int("FOO") == Path('./foo')
+            >>>
+            >>> v = "https://github.com"
+            >>> os.environ['FOO'] = v
+            >>> assert Env.parse_as_int("FOO").geturl() == v
+            >>>
+            >>> v = "git@github.com"
+            >>> os.environ['FOO'] = v
+            >>> assert Env.parse_as_int("FOO").geturl() == v
+            >>>
+            >>> v = "0.0.0.0"
+            >>> os.environ['FOO'] = v
+            >>> assert Env.parse_as_int("FOO").exploded == v
+            >>>
+            >>> os.environ['FOO'] = "::1"
+            >>> assert Env.parse_as_int("FOO").exploded.endswith(":0001")
+            >>>
+            >>> v = "2"
+            >>> os.environ['FOO'] = v
+            >>> assert Env.parse_as_int("FOO") == int(v)
+            >>>
+            >>> v = "2.0"
+            >>> os.environ['FOO'] = v
+            >>> assert Env.parse_as_int("FOO") == v
+            >>>
+            >>> del os.environ['FOO']
+            >>> assert Env.parse_as_int("FOO") is None
+            >>>
+            >>> if not os.environ.get("CI"):
+            ...     assert isinstance(Env.parse_as_int("PATH"), str)
+
+        Returns:
+            Value parsed
+        """
+        if value := os.environ.get(name):
+            return cls.as_int(name, value)
+        return value
+
+
+@dataclasses.dataclass
+class EnvBuilder(venv.EnvBuilder):
+    # noinspection PyUnresolvedReferences
+    """Wrapper for :class:`venv.EnvBuilder`.
+
+    Changed defaults for: `prompt`` `symlinks` and `with_pip`, adds `env_dir` to `__init__` arguments.
+
+    This class exists to allow virtual environment creation to be
+    customized. The constructor parameters determine the builder's
+    behaviour when called upon to create a virtual environment.
+
+    By default, the builder makes the system (global) site-packages dir *un*available to the created environment.
+
+    If invoked using the Python -m option, the default is to use copying
+    on Windows platforms but symlinks elsewhere. If instantiated some
+    other way, the default is to *not* use symlinks (changed with the wrapper to use symlinks always).
+
+    Args:
+        system_site_packages: bool
+            If True, the system (global) site-packages dir is available to created environments.
+        clear: bool
+            If True, delete the contents of the environment directory if it already exists, before environment creation.
+        symlinks: bool
+            If True, attempt to symlink rather than copy files into virtual environment.
+        upgrade: bool
+            If True, upgrade an existing virtual environment.
+        with_pip: bool
+            If True, ensure pip is installed in the virtual environment.
+        prompt: str
+            Alternative terminal prefix for the environment.
+        upgrade_deps: bool
+            Update the base venv modules to the latest on PyPI (python 3.9+).
+        context: Simplenamespace
+            The information for the environment creation request being processed.
+        env_dir: bool
+            The target directory to create an environment in.
+    """
+    system_site_packages: bool = False
+    clear: bool = False
+    symlinks: bool = True
+    upgrade: bool = False
+    with_pip: bool = True
+    prompt: str | None = "."
+    upgrade_deps: bool = False
+    env_dir: Path | str | None = None
+    context: types.SimpleNamespace | None = dataclasses.field(default=None, init=False)
+
+    def __post_init__(self):
+        """Initialize the environment builder and also creates the environment is does not exist."""
+        super().__init__(system_site_packages=self.system_site_packages, clear=self.clear, symlinks=self.symlinks,
+                         upgrade=self.upgrade, with_pip=self.with_pip, prompt=self.prompt,
+                         **({"upgrade_deps": self.upgrade_deps} if sys.version_info >= (3, 9) else {}))
+        if self.env_dir:
+            self.env_dir = Path(self.env_dir)
+            if self.env_dir.exists():
+                self.ensure_directories()
+            else:
+                self.create(self.env_dir)
+
+    def create(self, env_dir: Path | str | None = None) -> None:
+        """Create a virtual environment in a directory.
+
+        Args:
+            env_dir: The target directory to create an environment in.
+        """
+        if env_dir and self.env_dir is None:
+            self.env_dir = env_dir
+        super().create(self.env_dir)
+
+    def ensure_directories(self, env_dir: Path | str | None = None) -> types.SimpleNamespace:
+        """Create the directories for the environment.
+
+        Args:
+            env_dir: The target directory to create an environment in.
+
+        Returns:
+            A context object which holds paths in the environment, for use by subsequent logic.
+        """
+        self.context = super().ensure_directories(env_dir or self.env_dir)
+        return self.context
+
+    def post_setup(self, context: types.SimpleNamespace | None = None) -> None:
+        """Hook for post-setup modification of the venv.
+
+        Subclasses may install additional packages or scripts here, add activation shell scripts, etc.
+
+        Args:
+            context: The information for the environment creation request being processed.
+        """
+
+
+@dataclasses.dataclass
+class FileConfig:
+    """FileConfig class."""
+    file: Path | None = None
+    config: dict = dataclasses.field(default_factory=dict)
+
+
+@dataclasses.dataclass
+class FrameSimple:
+    """Simple frame class."""
+    back: types.FrameType
+    code: types.CodeType
+    frame: types.FrameType
+    function: str
+    globals: dict[str, Any]  # noqa: A003, A003
+    lineno: int
+    locals: dict[str, Any]  # noqa: A003
+    name: str
+    package: str
+    path: Path
+    vars: dict[str, Any]  # noqa: A003
+
+
+@dataclasses.dataclass
+class GroupUser:
+    """GroupUser class."""
+    group: int | str
+    user: int | str
+
+
+class InvalidArgumentError(_NoDepsBaseError):
+    """Raised when function is called with invalid argument."""
+
+
+class LetterCounter:
+    """Letter Counter generator function. This way, each time you call next() on the generator.
+
+    It will yield the next counter value. We will also remove the maximum counter check
+
+    Examples:
+        >>> from nodeps import LetterCounter
+        >>>
+        >>> c = LetterCounter("Z")
+        >>> assert c.increment() == 'AA'
+    """
+
+    def __init__(self, start: str = 'A') -> None:
+        """Init."""
+        self.current_value = [string.ascii_uppercase.index(v) for v in start[::-1]]
+
+    def increment(self) -> str:
+        """Increments 1.
+
+        Exaamples:
+            >>> from nodeps import LetterCounter
+            >>>
+            >>> c = LetterCounter('BWDLQZZ')
+            >>> assert c.increment() == 'BWDLRAA'
+            >>> assert c.increment() == 'BWDLRAB'
+
+        Returns:
+            str
+        """
+        for i in range(len(self.current_value)):
+            # If digit is less than Z, increment and finish
+            if self.current_value[i] < 25:  # noqa: PLR2004
+                self.current_value[i] += 1
+                break
+            # Otherwise, set digit to A (0) and continue to next digit
+            self.current_value[i] = 0
+            # If we've just set the most significant digit to A,
+            # we need to add another 'A' at the most significant end
+            if i == len(self.current_value) - 1:
+                self.current_value.append(0)
+                break
+        # Form the string and return
+        return ''.join(reversed([string.ascii_uppercase[i] for i in self.current_value]))
+
+
+class NamedtupleMeta(metaclass=abc.ABCMeta):
+    """Namedtuple Metaclass.
+
+    Examples:
+        >>> import collections
+        >>> from nodeps import NamedtupleMeta
+        >>>
+        >>> named = collections.namedtuple('named', 'a', defaults=('a', ))
+        >>>
+        >>> assert isinstance(named(), NamedtupleMeta) == True
+        >>> assert isinstance(named(), tuple) == True
+        >>>
+        >>> assert issubclass(named, NamedtupleMeta) == True
+        >>> assert issubclass(named, tuple) == True
+    """
+    _fields: tuple[str, ...] = ()
+    _field_defaults: dict[str, Any] = {}  # noqa: RUF012
+
+    @abc.abstractmethod
+    def _asdict(self) -> dict[str, Any]:
+        return {}
+
+    # noinspection PyPep8Naming
+    @classmethod
+    def __subclasshook__(cls, C: type) -> bool:  # noqa: N803
+        """Subclass hook."""
+        if cls is NamedtupleMeta:
+            return (hasattr(C, "_asdict") and callable(C._asdict)) and all([issubclass(C, tuple), hasattr(C, "_fields"),
+                                                                            hasattr(C, "_field_defaults")])
+        return NotImplemented
+
+
+@dataclasses.dataclass
+class OwnerRepo:
+    """Owner Repo and Url Parser Class.
+
+    if scheme is "git+file" will only use repo argument as the path and must be absolute path
+
+    furl:
+        - url.query: after "?", i.e. ?ref=master&foo=bar
+        - url.args: query args dict, i.e. {'ref': 'master', 'foo': 'bar'}
+        - url.fragment: after "#", i.e. #two/directories?one=argument
+        - url.fragment.path.segments: i.e. ['two', 'directories']
+        - url.fragment.args: i.e. {'one': 'argument'}
+
+
+    Examples:
+        >>> import os
+        >>> import pytest
+        >>> import nodeps
+        >>> from nodeps import OwnerRepo
+        >>>
+        >>> r = OwnerRepo()
+        >>> r.url # doctest: +ELLIPSIS
+        'https://github.com/.../nodeps'
+        >>> assert r.url == OwnerRepo(nodeps.__file__).url
+        >>> OwnerRepo(repo="test").url # doctest: +ELLIPSIS
+        'https://github.com/.../test'
+        >>> OwnerRepo("cpython", "cpython").url
+        'https://github.com/cpython/cpython'
+        >>> OwnerRepo(repo="/tmp/cpython", scheme="git+file").url
+        'git+file:///tmp/cpython.git'
+        >>> OwnerRepo("cpython", "cpython", scheme="git+https").url
+        'git+https://github.com/cpython/cpython'
+        >>> OwnerRepo("cpython", "cpython", scheme="git+ssh").url
+        'git+ssh://git@github.com/cpython/cpython'
+        >>> OwnerRepo("cpython", "cpython", scheme="ssh").url
+        'git@github.com:cpython/cpython'
+        >>> OwnerRepo("cpython", "cpython", scheme="https").url
+        'https://github.com/cpython/cpython'
+
+    Args:
+        owner: repo owner
+        repo: repo name or repo path for git+file scheme
+        scheme: Git URL scheme
+        data: url or path to get remote url
+
+    Raises:
+        InvalidArgumentError: if invalid argument to get URL
+    """
+    owner: str = dataclasses.field(default=GIT)
+    repo: str = dataclasses.field(default=None)
+    scheme: str = dataclasses.field(default=GIT_DEFAULT_SCHEME)
+    data: ParseResult | Path | str = dataclasses.field(default=None)
+    parsed: ParseResult = dataclasses.field(default=None, init=False)
+    path: Path = dataclasses.field(default=None, init=False)
+    """Url path"""
+
+    def __post_init__(self):
+        """Post Init."""
+        url = None
+        if self.repo:
+            if self.scheme == "git+file":
+                if not self.repo.startswith("/"):
+                    msg = f"Repo must be an absolute file for '{self.scheme}': {self.repo}"
+                    raise ValueError(msg)
+                self.owner = ""
+            url = GITHUB_URL[self.scheme] + self.owner_repo
+        elif isinstance(self.data, Path) or self.data is None:
+            url = self.remote()
+        elif isinstance(self.data, (str | ParseResult)):
+            url = self.data
+
+        if url is None:
+            msg = f"Invalid repository path or remote url in repository: {self.data}"
+            raise InvalidArgumentError(msg)
+
+        self.parsed = urllib.parse.urlparse(url) if isinstance(url, str) else url
+        self.path = Path(self.parsed.path.removeprefix("/"))
+        if self.parsed.scheme == "git+file" and self.path.suffix == "":
+            url = self.parsed.geturl() + ".git"
+        elif self.parsed.scheme != "git+file" and self.path.suffix == ".git":
+            url = self.parsed.geturl().removesuffix(".git")
+
+        if isinstance(url, str):
+            self.parsed = urllib.parse.urlparse(url)
+        if self.repo is None:
+            self.scheme = self.parsed.scheme
+            self.owner = self.path.parts[0]
+            self.repo = self.path.parts[1]
+
+    @property
+    def owner_repo(self) -> str:
+        """Get owner/repo."""
+        return f"{self.owner + '/' if self.owner else ''}{self.repo}"
+
+    def remote(self) -> str | None:
+        """Get remote url."""
+        path = self.data.to_parent() if isinstance(self.data, Path) else Path.cwd() if self.data is None else None
+        if path:
+            self.data = path
+            return stdout(f"git -C {path} config --get remote.origin.url")
+        return None
+
+    @property
+    def url(self) -> str:
+        """Url."""
+        rv = self.parsed.geturl()
+        if self.scheme == "git+file":
+            rv = rv.replace(":/", ":///")
+        return rv
 
 
 @dataclasses.dataclass
@@ -2030,7 +3327,15 @@ AnyPath: TypeAlias = Path | AnyPath
 
 
 class PipMetaPathFinder(importlib.abc.MetaPathFinder):
-    """A importlib.abc.MetaPathFinder to auto-install missing modules using pip."""
+    """A importlib.abc.MetaPathFinder to auto-install missing modules using pip.
+
+    Examples:
+        >>> from nodeps import PipMetaPathFinder
+        >>>
+        >>> sys.meta_path.append(PipMetaPathFinder)
+        >>> # noinspection PyUnresolvedReferences
+        >>> import simplejson  # doctest: +SKIP
+    """
 
     # noinspection PyMethodOverriding,PyMethodParameters
     def find_spec(
@@ -2048,6 +3353,148 @@ class PipMetaPathFinder(importlib.abc.MetaPathFinder):
             except importlib.metadata.PackageNotFoundError:
                 pass
         return None
+
+
+@dataclasses.dataclass
+class Repo(GitRepo):
+    """Dataclass Wrapper for :class:`git.Repo`.
+
+    Represents a git repository and allows you to query references,
+    gather commit information, generate diffs, create and clone repositories query
+    the log.
+
+    'working_tree_dir' is the working tree directory, but will raise AssertionError if we are a bare repository.
+    """
+    git: GitCmd = dataclasses.field(init=False)
+    """
+    The Repo class manages communication with the Git binary.
+
+    It provides a convenient interface to calling the Git binary, such as in::
+
+     g = Repo( git_dir )
+     g.init()                   # calls 'git init' program
+     rval = g.ls_files()        # calls 'git ls-files' program
+
+    ``Debugging``
+        Set the GIT_PYTHON_TRACE environment variable print each invocation
+        of the command to stdout.
+        Set its value to 'full' to see details about the returned values.
+    """
+    git_dir: AnyPath | None = dataclasses.field(default=None, init=False)
+    """the .git repository directory, which is always set"""
+    odb: type[LooseObjectDB] = dataclasses.field(init=False)
+    working_dir: AnyPath | None = dataclasses.field(default=None, init=False)
+    """working directory of the git command, which is the working tree
+    directory if available or the .git directory in case of bare repositories"""
+    path: dataclasses.InitVar[AnyPath | None] = None
+    """File or Directory inside the git repository, the default with search_parent_directories"""
+    expand_vars: dataclasses.InitVar[bool] = True
+    odbt: dataclasses.InitVar[type[LooseObjectDB]] = GitCmdObjectDB
+    """the path to either the root git directory or the bare git repo"""
+    search_parent_directories: dataclasses.InitVar[bool] = True
+    """if True, all parent directories will be searched for a valid repo as well."""
+
+    def __post_init__(self, path: AnyPath | None, expand_vars: bool,
+                      odbt: type[LooseObjectDB], search_parent_directories: bool):
+        """Create a new Repo instance.
+
+        Examples:
+            >>> import warnings
+            >>> import nodeps
+            >>> from nodeps import Repo
+            >>> assert Repo(nodeps.__file__)
+            >>> Repo("~/repo.git")  # doctest: +ELLIPSIS +IGNORE_EXCEPTION_DETAIL
+            Traceback (most recent call last):
+            git.exc.NoSuchPathError: .../repo.git
+            >>> warnings.simplefilter("ignore", UserWarning)
+            >>> Repo("${HOME}/repo")  # doctest: +ELLIPSIS +IGNORE_EXCEPTION_DETAIL
+            Traceback (most recent call last):
+            git.exc.NoSuchPathError: .../repo
+
+        Raises:
+            InvalidGitRepositoryError
+            NoSuchPathError
+
+        Args:
+            path: File or Directory inside the git repository, the default with search_parent_directories set to True
+                or the path to either the root git directory or the bare git repo
+                if search_parent_directories is changed to False
+            expand_vars: if True, environment variables will be expanded in the given path
+            odbt: odbt
+            search_parent_directories: Search all parent directories for a git repository.
+
+        Returns:
+            Repo: Repo instance
+        """
+        if GitRepo == object:
+            msg = f"GitPython is not installed: installed with 'pip install {NODEPS_PROJECT_NAME}[repo]'"
+            raise ImportError(msg)
+
+        super().__init__(path if path is None else Path(path).to_parent(), expand_vars=expand_vars,
+                         odbt=odbt, search_parent_directories=search_parent_directories)
+
+    @classmethod
+    def bare(cls, name: str | None = None, repo: Repo = None) -> Repo:
+        """Create a bare repository in a temporary directory, to manage global/system config or as a remote for testing.
+
+        Args:
+            name: the path of the bare repository
+            repo: Repo instance to update git config with remote url of the new bare repository (default: None)
+
+        Returns:
+            Repo: Repo instance
+        """
+        with tempfile.TemporaryDirectory(suffix=".git") as tmpdir:
+            bare = cls.init(Path(tmpdir) / (f"{name}.git" if name else ""), bare=True)
+            if repo:
+                repo.config_writer().set_value("remote.origin.url", repo.git_dir).release()
+            return bare
+
+    @property
+    def git_config(self) -> GitConfigParser:
+        """Wrapper for :func:`git.Repo.config_reader`, so it is already read and can be used.
+
+        The configuration will include values from the system, user and repository configuration files.
+
+        Examples:
+            >>> import nodeps
+            >>> from nodeps import Repo
+            >>>
+            >>> conf = Repo(nodeps.__file__).git_config
+            >>> conf.has_section('remote "origin"')
+            True
+            >>> conf.has_option('remote "origin"', 'url')
+            True
+            >>> conf.get('remote "origin"', 'url')  # doctest: +ELLIPSIS
+            'https://github.com/...'
+            >>> conf.get_value('remote "origin"', 'url', "")  # doctest: +ELLIPSIS
+            'https://github.com/...'
+
+        Returns:
+            GitConfigParser: GitConfigParser instance
+        """
+        config = self.config_reader()
+        config.read()
+        return config
+
+    @property
+    def origin_url(self) -> ParseResult:
+        """Git Origin URL.
+
+        Examples:
+            >>> import nodeps
+            >>> from nodeps import Repo
+            >>>
+            >>> Repo(nodeps.__file__).origin_url.geturl()   # doctest: +ELLIPSIS
+            'https://github.com/.../nodeps'
+        """
+        return urllib.parse.urlparse(self.git_config.get_value("remote \"origin\"", "url", ""))
+
+    @property
+    def top(self) -> Path:
+        """Repo Top Directory Path."""
+        path = Path(self.working_dir)
+        return Path(path.parent if ".git" in path else path)
 
 
 class TempDir(tempfile.TemporaryDirectory):
@@ -2069,6 +3516,43 @@ class TempDir(tempfile.TemporaryDirectory):
             Path of the temporary directory
         """
         return Path(self.name)
+
+
+async def aioclone(owner: str | None = None, repo: str = "ppip", scheme: GitSchemeLiteral = GIT_DEFAULT_SCHEME,
+                   path: Path | str | None = None) -> Path:
+    """Async Clone Repository.
+
+    Examples:
+        >>> import asyncio
+        >>> from nodeps import TempDir
+        >>> from nodeps import aioclone
+        >>>
+        >>> with TempDir() as tmp:
+        ...     directory = tmp / "1" / "2" / "3"
+        ...     rv = asyncio.run(aioclone("octocat", "Hello-World", path=directory))
+        ...     assert (rv / "README").exists()
+
+    Args:
+        owner: github owner, None to use GIT or USER environment variable if not defined (Default: `GIT`)
+        repo: github repository (Default: `PROJECT`)
+        scheme: url scheme (Default: "https")
+        path: path to clone (Default: `repo`)
+
+    Returns:
+        Path of cloned repository
+    """
+    path = path or Path.cwd() / repo
+    path = Path(path)
+    if not path.exists():
+        if not path.parent.exists():
+            path.parent.mkdir()
+        await aiocmd("git", "clone", OwnerRepo(owner, repo, scheme).url, path)
+    return path
+
+
+def aioclosed() -> bool:
+    """Check if event loop is closed."""
+    return asyncio.get_event_loop().is_closed()
 
 
 async def aiocmd(*args, **kwargs) -> subprocess.CompletedProcess:
@@ -2136,6 +3620,114 @@ async def aiocommand(
     return subprocess.CompletedProcess(data, proc.returncode, out, cast(Any, err))
 
 
+async def aiodmg(src: Path | str, dest: Path | str) -> None:
+    """Async Open dmg file and copy the app to dest.
+
+    Examples:
+        >>> from nodeps import aiodmg
+        >>> async def test():    # doctest: +SKIP
+        ...     await aiodmg(Path("/tmp/JetBrains.dmg"), Path("/tmp/JetBrains"))
+
+    Args:
+        src: dmg file
+        dest: path to copy to
+
+    Returns:
+        CompletedProcess
+    """
+    with TempDir() as tmpdir:
+        await aiocmd("hdiutil", "attach", "-mountpoint", tmpdir, "-nobrowse", "-quiet", src)
+        for item in src.iterdir():
+            if item.name.endswith(".app"):
+                await aiocmd("cp", "-r", tmpdir / item.name, dest)
+                await aiocmd("xattr", "-r", "-d", "com.apple.quarantine", dest)
+                await aiocmd("hdiutil", "detach", tmpdir, "-force")
+                break
+
+
+async def aiogz(src: Path | str, dest: Path | str = ".") -> Path:
+    """Async ncompress .gz src to dest (default: current directory).
+
+    It will be uncompressed to the same directory name as src basename.
+    Uncompressed directory will be under dest directory.
+
+    Examples:
+        >>> from nodeps import TempDir
+        >>> from nodeps import aiogz
+        >>>
+        >>> cwd = Path.cwd()
+        >>> with TempDir() as workdir:
+        ...     os.chdir(workdir)
+        ...     with TempDir() as compress:
+        ...         file = compress / "test.txt"
+        ...         _ = file.touch()
+        ...         compressed = tardir(compress)
+        ...         with TempDir() as uncompress:
+        ...             uncompressed = asyncio.run(aiogz(compressed, uncompress))
+        ...             assert uncompressed.is_dir()
+        ...             assert Path(uncompressed).joinpath(file.name).exists()
+        >>> os.chdir(cwd)
+
+    Args:
+        src: file to uncompress
+        dest: destination directory to where uncompress directory will be created (default: current directory)
+
+    Returns:
+        Absolute Path of the Uncompressed Directory
+    """
+    return await asyncio.to_thread(gz, src, dest)
+
+
+def aioloop() -> RunningLoop | None:
+    """Get running loop."""
+    return noexc(RuntimeError, asyncio.get_running_loop)
+
+
+def aioloopid() -> int | None:
+    """Get running loop id."""
+    try:
+        return asyncio.get_running_loop()._selector
+    except RuntimeError:
+        return None
+
+
+def aiorunning() -> bool:
+    """Check if event loop is running."""
+    return asyncio.get_event_loop().is_running()
+
+
+def allin(origin: Iterable, destination: Iterable) -> bool:
+    """Checks all items in origin are in destination iterable.
+
+    Examples:
+        >>> from nodeps import allin
+        >>> from nodeps.variables.builtin import BUILTIN_CLASS
+        >>>
+        >>> class Int(int):
+        ...     pass
+        >>> allin(tuple.__mro__, BUILTIN_CLASS)
+        True
+        >>> allin(Int.__mro__, BUILTIN_CLASS)
+        False
+        >>> allin('tuple int', 'bool dict int')
+        False
+        >>> allin('bool int', ['bool', 'dict', 'int'])
+        True
+        >>> allin(['bool', 'int'], ['bool', 'dict', 'int'])
+        True
+
+    Args:
+        origin: origin iterable.
+        destination: destination iterable to check if origin items are in.
+
+    Returns:
+        True if all items in origin are in destination.
+    """
+    origin = toiter(origin)
+    destination = toiter(destination)
+    return all(x in destination for x in origin)
+
+
 def ami(user: str = "root") -> bool:
     """Check if Current User is User in Argument (default: root).
 
@@ -2155,6 +3747,178 @@ def ami(user: str = "root") -> bool:
         bool True if I am user, False otherwise
     """
     return os.getuid() == pwd.getpwnam(user or getpass.getuser()).pw_uid
+
+
+def anyin(origin: Iterable, destination: Iterable) -> Any | None:
+    """Checks any item in origin are in destination iterable and return the first found.
+
+    Examples:
+        >>> from nodeps import anyin
+        >>> from nodeps.variables.builtin import BUILTIN_CLASS
+        >>>
+        >>> class Int(int):
+        ...     pass
+        >>> anyin(tuple.__mro__, BUILTIN_CLASS)
+        <class 'tuple'>
+        >>> assert anyin('tuple int', BUILTIN_CLASS) is None
+        >>> anyin('tuple int', 'bool dict int')
+        'int'
+        >>> anyin('tuple int', ['bool', 'dict', 'int'])
+        'int'
+        >>> anyin(['tuple', 'int'], ['bool', 'dict', 'int'])
+        'int'
+
+    Args:
+        origin: origin iterable.
+        destination: destination iterable to check if any of origin items are in.
+
+    Returns:
+        First found if any item in origin are in destination.
+    """
+    origin = toiter(origin)
+    destination = toiter(destination)
+    for item in toiter(origin):
+        if item in destination:
+            return item
+    return None
+
+
+def cache(
+        func: Callable[..., _T | Coroutine[Any, Any, _T]] = ...
+) -> Callable[[Callable[..., _T]], _CacheWrapper[_T]] | _T | Coroutine[Any, Any, _T] | Any:
+    """Caches previous calls to the function if object can be encoded.
+
+    Examples:
+        >>> import asyncio
+        >>> from typing import cast
+        >>> from typing import Coroutine
+        >>> from environs import Env as Environs
+        >>> from collections import namedtuple
+        >>> from nodeps import cache
+        >>>
+        >>> @cache
+        ... def test(a):
+        ...     print(True)
+        ...     return a
+        >>>
+        >>> @cache
+        ... async def test_async(a):
+        ...     print(True)
+        ...     return a
+        >>>
+        >>> test({})
+        True
+        {}
+        >>> test({})
+        {}
+        >>> asyncio.run(cast(Coroutine, test_async({})))
+        True
+        {}
+        >>> asyncio.run(cast(Coroutine, test_async({})))
+        {}
+        >>> test(Environs())
+        True
+        <Env {}>
+        >>> test(Environs())
+        <Env {}>
+        >>> asyncio.run(cast(Coroutine, test_async(Environs())))
+        True
+        <Env {}>
+        >>> asyncio.run(cast(Coroutine, test_async(Environs())))
+        <Env {}>
+        >>>
+        >>> @cache
+        ... class Test:
+        ...     def __init__(self, a):
+        ...         print(True)
+        ...         self.a = a
+        ...
+        ...     @property
+        ...     @cache
+        ...     def prop(self):
+        ...         print(True)
+        ...         return self
+        >>>
+        >>> Test({})  # doctest: +ELLIPSIS
+        True
+        <....Test object at 0x...>
+        >>> Test({})  # doctest: +ELLIPSIS
+        <....Test object at 0x...>
+        >>> Test({}).a
+        {}
+        >>> Test(Environs()).a
+        True
+        <Env {}>
+        >>> Test(Environs()).prop  # doctest: +ELLIPSIS
+        True
+        <....Test object at 0x...>
+        >>> Test(Environs()).prop  # doctest: +ELLIPSIS
+        <....Test object at 0x...>
+        >>>
+        >>> Test = namedtuple('Test', 'a')
+        >>> @cache
+        ... class TestNamed(Test):
+        ...     __slots__ = ()
+        ...     def __new__(cls, *args, **kwargs):
+        ...         print(True)
+        ...         return super().__new__(cls, *args, **kwargs)
+        >>>
+        >>> TestNamed({})
+        True
+        TestNamed(a={})
+        >>> TestNamed({})
+        TestNamed(a={})
+        >>> @cache
+        ... class TestNamed(Test):
+        ...     __slots__ = ()
+        ...     def __new__(cls, *args, **kwargs): return super().__new__(cls, *args, **kwargs)
+        ...     def __init__(self): super().__init__()
+        >>> TestNamed({}) # doctest: +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        TypeError: __init__() takes 1 positional argument but 2 were given
+    """
+    if jsonpickle is None or structlog is None:
+        msg = "structlog and/or jsonpickle are not installed: installed with 'pip install nodeps[cache]'"
+        raise ImportError(msg)
+    memo = {}
+    log = structlog.get_logger()
+    structlog.configure(logger_factory=structlog.stdlib.LoggerFactory())
+    coro = inspect.iscoroutinefunction(func)
+    if coro:
+        @functools.wraps(func)
+        async def wrapper(*args, **kwargs):
+            """Async Cache Wrapper."""
+            key = None
+            save = True
+            try:
+                key = jsonpickle.encode((args, kwargs))
+                if key in memo:
+                    return memo[key]
+            except Exception as exception:  # noqa: BLE001
+                log.warning("Not cached", func=func, args=args, kwargs=kwargs, exception=exception)
+                save = False
+            value = await func(*args, **kwargs)
+            if key and save:
+                memo[key] = value
+            return value
+    else:
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            """Cache Wrapper."""
+            key = None
+            save = True
+            try:
+                key = jsonpickle.encode((args, kwargs))
+                if key in memo:
+                    return memo[key]
+            except Exception as exception:  # noqa: BLE001
+                log.warning("Not cached", func=func, args=args, kwargs=kwargs, exception=exception)
+                save = False
+            value = func(*args, **kwargs)
+            if key and save:
+                memo[key] = value
+            return value
+    return wrapper
 
 
 @contextlib.contextmanager
@@ -2213,6 +3977,39 @@ def chdir(data: StrOrBytesPath | bool = True) -> Iterable[tuple[Path, Path]]:
             yield y(parent(data, none=False))
     finally:
         os.chdir(oldpwd)
+
+
+def clone(owner: str | None = None, repo: str = "ppip", scheme: GitSchemeLiteral = GIT_DEFAULT_SCHEME,
+          path: Path | str = None) -> Path:
+    """Clone Repository.
+
+    Examples:
+        >>> import os
+        >>> from nodeps import TempDir
+        >>> from nodeps import clone
+        >>>
+        >>> with TempDir() as tmp:
+        ...     directory = tmp / "1" / "2" / "3"
+        >>> if not os.environ.get("CI"):
+        ...     rv = clone("octocat", "Hello-World", "git+ssh", directory)
+        ...     assert (rv / "README").exists()
+
+    Args:
+        owner: github owner, None to use GIT or USER environment variable if not defined (Default: `GIT`)
+        repo: github repository (Default: `PROJECT`)
+        scheme: url scheme (Default: "https")
+        path: path to clone (Default: `repo`)
+
+    Returns:
+        CompletedProcess
+    """
+    path = path or Path.cwd() / repo
+    path = Path(path)
+    if not path.exists():
+        if not path.parent.exists():
+            path.parent.mkdir()
+        cmd("git", "clone", OwnerRepo(owner, repo, scheme).url, path)
+    return path
 
 
 def cmd(*args, **kwargs) -> subprocess.CompletedProcess:
@@ -2350,6 +4147,161 @@ def command(*args, **kwargs) -> subprocess.CompletedProcess:
     return completed
 
 
+def current_task_name() -> str:
+    """Current asyncio task name."""
+    return asyncio.current_task().get_name() if aioloop() else ""
+
+
+def dict_sort(
+        data: dict[_KT, _VT], ordered: bool = False, reverse: bool = False
+) -> dict[_KT, _VT] | collections.OrderedDict[_KT, _VT]:
+    """Order a dict based on keys.
+
+    Examples:
+        >>> import platform
+        >>> from collections import OrderedDict
+        >>> from nodeps import dict_sort
+        >>>
+        >>> d = {"b": 2, "a": 1, "c": 3}
+        >>> dict_sort(d)
+        {'a': 1, 'b': 2, 'c': 3}
+        >>> dict_sort(d, reverse=True)
+        {'c': 3, 'b': 2, 'a': 1}
+        >>> v = platform.python_version()
+        >>> if "rc" not in v:
+        ...     # noinspection PyTypeHints
+        ...     assert dict_sort(d, ordered=True) == OrderedDict([('a', 1), ('b', 2), ('c', 3)])
+
+    Args:
+        data: dict to be ordered.
+        ordered: OrderedDict.
+        reverse: reverse.
+
+    Returns:
+        Union[dict, collections.OrderedDict]: Dict sorted
+    """
+    data = {key: data[key] for key in sorted(data.keys(), reverse=reverse)}
+    if ordered:
+        return collections.OrderedDict(data)
+    return data
+
+
+def dmg(src: Path | str, dest: Path | str) -> None:
+    """Open dmg file and copy the app to dest.
+
+    Examples:
+        >>> from nodeps import dmg
+        >>> dmg(Path("/tmp/JetBrains.dmg"), Path("/tmp/JetBrains"))  # doctest: +SKIP
+
+    Args:
+        src: dmg file
+        dest: path to copy to
+
+    Returns:
+        CompletedProcess
+    """
+    with TempDir() as tmpdir:
+        cmd("hdiutil", "attach", "-mountpoint", tmpdir, "-nobrowse", "-quiet", src)
+        for item in src.iterdir():
+            if item.name.endswith(".app"):
+                cmd("cp", "-r", tmpdir / item.name, dest)
+                cmd("xattr", "-r", "-d", "com.apple.quarantine", dest)
+                cmd("hdiutil", "detach", tmpdir, "-force")
+                break
+
+
+def effect(apply: Callable, *args: Iterable) -> None:
+    """Perform function on iterable.
+
+    Examples:
+        >>> from types import SimpleNamespace
+        >>> from nodeps import effect
+        >>> simple = SimpleNamespace()
+        >>> effect(lambda x: simple.__setattr__(x, dict()), 'a b', 'c')
+        >>> assert simple.a == {}
+        >>> assert simple.b == {}
+        >>> assert simple.c == {}
+
+    Args:
+        apply: Function to apply.
+        *args: Iterable to perform function.
+
+    Returns:
+        No Return.
+    """
+    for arg in toiter(args):
+        for item in arg:
+            apply(item)
+
+
+def elementadd(name: str | tuple[str, ...], closing: bool | None = False) -> str:
+    """Converts to HTML element.
+
+    Examples:
+        >>> from nodeps import elementadd
+        >>>
+        >>> assert elementadd('light-black') == '<light-black>'
+        >>> assert elementadd('light-black', closing=True) == '</light-black>'
+        >>> assert elementadd(('green', 'bold',)) == '<green><bold>'
+        >>> assert elementadd(('green', 'bold',), closing=True) == '</green></bold>'
+
+    Args:
+        name: text or iterable text.
+        closing: True if closing/end, False if opening/start.
+
+    Returns:
+        Str
+    """
+    return "".join(f'<{"/" if closing else ""}{i}>' for i in ((name,) if isinstance(name, str) else name))
+
+
+def exec_module_from_file(file: Path | str, name: str | None = None) -> ModuleType:
+    """Executes module from file location.
+
+    Examples:
+        >>> import nodeps
+        >>> from nodeps import exec_module_from_file
+        >>> m = exec_module_from_file(nodeps.__file__)
+        >>> assert m.__name__ == nodeps.__name__
+
+    Args:
+        file: file location
+        name: module name (default from file)
+
+    Returns:
+        Module instance
+    """
+    file = Path(file)
+    spec = importlib.util.spec_from_file_location(
+        name or file.parent.name if file.name == "__init__.py" else file.stem, file
+    )
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def filterm(
+        d: MutableMapping[_KT, _VT], k: Callable[..., bool] = lambda x: True, v: Callable[..., bool] = lambda x: True
+) -> MutableMapping[_KT, _VT]:
+    """Filter Mutable Mapping.
+
+    Examples:
+        >>> from nodeps import filterm
+        >>>
+        >>> assert filterm({'d':1}) == {'d': 1}
+        >>> # noinspection PyUnresolvedReferences
+        >>> assert filterm({'d':1}, lambda x: x.startswith('_')) == {}
+        >>> # noinspection PyUnresolvedReferences
+        >>> assert filterm({'d': 1, '_a': 2}, lambda x: x.startswith('_'), lambda x: isinstance(x, int)) == {'_a': 2}
+
+    Returns:
+        Filtered dict with
+    """
+    # noinspection PyArgumentList
+    return d.__class__({x: y for x, y in d.items() if k(x) and v(y)})
+
+
 def findfile(pattern, path: StrOrBytesPath = None) -> list[Path]:
     """Find file with pattern.
 
@@ -2432,6 +4384,28 @@ def findup(
             return latest
 
 
+def firstfound(data: Iterable, apply: Callable) -> Any:
+    """Returns first value in data if apply is True.
+
+    Examples:
+        >>> from nodeps import firstfound
+        >>>
+        >>> assert firstfound([1, 2, 3], lambda x: x == 2) == 2
+        >>> assert firstfound([1, 2, 3], lambda x: x == 4) is None
+
+    Args:
+        data: iterable.
+        apply: function to apply.
+
+    Returns:
+        Value if found.
+    """
+    for i in data:
+        if apply(i):
+            return i
+    return None
+
+
 def flatten(
     data: tuple | list | set,
     recurse: bool = False,
@@ -2478,9 +4452,289 @@ def flatten(
     return value
 
 
+def framesimple(data: inspect.FrameInfo | types.FrameType | types.TracebackType) -> FrameSimple | None:
+    """Returns :class:`nodeps.FrameSimple`.
+
+    Examples:
+        >>> import inspect
+        >>> from nodeps import Path
+        >>> from nodeps import framesimple
+        >>>
+        >>> frameinfo = inspect.stack()[0]
+        >>> finfo = framesimple(frameinfo)
+        >>> ftype = framesimple(frameinfo.frame)
+        >>> assert frameinfo.frame.f_code == finfo.code
+        >>> assert frameinfo.frame == finfo.frame
+        >>> assert frameinfo.filename == str(finfo.path)
+        >>> assert frameinfo.lineno == finfo.lineno
+
+    Returns:
+        :class:`FrameSimple`.
+    """
+    if isinstance(data, inspect.FrameInfo):
+        frame = data.frame
+        back = frame.f_back
+        lineno = data.lineno
+    elif isinstance(data, types.FrameType):
+        frame = data
+        back = data.f_back
+        lineno = data.f_lineno
+    elif isinstance(data, types.TracebackType):
+        frame = data.tb_frame
+        back = data.tb_next
+        lineno = data.tb_lineno
+    else:
+        return None
+
+    code = frame.f_code
+    f_globals = frame.f_globals
+    f_locals = frame.f_locals
+    function = code.co_name
+    v = f_globals | f_locals
+    name = v.get("__name__") or function
+    return FrameSimple(
+        back=back,
+        code=code,
+        frame=frame,
+        function=function,
+        globals=f_globals,
+        lineno=lineno,
+        locals=f_locals,
+        name=name,
+        package=v.get("__package__") or name.split(".")[0],
+        path=sourcepath(data),
+        vars=v,
+    )
+
+
+def from_latin9(*args) -> str:
+    """Converts string from latin9 hex.
+
+    Examples:
+        >>> from nodeps import from_latin9
+        >>>
+        >>> from_latin9("f1")
+        'ñ'
+        >>>
+        >>> from_latin9("4a6f73e920416e746f6e696f205075e972746f6c6173204d6f6e7461f1e973")
+        'José Antonio Puértolas Montañés'
+        >>>
+        >>> from_latin9("f1", "6f")
+        'ño'
+
+    Args:
+        args: strings to convert to latin9
+
+    Returns:
+        str
+    """
+    rv = ""
+    if len(args) == 1:
+        pairs = split_pairs(args[0])
+        for pair in pairs:
+            rv += bytes.fromhex("".join(pair)).decode("latin9")
+    else:
+        for char in args:
+            rv += bytes.fromhex(char).decode("latin9")
+    return rv
+
+
+def fromiter(data, *args):
+    """Gets attributes from Iterable of objects and returns dict with.
+
+    Examples:
+        >>> from types import SimpleNamespace as Simple
+        >>> from nodeps import fromiter
+        >>>
+        >>> assert fromiter([Simple(a=1), Simple(b=1), Simple(a=2)], 'a', 'b', 'c') == {'a': [1, 2], 'b': [1]}
+        >>> assert fromiter([Simple(a=1), Simple(b=1), Simple(a=2)], ('a', 'b', ), 'c') == {'a': [1, 2], 'b': [1]}
+        >>> assert fromiter([Simple(a=1), Simple(b=1), Simple(a=2)], 'a b c') == {'a': [1, 2], 'b': [1]}
+
+    Args:
+        data: object.
+        *args: attributes.
+
+    Returns:
+        Tuple
+    """
+    value = {k: [getattr(C, k) for C in data if hasattr(C, k)] for i in args for k in toiter(i)}
+    return {k: v for k, v in value.items() if v}
+
+
+def getpths() -> dict[str, Path] | None:
+    """Get list of pths under ``sitedir``.
+
+    Examples:
+        >>> from nodeps import getpths
+        >>>
+        >>> pths = getpths()
+        >>> assert "distutils-precedence" in pths
+
+    Returns:
+        Dictionary with pth name and file
+    """
+    try:
+        sitedir = getsitedir()
+        names = os.listdir(sitedir)
+    except OSError:
+        return None
+    return {re.sub("(-[0-9].*|.pth)", "", name): Path(sitedir / name) for name in names if name.endswith(".pth")}
+
+
+def getsitedir(index: bool = 2) -> Path:
+    """Get site directory from stack if imported by :mod:`site` in a ``.pth`` file or :mod:`sysconfig`.
+
+    Examples:
+        >>> from nodeps import getsitedir
+        >>> assert "packages" in str(getsitedir())
+
+    Args:
+        index: 1 if directly needed by this function (default: 2), for caller to this function
+
+    Returns:
+        Path instance with site directory
+    """
+    if (sitedir := sys._getframe(index).f_locals.get("sitedir")) is None:
+        sitedir = sysconfig.get_paths()["purelib"]
+    return Path(sitedir)
+
+
+def getstdout(func: Callable, *args: Any, ansi: bool = False, new: bool = True, **kwargs: Any) -> str | Iterable[str]:
+    """Redirect stdout for func output and remove ansi and/or new line.
+
+    Args:
+        func: callable.
+        *args: args to callable.
+        ansi: strip ansi.
+        new: strip new line.
+        **kwargs: kwargs to callable.
+
+    Returns:
+        str | Iterable[str, str]:
+    """
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        func(*args, **kwargs)
+    return strip(buffer.getvalue(), ansi=ansi, new=new) if ansi or new else buffer.getvalue()
+
+
+def group_user(name: int | str = USER) -> GroupUser:
+    """Group and User for Name (id if name is str and vice versa).
+
+    Examples:
+        >>> import os
+        >>> import pathlib
+        >>>
+        >>> from nodeps import group_user
+        >>> from nodeps import PW_USER, PW_ROOT
+        >>>
+        >>> s = pathlib.Path().stat()
+        >>> gr = group_user()
+        >>> assert gr.group == s.st_gid and gr.user == s.st_uid
+        >>> gr = group_user(name=PW_USER.pw_uid)
+        >>> actual_gname = gr.group
+        >>> assert gr.group != PW_ROOT.pw_name and gr.user == PW_USER.pw_name
+        >>> gr = group_user('root')
+        >>> assert gr.group != s.st_gid and gr.user == 0
+        >>> gr = group_user(name=0)
+        >>> assert gr.group != actual_gname and gr.user == 'root'
+
+    Args:
+        name: usename or id (default: `data.ACTUAL.pw_name`)
+
+    Returns:
+        GroupUser.
+    """
+    if isinstance(name, str):
+        struct = (
+            struct if name ==   # noqa: PLR1714
+                      (struct := PW_USER).pw_name or name == (struct := PW_ROOT).pw_name
+            else pwd.getpwnam(name)
+        )
+        return GroupUser(group=struct.pw_gid, user=struct.pw_uid)
+    struct = struct if (name ==  # noqa: PLR1714
+                        (struct := PW_USER).pw_uid or name == (struct := PW_ROOT).pw_uid) \
+        else pwd.getpwuid(name)
+    return GroupUser(group=grp.getgrgid(struct.pw_gid).gr_name, user=struct.pw_name)
+
+
+def gz(src: Path | str, dest: Path | str = ".") -> Path:
+    """Uncompress .gz src to dest (default: current directory).
+
+    It will be uncompressed to the same directory name as src basename.
+    Uncompressed directory will be under dest directory.
+
+    Examples:
+        >>> from nodeps import TempDir
+        >>> from nodeps import gz
+        >>> cwd = Path.cwd()
+        >>> with TempDir() as workdir:
+        ...     os.chdir(workdir)
+        ...     with TempDir() as compress:
+        ...         file = compress / "test.txt"
+        ...         _ = file.touch()
+        ...         compressed = tardir(compress)
+        ...         with TempDir() as uncompress:
+        ...             uncompressed = gz(compressed, uncompress)
+        ...             assert uncompressed.is_dir()
+        ...             assert Path(uncompressed).joinpath(file.name).exists()
+        >>> os.chdir(cwd)
+
+    Args:
+        src: file to uncompress
+        dest: destination directory to where uncompress directory will be created (default: current directory)
+
+    Returns:
+        Absolute Path of the Uncompressed Directory
+    """
+    dest = Path(dest)
+    with tarfile.open(src, "r:gz") as tar:
+        tar.extractall(dest)
+        return (dest / tar.getmembers()[0].name).parent.absolute()
+
+
 def in_tox() -> bool:
     """Running in tox."""
     return ".tox" in sysconfig.get_paths()["purelib"]
+
+
+def logger(fmt: str = LOGGER_DEFAULT_FMT) -> Logger:
+    """Returns a new logger."""
+    if loguru_logger is None:
+        msg = f"loguru is not installed: installed with 'pip install {NODEPS_PROJECT_NAME}[ansi]'"
+        raise ImportError(msg)
+
+    for item in loguru_logger._core.handlers:
+        loguru_logger.remove(item)
+    log = copy.deepcopy(loguru_logger)
+    if fmt:
+        log.configure(handlers=[{"sink": sys.stderr, "format": fmt}])
+    return log
+
+
+def noexc(
+        func: Callable[..., _T], *args: Any, default_: Any = None, exc_: ExcType = Exception, **kwargs: Any
+) -> _T | Any:
+    """Execute function suppressing exceptions.
+
+    Examples:
+        >>> from nodeps import noexc
+        >>> assert noexc(dict(a=1).pop, 'b', default_=2, exc_=KeyError) == 2
+
+    Args:
+        func: callable.
+        *args: args.
+        default_: default value if exception is raised.
+        exc_: exception or exceptions.
+        **kwargs: kwargs.
+
+    Returns:
+        Any: Function return.
+    """
+    try:
+        return func(*args, **kwargs)
+    except exc_:
+        return default_
 
 
 def parent(path: StrOrBytesPath = __file__, none: bool = True) -> Path | None:
@@ -2507,6 +4761,80 @@ def parent(path: StrOrBytesPath = __file__, none: bool = True) -> Path | None:
     return path.parent if (path := Path(path)).is_file() else path if path.is_dir() else None if none else path.parent
 
 
+def parse_str(  # noqa: PLR0911
+    data: Any | None = None,
+) -> bool | Path | ParseResult | IPv4Address | IPv6Address | int | str | None:
+    """Parses str or data.__str__().
+
+    Parses:
+        - bool: 1, 0, True, False, yes, no, on, off (case insensitive)
+        - int: integer only numeric characters but 1 and 0
+        - ipaddress: ipv4/ipv6 address
+        - url: if "://" or "@" is found it will be parsed as url
+        - path: if "." or start with "/" or "~" or "." and does contain ":"
+        - others as string
+
+    Arguments:
+        data: variable name to parse from environment (default: USER)
+
+    Examples:
+        >>> from nodeps import Path
+        >>> from nodeps import parse_str
+        >>>
+        >>> assert parse_str() is None
+        >>>
+        >>> assert parse_str("1") is True
+        >>> assert parse_str("0") is False
+        >>> assert parse_str("TrUe") is True
+        >>> assert parse_str("OFF") is False
+        >>>
+        >>> assert parse_str("https://github.com").geturl() == "https://github.com"
+        >>> assert parse_str("git@github.com").geturl() == "git@github.com"
+        >>>
+        >>> assert parse_str("~/foo") == Path('~/foo')
+        >>> assert parse_str("/foo") == Path('/foo')
+        >>> assert parse_str("./foo") == Path('foo')
+        >>> assert parse_str(".") == Path('.')
+        >>> assert parse_str(Path()) == Path()
+        >>>
+        >>> assert parse_str("0.0.0.0").exploded == "0.0.0.0"
+        >>> assert parse_str("::1").exploded.endswith(":0001")
+        >>>
+        >>> assert parse_str("2") == 2
+        >>> assert parse_str("2.0") == "2.0"
+        >>> assert parse_str("/usr/share/man:") == "/usr/share/man:"
+        >>> if not os.environ.get("CI"):
+        ...     assert isinstance(parse_str(os.environ.get("PATH")), str)
+
+    Returns:
+        None
+    """
+    if data is not None:
+        if not isinstance(data, str):
+            data = str(data)
+
+        if data.lower() in ["1", "true", "yes", "on"]:
+            return True
+        if data.lower() in ["0", "false", "no", "off"]:
+            return False
+        if "://" in data or "@" in data:
+            return urllib.parse.urlparse(data)
+        if (
+            (
+                data[0] in ["/", "~"]
+                or (len(data) >= 2 and f"{data[0]}{data[1]}" == "./")  # noqa: PLR2004
+            )
+            and ":" not in data
+        ) or data == ".":
+            return Path(data)
+        try:
+            return ipaddress.ip_address(data)
+        except ValueError:
+            if data.isnumeric():
+                return int(data)
+    return data
+
+
 def returncode(c: str | list[str], shell: bool = True) -> int:
     """Runs command in shell and returns returncode showing stdout and stderr.
 
@@ -2527,6 +4855,167 @@ def returncode(c: str | list[str], shell: bool = True) -> int:
 
     """
     return subprocess.call(c, shell=shell)
+
+
+def python_latest(start: str | int | None = None) -> str:
+    """Python latest version avaialble.
+
+    Examples:
+        >>> import platform
+        >>> from nodeps import python_latest
+        >>>
+        >>> v = platform.python_version()
+        >>> if "rc" not in v:
+        ...     major_minor = v.rpartition(".")[0]
+        ...     assert python_latest(v).rpartition(".")[0] == major_minor
+        ...     assert python_latest(v).rpartition(".")[2] >= v.rpartition(".")[2]
+        ...     assert python_latest(major_minor).rpartition(".")[0] == major_minor
+        ...     assert python_latest(major_minor).rpartition(".")[2] >= v.rpartition(".")[2]
+
+    Args:
+        start: version startswith match, i.e.: "3", "3.10", "3.10", 3 or None to use `PYTHON_VERSION`
+          environment variable or :obj:``sys.version`` if not set (Default: None).
+
+    Returns:
+        Latest Python Version
+    """
+    start = python_version() if start is None else start
+    start = start.rpartition(".")[0] if len(start.split(".")) == 3 else start  # noqa: PLR2004
+    return [i for i in python_versions() if str(i).startswith(start)][-1]
+
+
+def python_version() -> str:
+    """Major and Minor Python Version from ``$PYTHON_VERSION``, or  ``$PYTHON_REQUIRES`` or :obj:`sys.version`.
+
+    Examples:
+        >>> import os
+        >>> import platform
+        >>> from nodeps import python_version
+        >>>
+        >>> v = python_version()
+        >>> assert platform.python_version().startswith(v)
+        >>> assert len(v.split(".")) == 2
+        >>>
+        >>> os.environ["PYTHON_VERSION"] = "3.10"
+        >>> assert python_version() == "3.10"
+        >>>
+        >>> os.environ["PYTHON_VERSION"] = "3.12-dev"
+        >>> assert python_version() == "3.12-dev"
+        >>>
+        >>> os.environ["PYTHON_VERSION"] = "3.12.0b4"
+        >>> assert python_version() == "3.12"
+
+    Returns:
+        str
+    """
+    p = platform.python_version()
+    ver = os.environ.get("PYTHON_VERSION", p) or os.environ.get("PYTHON_REQUIRES", p)
+    if len(ver.split(".")) == 3:  # noqa: PLR2004
+        return ver.rpartition(".")[0]
+    return ver
+
+
+def python_versions() -> list[str]:
+    """Python versions avaialble.
+
+    Examples:
+        >>> import platform
+        >>> from nodeps import python_versions
+        >>>
+        >>> v = platform.python_version()
+        >>> if not "rc" in v:
+        ...     assert v in python_versions()
+
+    Returns:
+        Tuple of Python Versions
+    """
+    if bs4 is None or requests is None:
+        msg = f"bs4 and/or requests are not installed: installed with 'pip install {NODEPS_PROJECT_NAME}[requests]'"
+        raise ImportError(msg)
+
+    rv = []
+    for link in bs4.BeautifulSoup(requests.get(PYTHON_FTP, timeout=2).text, "html.parser").find_all("a"):
+        if link := re.match(r"((3\.([7-9]|[1-9][0-9]))|4).*", link.get("href").rstrip("/")):
+            rv.append(link.string)
+    rv.sort(key=lambda s: [int(u) for u in s.split('.')])
+    return rv
+
+
+def request_x_api_key_json(url, key: str = "") -> dict[str, str] | None:
+    """API request helper with API Key and returning json.
+
+    Examples:
+        >>> from nodeps import request_x_api_key_json
+        >>>
+        >>> request_x_api_key_json("https://api.iplocation.net/?ip=8.8.8.8", \
+                "rn5ya4fp/tzI/mENxaAvxcMo8GMqmg7eMnCvUFLIV/s=")
+        {'ip': '8.8.8.8', 'ip_number': '134744072', 'ip_version': 4, 'country_name': 'United States of America',\
+ 'country_code2': 'US', 'isp': 'Google LLC', 'response_code': '200', 'response_message': 'OK'}
+
+    Args:
+        url: API url
+        key: API Key
+
+    Returns:
+        response json
+    """
+    if requests is None:
+        msg = f"bs4 and/or requests are not installed: installed with 'pip install {NODEPS_PROJECT_NAME}[requests]'"
+        raise ImportError(msg)
+
+    headers = {"headers": {"X-Api-Key": key}} if key else {}
+    response = requests.get(url, **headers, timeout=2)
+    if response.status_code == requests.codes.ok:
+        return response.json()
+    return None
+
+
+def sourcepath(data: Any) -> Path:
+    """Get path of object.
+
+    Examples:
+        >>> import asyncio
+        >>> import nodeps
+        >>> from nodeps import Path
+        >>> from nodeps import sourcepath
+        >>>
+        >>> finfo = inspect.stack()[0]
+        >>> globs_locs = (finfo.frame.f_globals | finfo.frame.f_locals).copy()
+        >>> assert sourcepath(sourcepath) == Path(nodeps.__file__)
+        >>> assert sourcepath(asyncio.__file__) == Path(asyncio.__file__)
+        >>> assert sourcepath(dict(a=1)) == Path("{'a': 1}")
+
+    Returns:
+        Path.
+    """
+    if isinstance(data, MutableMapping):
+        f = data.get("__file__")
+    elif isinstance(data, inspect.FrameInfo):
+        f = data.filename
+    else:
+        try:
+            f = inspect.getsourcefile(data) or inspect.getfile(data)
+        except TypeError:
+            f = None
+    return Path(f or str(data))
+
+
+def split_pairs(text):
+    """Split text in pairs for even length.
+
+    Examples:
+        >>> from nodeps import split_pairs
+        >>>
+        >>> split_pairs("123456")
+        [('1', '2'), ('3', '4'), ('5', '6')]
+
+    Args:
+        text: text to split in pairs
+
+    Returns:
+        text
+    """
+    return list(zip(text[0::2], text[1::2], strict=True))
 
 
 def stdout(shell: AnyStr, keepends: bool = False, split: bool = False) -> list[str] | str | None:
@@ -2567,6 +5056,55 @@ def stdout(shell: AnyStr, keepends: bool = False, split: bool = False) -> list[s
     return None
 
 
+@contextlib.contextmanager
+def stdquiet() -> tuple[TextIO, TextIO]:
+    """Redirect stdout/stderr to StringIO objects to prevent console output from distutils commands.
+
+    Returns:
+        Stdout, Stderr
+    """
+    old_stdout = sys.stdout
+    old_stderr = sys.stderr
+    new_stdout = sys.stdout = io.StringIO()
+    new_stderr = sys.stderr = io.StringIO()
+    try:
+        yield new_stdout, new_stderr
+    finally:
+        new_stdout.seek(0)
+        new_stderr.seek(0)
+        sys.stdout = old_stdout
+        sys.stderr = old_stderr
+
+
+def strip(obj: str | Iterable[str], ansi: bool = False, new: bool = True) -> str | Iterable[str]:
+    r"""Strips ``\n`` And/Or Ansi from string or Iterable.
+
+    Args:
+        obj: object or None for redirect stdout
+        ansi: ansi (default: False)
+        new: newline (default: True)
+
+    Returns:
+        Same type with NEWLINE removed.
+    """
+    def rv(x):
+        if isinstance(x, str):
+            x = x.removesuffix("\n") if new else x
+            x = strip_ansi.strip_ansi(x) if ansi else x
+        if isinstance(x, bytes):
+            x = x.removesuffix(b"\n") if new else x
+        return x
+
+    if strip_ansi is None:
+        msg = f"strip_ansi is not installed: installed with 'pip install {NODEPS_PROJECT_NAME}[ansi]'"
+        raise ImportError(msg)
+
+    cls = type(obj)
+    if isinstance(obj, str):
+        return rv(obj)
+    return cls(rv(i) for i in obj)
+
+
 def suppress(
     func: Callable[P, T],
     *args: P.args,
@@ -2602,6 +5140,100 @@ def syssudo(user: str = "root") -> subprocess.CompletedProcess | None:
     return None
 
 
+def tardir(src: Path | str) -> Path:
+    """Compress directory src to <basename src>.tar.gz in cwd.
+
+    Examples:
+        >>> from nodeps import TempDir
+        >>> from nodeps import tardir
+        >>> cwd = Path.cwd()
+        >>> with TempDir() as workdir:
+        ...     os.chdir(workdir)
+        ...     with TempDir() as compress:
+        ...         file = compress / "test.txt"
+        ...         _ = file.touch()
+        ...         compressed = tardir(compress)
+        ...         with TempDir() as uncompress:
+        ...             uncompressed = gz(compressed, uncompress)
+        ...             assert uncompressed.is_dir()
+        ...             assert Path(uncompressed).joinpath(file.name).exists()
+        >>> os.chdir(cwd)
+
+    Args:
+        src: directory to compress
+
+    Raises:
+        FileNotFoundError: No such file or directory
+        ValueError: Can't compress current working directory
+
+    Returns:
+        Compressed Absolute File Path
+    """
+    src = Path(src)
+    if not src.exists():
+        msg = f"{src}: No such file or directory"
+        raise FileNotFoundError(msg)
+
+    if src.resolve() == Path.cwd().resolve():
+        msg = f"{src}: Can't compress current working directory"
+        raise ValueError(msg)
+
+    name = Path(src).name + ".tar.gz"
+    dest = Path(name)
+    with tarfile.open(dest, "w:gz") as tar:
+        for root, _, files in os.walk(src):
+            for file_name in files:
+                tar.add(Path(root, file_name))
+        return dest.absolute()
+
+
+def tilde(path: str | Path = ".") -> str:
+    """Replaces $HOME with ~.
+
+    Examples:
+        >>> from nodeps import tilde
+        >>> assert tilde(f"{Path.home()}/file") == f"~/file"
+
+    Arguments:
+        path: path to replace (default: '.')
+
+    Returns:
+        str
+    """
+    return str(path).replace(str(Path.home()), "~")
+
+
+def timestamp_now(file: Path | str):
+    """Set modified and create date of file to now."""
+    now = time.time()
+    os.utime(file, (now, now))
+
+
+def to_latin9(chars: str) -> str:
+    """Converts string to latin9 hex.
+
+    Examples:
+        >>> from nodeps import AUTHOR
+        >>> from nodeps import to_latin9
+        >>>
+        >>> to_latin9("ñ")
+        'f1'
+        >>>
+        >>> to_latin9(AUTHOR)
+        '4a6f73e920416e746f6e696f205075e972746f6c6173204d6f6e7461f1e973'
+
+    Args:
+        chars: chars to converto to latin9
+
+    Returns:
+        hex str
+    """
+    rv = ""
+    for char in chars:
+        rv += char.encode("latin9").hex()
+    return rv
+
+
 def toiter(obj: Any, always: bool = False, split: str = " ") -> Any:
     """To iter.
 
@@ -2632,6 +5264,29 @@ def toiter(obj: Any, always: bool = False, split: str = " ") -> Any:
     elif not isinstance(obj, Iterable) or always:
         obj = [obj]
     return obj
+
+
+def tomodules(obj: Any, suffix: bool = True) -> str:
+    """Converts Iterable to A.B.C.
+
+    Examples:
+        >>> from nodeps import tomodules
+        >>> assert tomodules('a b c') == 'a.b.c'
+        >>> assert tomodules('a b c.py') == 'a.b.c'
+        >>> assert tomodules('a/b/c.py') == 'a.b.c'
+        >>> assert tomodules(['a', 'b', 'c.py']) == 'a.b.c'
+        >>> assert tomodules('a/b/c.py', suffix=False) == 'a.b.c.py'
+        >>> assert tomodules(['a', 'b', 'c.py'], suffix=False) == 'a.b.c.py'
+
+    Args:
+        obj: iterable.
+        suffix: remove suffix.
+
+    Returns:
+        String A.B.C
+    """
+    split = "/" if isinstance(obj, str) and "/" in obj else " "
+    return ".".join(i.removesuffix(Path(i).suffix if suffix else "") for i in toiter(obj, split=split))
 
 
 def urljson(
@@ -2711,4 +5366,3 @@ EXECUTABLE = Path(sys.executable)
 EXECUTABLE_SITE = Path(EXECUTABLE).resolve()
 
 subprocess.CalledProcessError = CalledProcessError
-sys.meta_path.append(PipMetaPathFinder)

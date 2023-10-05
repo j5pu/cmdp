@@ -1,0 +1,12 @@
+name: pypirm
+
+on:
+  workflow_dispatch:
+
+jobs:
+  pypirm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: j5pu/actions/pypirm@main
+        with:
+          pypi_password: ${{ secrets.PYPI_CLEANUP_PASSWORD }}

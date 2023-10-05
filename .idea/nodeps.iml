@@ -8,13 +8,18 @@
       <excludeFolder url="file://$MODULE_DIR$/dist" />
       <excludeFolder url="file://$MODULE_DIR$/docs/_build" />
       <excludeFolder url="file://$MODULE_DIR$/venv" />
+      <excludeFolder url="file://$MODULE_DIR$/.pytest_cache" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.11 (nodeps)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="ppath" />
     <orderEntry type="module" module-name="pproj" />
     <orderEntry type="module" module-name="gitp" />
     <orderEntry type="module" module-name="ppip" />
+    <orderEntry type="module" module-name="envg" />
+    <orderEntry type="module" module-name="huti" />
+  </component>
+  <component name="PackageRequirementsSettings">
+    <option name="requirementsPath" value="$MODULE_DIR$/pyproject.toml" />
   </component>
   <component name="PyDocumentationSettings">
     <option name="format" value="GOOGLE" />
