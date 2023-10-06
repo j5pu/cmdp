@@ -19,6 +19,7 @@ ignore = [
     "W505", # Doc line too long (102 > 100 characters)
 ]
 line-length = 120
+
 select = [
     # flake8-builtins
     "A",
@@ -84,6 +85,13 @@ src = ["src"]
 target-version = "py311"
 unfixable = [
     "T201", # `print` found
+]
+
+[per-file-ignores]
+"src/nodeps/nodeps.pth" = [
+    "D100",  # Missing docstring in public module
+    "I001",  # Import block is un-sorted or un-formatted
+    "E702",  # Multiple statements on one line (semicolon)
 ]
 
 [flake8-tidy-imports]
