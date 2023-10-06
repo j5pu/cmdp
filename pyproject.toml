@@ -9,18 +9,18 @@ requires-python = ">=3.11"
 ansi = [
     "strip-ansi >=0.1.1, <1",
 ]
-cache = [
-    "jsonpickle >= 3.0.2, <4",
-    "structlog >=23.1.0, <24",
-]
 dev = [
     "pproj[all]",
 ]
 echo = [
-    "typer[all] >= 0.9, <1"
+    "typer[all] >= 0.9, <1",
 ]
 log = [
     "loguru >=0.7.2, <1",
+]
+pickle = [
+    "jsonpickle >= 3.0.2, <4",
+    "structlog >=23.1.0, <24",
 ]
 repo = [
     "gitpython >=3.1.37, <4",
@@ -31,9 +31,9 @@ requests = [
 ]
 all = [
     "nodeps[ansi]",
-    "nodeps[cache]",
     "nodeps[echo]",
     "nodeps[log]",
+    "nodeps[pickle]",
     "nodeps[repo]",
     "nodeps[requests]",
 ]

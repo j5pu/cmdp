@@ -3,18 +3,14 @@ from __future__ import annotations
 
 __all__ = (
     "AUTHOR",
-    "COLOR_FIRST_OTHER",
-    "COLORIZE",
     "GIT",
     "GIT_DEFAULT_SCHEME",
     "GITHUB_DOMAIN",
     "GITHUB_TOKEN",
     "GITHUB_URL",
     "LINUX",
-    "LOGGER_DEFAULT_FMT",
     "MACOS",
     "NODEPS_PROJECT_NAME",
-    "PYTHON_FTP",
     "USER",
     "EMAIL",
     "PW_ROOT",
@@ -61,7 +57,6 @@ __all__ = (
     "allin",
     "ami",
     "anyin",
-    "cache",
     "chdir",
     "clone",
     "cmd",
@@ -84,24 +79,17 @@ __all__ = (
     "fromiter",
     "getpths",
     "getsitedir",
-    "getstdout",
     "group_user",
     "gz",
     "in_tox",
-    "logger",
     "noexc",
     "parent",
     "parse_str",
     "returncode",
-    "python_latest",
-    "python_version",
-    "python_versions",
-    "request_x_api_key_json",
     "sourcepath",
     "split_pairs",
     "stdout",
     "stdquiet",
-    "strip",
     "suppress",
     "syssudo",
     "tardir",
@@ -110,42 +98,18 @@ __all__ = (
     "toiter",
     "urljson",
     "which",
-    "black",
-    "red",
-    "green",
-    "yellow",
-    "blue",
-    "magenta",
-    "cyan",
-    "white",
-    "bblack",
-    "bred",
-    "bgreen",
-    "byellow",
-    "bblue",
-    "bmagenta",
-    "bcyan",
-    "bwhite",
-    "reset",
-
-    "EnumLower",
-    "Color",
-    "Symbol",
 
     "EXECUTABLE",
     "EXECUTABLE_SITE",
-    "SYMBOL",
 )
 
 import abc
 import asyncio
 import collections
 import contextlib
-import copy
 import dataclasses
 import enum
 import fnmatch
-import functools
 import getpass
 import grp
 import hashlib
@@ -158,7 +122,6 @@ import ipaddress
 import json
 import os
 import pathlib
-import platform
 import pwd
 import re
 import shutil
@@ -176,7 +139,7 @@ import tokenize
 import types
 import urllib.request
 import venv
-from collections.abc import Callable, Coroutine, Hashable, Iterable, Iterator, MutableMapping, Sequence
+from collections.abc import Callable, Hashable, Iterable, Iterator, MutableMapping, Sequence
 from ipaddress import IPv4Address, IPv6Address
 from typing import (
     IO,
@@ -194,74 +157,15 @@ from typing import (
 )
 from urllib.parse import ParseResult
 
-try:
-    # nodeps[ansi] extras
-    import strip_ansi  # type: ignore[attr-defined]
-except ModuleNotFoundError:
-    strip_ansi = None
-
-try:
-    # nodeps[cache] extras
-    import jsonpickle  # type: ignore[attr-defined]
-    import structlog  # type: ignore[attr-defined]
-    import structlog.stdlib  # type: ignore[attr-defined]
-except ModuleNotFoundError:
-    jsonpickle = None
-    structlog = None
-
-try:
-    # nodeps[echo] extras
-    import typer  # type: ignore[attr-defined]
-except ModuleNotFoundError:
-    typer = None
-
-try:
-    # nodeps[log] extras
-    from loguru import logger as loguru_logger  # type: ignore[attr-defined]
-except ModuleNotFoundError:
-    loguru_logger = None
-
-try:
-    # nodeps[repo] extras
-    from git import Git as GitCmd  # type: ignore[attr-defined]
-    from git import GitCmdObjectDB, GitConfigParser  # type: ignore[attr-defined]
-    from git import Repo as GitRepo  # type: ignore[attr-defined]
-    from gitdb import LooseObjectDB  # type: ignore[attr-defined]
-except ModuleNotFoundError:
-    GitCmd = None
-    GitCmdObjectDB = None
-    GitConfigParser = None
-    GitRepo = object
-    LooseObjectDB = None
-
-try:
-    # nodeps[requests] extras
-    import bs4  # type: ignore[attr-defined]
-    import requests  # type: ignore[attr-defined]
-except ModuleNotFoundError:
-    bs4 = None
-    requests = None
+from . import extras
+from .extras import *
 
 if TYPE_CHECKING:
-    with contextlib.suppress(ModuleNotFoundError):
-        from loguru import Logger  # type: ignore[attr-defined]
     from types import ModuleType
 
+__all__ += extras.__all__
 
 AUTHOR = "José Antonio Puértolas Montañés"
-COLOR_FIRST_OTHER = {
-    "first": {
-        "bold": True,
-        "italic": False,
-    },
-    "other": {
-        "bold": False,
-        "italic": True,
-    },
-}
-"""Print format for the `first` part of text and the `other` part when calling :class:`Symbol`."""
-COLORIZE = os.environ.get("COLORIZE")
-"""Force showing or hiding colors and other styles colorized output."""
 GIT = os.environ.get("GIT", "j5pu")
 """GitHub user name"""
 GIT_DEFAULT_SCHEME = "https"
@@ -282,17 +186,10 @@ GitHub: api, git+file, git+https, git+ssh, https, ssh and git URLs
 """
 LINUX = sys.platform == "linux"
 """Is Linux? sys.platform == 'linux'"""
-LOGGER_DEFAULT_FMT = (
-    "<level>{level: <8}</level> <red>|</red> "
-    "<cyan>{name}</cyan> <red>|</red> <red>|</red> "
-    "<level>{message}</level>"
-)
 MACOS = sys.platform == "darwin"
 """Is macOS? sys.platform == 'darwin'"""
 NODEPS_PROJECT_NAME = "nodeps"
 """NoDeps Project Name"""
-PYTHON_FTP = "https://www.python.org/ftp/python"
-"""Python FTP Server URL"""
 USER = os.getenv("USER")
 """"Environment Variable $USER"""
 
@@ -319,13 +216,6 @@ _T = TypeVar("_T")
 _VT = TypeVar("_VT")
 P = ParamSpec("P")
 T = TypeVar("T")
-
-
-class _CacheWrapper(Generic[_T]):
-    __wrapped__: Callable[..., _T]
-
-    def __call__(self, *args: Any, **kwargs: Any) -> _T | Coroutine[Any, Any, _T]:
-        ...
 
 
 class _NoDepsBaseError(Exception):
@@ -1535,32 +1425,32 @@ class OwnerRepo:
 
     def __post_init__(self):
         """Post Init."""
-        url = None
+        u = None
         if self.repo:
             if self.scheme == "git+file":
                 if not self.repo.startswith("/"):
                     msg = f"Repo must be an absolute file for '{self.scheme}': {self.repo}"
                     raise ValueError(msg)
                 self.owner = ""
-            url = GITHUB_URL[self.scheme] + self.owner_repo
+            u = GITHUB_URL[self.scheme] + self.owner_repo
         elif isinstance(self.data, Path) or self.data is None:
-            url = self.remote()
+            u = self.remote()
         elif isinstance(self.data, (str | ParseResult)):
-            url = self.data
+            u = self.data
 
-        if url is None:
+        if u is None:
             msg = f"Invalid repository path or remote url in repository: {self.data}"
             raise InvalidArgumentError(msg)
 
-        self.parsed = urllib.parse.urlparse(url) if isinstance(url, str) else url
+        self.parsed = urllib.parse.urlparse(u) if isinstance(u, str) else u
         self.path = Path(self.parsed.path.removeprefix("/"))
         if self.parsed.scheme == "git+file" and self.path.suffix == "":
-            url = self.parsed.geturl() + ".git"
+            u = self.parsed.geturl() + ".git"
         elif self.parsed.scheme != "git+file" and self.path.suffix == ".git":
-            url = self.parsed.geturl().removesuffix(".git")
+            u = self.parsed.geturl().removesuffix(".git")
 
-        if isinstance(url, str):
-            self.parsed = urllib.parse.urlparse(url)
+        if isinstance(u, str):
+            self.parsed = urllib.parse.urlparse(u)
         if self.repo is None:
             self.scheme = self.parsed.scheme
             self.owner = self.path.parts[0]
@@ -1630,7 +1520,7 @@ class Passwd:
     user: str = dataclasses.field(default=None, init=False)
 
     def __post_init__(self, data: int | str):
-        """Instance of :class:`ppip:Passwd`  from either `uid` or `user` (default: :func:`os.getuid`).
+        """Instance of :class:`nodeps:Passwd`  from either `uid` or `user` (default: :func:`os.getuid`).
 
         Uses completed/real id's (os.getgid, os.getuid) instead effective id's (os.geteuid, os.getegid) as default.
             - UID and GID: when login from $LOGNAME, $USER or os.getuid()
@@ -1677,7 +1567,7 @@ class Passwd:
         os.setpgid(os.getpid(), 0) -> sets PGID and RGID (probar con 501, 0)
 
         Returns:
-            Instance of :class:`ppip:Passwd`
+            Instance of :class:`nodeps:Passwd`
         """
         if (isinstance(data, str) and not data.isnumeric()) or isinstance(data, pathlib.PurePosixPath):
             passwd = pwd.getpwnam(cast(str, getattr(data, "owner", lambda: None)() or data))
@@ -1712,7 +1602,7 @@ class Passwd:
 
     @classmethod
     def from_login(cls) -> Passwd:
-        """Returns instance of :class:`ppip:Passwd` from '/dev/console' on macOS and `os.getlogin()` on Linux."""
+        """Returns instance of :class:`nodeps:Passwd` from '/dev/console' on macOS and `os.getlogin()` on Linux."""
         try:
             user = Path("/dev/console").owner() if MACOS else os.getlogin()
         except OSError:
@@ -1721,26 +1611,26 @@ class Passwd:
 
     @classmethod
     def from_sudo(cls) -> Passwd:
-        """Returns instance of :class:`ppip:Passwd` from `SUDO_USER` if set or current user."""
+        """Returns instance of :class:`nodeps:Passwd` from `SUDO_USER` if set or current user."""
         uid = os.environ.get("SUDO_UID", os.getuid())
         return cls(uid)
 
     @classmethod
     def from_root(cls) -> Passwd:
-        """Returns instance of :class:`ppip:Passwd` for root."""
+        """Returns instance of :class:`nodeps:Passwd` for root."""
         return cls(0)
 
 
 @dataclasses.dataclass
 class PathStat:
-    """Helper class for :func:`ppip.Path.stats`.
+    """Helper class for :func:`nodeps.Path.stats`.
 
     Args:
         gid: file GID
         group: file group name
         mode: file mode string formatted as '-rwxrwxrwx'
         own: user and group string formatted as 'user:group'
-        passwd: instance of :class:`ppip:Passwd` for file owner
+        passwd: instance of :class:`nodeps:Passwd` for file owner
         result: result of os.stat
         root: is owned by root
         sgid: group executable and sticky bit (GID bit), members execute as the executable group (i.e.: crontab)
@@ -2976,12 +2866,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
                 the link points to (default: False).
 
         Returns:
-            PathStat namedtuple :class:`ppip.PathStat`:
+            PathStat namedtuple :class:`nodeps.PathStat`:
             gid: file GID
             group: file group name
             mode: file mode string formatted as '-rwxrwxrwx'
             own: user and group string formatted as 'user:group'
-            passwd: instance of :class:`ppip:Passwd` for file owner
+            passwd: instance of :class:`nodeps:Passwd` for file owner
             result: result of `os.stat`
             root: is owned by root
             sgid: group executable and sticky bit (GID bit), members execute as the executable group (i.e.: crontab)
@@ -3366,154 +3256,6 @@ class PipMetaPathFinder(importlib.abc.MetaPathFinder):
         return None
 
 
-@dataclasses.dataclass
-class Repo(GitRepo):
-    """Dataclass Wrapper for :class:`git.Repo`.
-
-    Represents a git repository and allows you to query references,
-    gather commit information, generate diffs, create and clone repositories query
-    the log.
-
-    'working_tree_dir' is the working tree directory, but will raise AssertionError if we are a bare repository.
-    """
-
-    git: GitCmd = dataclasses.field(init=False)
-    """
-    The Repo class manages communication with the Git binary.
-
-    It provides a convenient interface to calling the Git binary, such as in::
-
-     g = Repo( git_dir )
-     g.init()                   # calls 'git init' program
-     rval = g.ls_files()        # calls 'git ls-files' program
-
-    ``Debugging``
-        Set the GIT_PYTHON_TRACE environment variable print each invocation
-        of the command to stdout.
-        Set its value to 'full' to see details about the returned values.
-    """
-    git_dir: AnyPath | None = dataclasses.field(default=None, init=False)
-    """the .git repository directory, which is always set"""
-    odb: type[LooseObjectDB] = dataclasses.field(init=False)
-    working_dir: AnyPath | None = dataclasses.field(default=None, init=False)
-    """working directory of the git command, which is the working tree
-    directory if available or the .git directory in case of bare repositories"""
-    path: dataclasses.InitVar[AnyPath | None] = None
-    """File or Directory inside the git repository, the default with search_parent_directories"""
-    expand_vars: dataclasses.InitVar[bool] = True
-    odbt: dataclasses.InitVar[type[LooseObjectDB]] = GitCmdObjectDB
-    """the path to either the root git directory or the bare git repo"""
-    search_parent_directories: dataclasses.InitVar[bool] = True
-    """if True, all parent directories will be searched for a valid repo as well."""
-
-    def __post_init__(
-        self, path: AnyPath | None, expand_vars: bool, odbt: type[LooseObjectDB], search_parent_directories: bool
-    ):
-        """Create a new Repo instance.
-
-        Examples:
-            >>> import warnings
-            >>> import nodeps
-            >>> from nodeps import Repo
-            >>> assert Repo(nodeps.__file__)
-            >>> Repo("~/repo.git")  # doctest: +ELLIPSIS +IGNORE_EXCEPTION_DETAIL
-            Traceback (most recent call last):
-            git.exc.NoSuchPathError: .../repo.git
-            >>> warnings.simplefilter("ignore", UserWarning)
-            >>> Repo("${HOME}/repo")  # doctest: +ELLIPSIS +IGNORE_EXCEPTION_DETAIL
-            Traceback (most recent call last):
-            git.exc.NoSuchPathError: .../repo
-
-        Raises:
-            InvalidGitRepositoryError
-            NoSuchPathError
-
-        Args:
-            path: File or Directory inside the git repository, the default with search_parent_directories set to True
-                or the path to either the root git directory or the bare git repo
-                if search_parent_directories is changed to False
-            expand_vars: if True, environment variables will be expanded in the given path
-            odbt: odbt
-            search_parent_directories: Search all parent directories for a git repository.
-
-        Returns:
-            Repo: Repo instance
-        """
-        if GitRepo == object:
-            msg = f"GitPython is not installed: installed with 'pip install {NODEPS_PROJECT_NAME}[repo]'"
-            raise ImportError(msg)
-
-        super().__init__(
-            path if path is None else Path(path).to_parent(),
-            expand_vars=expand_vars,
-            odbt=odbt,
-            search_parent_directories=search_parent_directories,
-        )
-
-    @classmethod
-    def bare(cls, name: str | None = None, repo: Repo = None) -> Repo:
-        """Create a bare repository in a temporary directory, to manage global/system config or as a remote for testing.
-
-        Args:
-            name: the path of the bare repository
-            repo: Repo instance to update git config with remote url of the new bare repository (default: None)
-
-        Returns:
-            Repo: Repo instance
-        """
-        with tempfile.TemporaryDirectory(suffix=".git") as tmpdir:
-            bare = cls.init(Path(tmpdir) / (f"{name}.git" if name else ""), bare=True)
-            if repo:
-                repo.config_writer().set_value("remote.origin.url", repo.git_dir).release()
-            return bare
-
-    @property
-    def git_config(self) -> GitConfigParser:
-        """Wrapper for :func:`git.Repo.config_reader`, so it is already read and can be used.
-
-        The configuration will include values from the system, user and repository configuration files.
-
-        Examples:
-            >>> import nodeps
-            >>> from nodeps import Repo
-            >>>
-            >>> conf = Repo(nodeps.__file__).git_config
-            >>> conf.has_section('remote "origin"')
-            True
-            >>> conf.has_option('remote "origin"', 'url')
-            True
-            >>> conf.get('remote "origin"', 'url')  # doctest: +ELLIPSIS
-            'https://github.com/...'
-            >>> conf.get_value('remote "origin"', 'url', "")  # doctest: +ELLIPSIS
-            'https://github.com/...'
-
-        Returns:
-            GitConfigParser: GitConfigParser instance
-        """
-        config = self.config_reader()
-        config.read()
-        return config
-
-    @property
-    def origin_url(self) -> ParseResult:
-        """Git Origin URL.
-
-        Examples:
-            >>> import nodeps
-            >>> from nodeps import Repo
-            >>>
-            >>> Repo(nodeps.__file__).origin_url.geturl()   # doctest: +ELLIPSIS
-            'https://github.com/.../nodeps'
-        """
-        return urllib.parse.urlparse(self.git_config.get_value('remote "origin"', "url", ""))
-
-    @property
-    def top(self) -> Path:
-        """Repo Top Directory Path."""
-        path = Path(self.working_dir)
-        return Path(path.parent if ".git" in path else path)
-
-
 class TempDir(tempfile.TemporaryDirectory):
     """Wrapper for :class:`tempfile.TemporaryDirectory` that provides Path-like.
 
@@ -3537,7 +3279,7 @@ class TempDir(tempfile.TemporaryDirectory):
 
 async def aioclone(
     owner: str | None = None,
-    repo: str = "ppip",
+    repository: str = NODEPS_PROJECT_NAME,
     scheme: GitSchemeLiteral = GIT_DEFAULT_SCHEME,
     path: Path | str | None = None,
 ) -> Path:
@@ -3555,19 +3297,19 @@ async def aioclone(
 
     Args:
         owner: github owner, None to use GIT or USER environment variable if not defined (Default: `GIT`)
-        repo: github repository (Default: `PROJECT`)
+        repository: github repository (Default: `PROJECT`)
         scheme: url scheme (Default: "https")
         path: path to clone (Default: `repo`)
 
     Returns:
         Path of cloned repository
     """
-    path = path or Path.cwd() / repo
+    path = path or Path.cwd() / repository
     path = Path(path)
     if not path.exists():
         if not path.parent.exists():
             path.parent.mkdir()
-        await aiocmd("git", "clone", OwnerRepo(owner, repo, scheme).url, path)
+        await aiocmd("git", "clone", OwnerRepo(owner, repository, scheme).url, path)
     return path
 
 
@@ -3804,146 +3546,6 @@ def anyin(origin: Iterable, destination: Iterable) -> Any | None:
     return None
 
 
-def cache(
-    func: Callable[..., _T | Coroutine[Any, Any, _T]] = ...
-) -> Callable[[Callable[..., _T]], _CacheWrapper[_T]] | _T | Coroutine[Any, Any, _T] | Any:
-    """Caches previous calls to the function if object can be encoded.
-
-    Examples:
-        >>> import asyncio
-        >>> from typing import cast
-        >>> from typing import Coroutine
-        >>> from environs import Env as Environs
-        >>> from collections import namedtuple
-        >>> from nodeps import cache
-        >>>
-        >>> @cache
-        ... def test(a):
-        ...     print(True)
-        ...     return a
-        >>>
-        >>> @cache
-        ... async def test_async(a):
-        ...     print(True)
-        ...     return a
-        >>>
-        >>> test({})
-        True
-        {}
-        >>> test({})
-        {}
-        >>> asyncio.run(cast(Coroutine, test_async({})))
-        True
-        {}
-        >>> asyncio.run(cast(Coroutine, test_async({})))
-        {}
-        >>> test(Environs())
-        True
-        <Env {}>
-        >>> test(Environs())
-        <Env {}>
-        >>> asyncio.run(cast(Coroutine, test_async(Environs())))
-        True
-        <Env {}>
-        >>> asyncio.run(cast(Coroutine, test_async(Environs())))
-        <Env {}>
-        >>>
-        >>> @cache
-        ... class Test:
-        ...     def __init__(self, a):
-        ...         print(True)
-        ...         self.a = a
-        ...
-        ...     @property
-        ...     @cache
-        ...     def prop(self):
-        ...         print(True)
-        ...         return self
-        >>>
-        >>> Test({})  # doctest: +ELLIPSIS
-        True
-        <....Test object at 0x...>
-        >>> Test({})  # doctest: +ELLIPSIS
-        <....Test object at 0x...>
-        >>> Test({}).a
-        {}
-        >>> Test(Environs()).a
-        True
-        <Env {}>
-        >>> Test(Environs()).prop  # doctest: +ELLIPSIS
-        True
-        <....Test object at 0x...>
-        >>> Test(Environs()).prop  # doctest: +ELLIPSIS
-        <....Test object at 0x...>
-        >>>
-        >>> Test = namedtuple('Test', 'a')
-        >>> @cache
-        ... class TestNamed(Test):
-        ...     __slots__ = ()
-        ...     def __new__(cls, *args, **kwargs):
-        ...         print(True)
-        ...         return super().__new__(cls, *args, **kwargs)
-        >>>
-        >>> TestNamed({})
-        True
-        TestNamed(a={})
-        >>> TestNamed({})
-        TestNamed(a={})
-        >>> @cache
-        ... class TestNamed(Test):
-        ...     __slots__ = ()
-        ...     def __new__(cls, *args, **kwargs): return super().__new__(cls, *args, **kwargs)
-        ...     def __init__(self): super().__init__()
-        >>> TestNamed({}) # doctest: +IGNORE_EXCEPTION_DETAIL
-        Traceback (most recent call last):
-        TypeError: __init__() takes 1 positional argument but 2 were given
-    """
-    if jsonpickle is None or structlog is None:
-        msg = "structlog and/or jsonpickle are not installed: installed with 'pip install nodeps[cache]'"
-        raise ImportError(msg)
-    memo = {}
-    log = structlog.get_logger()
-    structlog.configure(logger_factory=structlog.stdlib.LoggerFactory())
-    coro = inspect.iscoroutinefunction(func)
-    if coro:
-
-        @functools.wraps(func)
-        async def wrapper(*args, **kwargs):
-            """Async Cache Wrapper."""
-            key = None
-            save = True
-            try:
-                key = jsonpickle.encode((args, kwargs))
-                if key in memo:
-                    return memo[key]
-            except Exception as exception:  # noqa: BLE001
-                log.warning("Not cached", func=func, args=args, kwargs=kwargs, exception=exception)
-                save = False
-            value = await func(*args, **kwargs)
-            if key and save:
-                memo[key] = value
-            return value
-    else:
-
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            """Cache Wrapper."""
-            key = None
-            save = True
-            try:
-                key = jsonpickle.encode((args, kwargs))
-                if key in memo:
-                    return memo[key]
-            except Exception as exception:  # noqa: BLE001
-                log.warning("Not cached", func=func, args=args, kwargs=kwargs, exception=exception)
-                save = False
-            value = func(*args, **kwargs)
-            if key and save:
-                memo[key] = value
-            return value
-    return wrapper
-
-
 @contextlib.contextmanager
 def chdir(data: StrOrBytesPath | bool = True) -> Iterable[tuple[Path, Path]]:
     """Change directory and come back to previous directory.
@@ -4003,7 +3605,10 @@ def chdir(data: StrOrBytesPath | bool = True) -> Iterable[tuple[Path, Path]]:
 
 
 def clone(
-    owner: str | None = None, repo: str = "ppip", scheme: GitSchemeLiteral = GIT_DEFAULT_SCHEME, path: Path | str = None
+        owner: str | None = None,
+        repository: str = NODEPS_PROJECT_NAME,
+        scheme: GitSchemeLiteral = GIT_DEFAULT_SCHEME,
+        path: Path | str = None
 ) -> Path:
     """Clone Repository.
 
@@ -4020,19 +3625,19 @@ def clone(
 
     Args:
         owner: github owner, None to use GIT or USER environment variable if not defined (Default: `GIT`)
-        repo: github repository (Default: `PROJECT`)
+        repository: github repository (Default: `PROJECT`)
         scheme: url scheme (Default: "https")
         path: path to clone (Default: `repo`)
 
     Returns:
         CompletedProcess
     """
-    path = path or Path.cwd() / repo
+    path = path or Path.cwd() / repository
     path = Path(path)
     if not path.exists():
         if not path.parent.exists():
             path.parent.mkdir()
-        cmd("git", "clone", OwnerRepo(owner, repo, scheme).url, path)
+        cmd("git", "clone", OwnerRepo(owner, repository, scheme).url, path)
     return path
 
 
@@ -4623,25 +4228,6 @@ def getsitedir(index: bool = 2) -> Path:
     return Path(sitedir)
 
 
-def getstdout(func: Callable, *args: Any, ansi: bool = False, new: bool = True, **kwargs: Any) -> str | Iterable[str]:
-    """Redirect stdout for func output and remove ansi and/or new line.
-
-    Args:
-        func: callable.
-        *args: args to callable.
-        ansi: strip ansi.
-        new: strip new line.
-        **kwargs: kwargs to callable.
-
-    Returns:
-        str | Iterable[str, str]:
-    """
-    buffer = io.StringIO()
-    with contextlib.redirect_stdout(buffer):
-        func(*args, **kwargs)
-    return strip(buffer.getvalue(), ansi=ansi, new=new) if ansi or new else buffer.getvalue()
-
-
 def group_user(name: int | str = USER) -> GroupUser:
     """Group and User for Name (id if name is str and vice versa).
 
@@ -4728,20 +4314,6 @@ def gz(src: Path | str, dest: Path | str = ".") -> Path:
 def in_tox() -> bool:
     """Running in tox."""
     return ".tox" in sysconfig.get_paths()["purelib"]
-
-
-def logger(fmt: str = LOGGER_DEFAULT_FMT) -> Logger:
-    """Returns a new logger."""
-    if loguru_logger is None:
-        msg = f"loguru is not installed: installed with 'pip install {NODEPS_PROJECT_NAME}[ansi]'"
-        raise ImportError(msg)
-
-    for item in loguru_logger._core.handlers:
-        loguru_logger.remove(item)
-    log = copy.deepcopy(loguru_logger)
-    if fmt:
-        log.configure(handlers=[{"sink": sys.stderr, "format": fmt}])
-    return log
 
 
 def noexc(
@@ -4888,119 +4460,6 @@ def returncode(c: str | list[str], shell: bool = True) -> int:
     return subprocess.call(c, shell=shell)
 
 
-def python_latest(start: str | int | None = None) -> str:
-    """Python latest version avaialble.
-
-    Examples:
-        >>> import platform
-        >>> from nodeps import python_latest
-        >>>
-        >>> v = platform.python_version()
-        >>> if "rc" not in v:
-        ...     major_minor = v.rpartition(".")[0]
-        ...     assert python_latest(v).rpartition(".")[0] == major_minor
-        ...     assert python_latest(v).rpartition(".")[2] >= v.rpartition(".")[2]
-        ...     assert python_latest(major_minor).rpartition(".")[0] == major_minor
-        ...     assert python_latest(major_minor).rpartition(".")[2] >= v.rpartition(".")[2]
-
-    Args:
-        start: version startswith match, i.e.: "3", "3.10", "3.10", 3 or None to use `PYTHON_VERSION`
-          environment variable or :obj:``sys.version`` if not set (Default: None).
-
-    Returns:
-        Latest Python Version
-    """
-    start = python_version() if start is None else start
-    start = start.rpartition(".")[0] if len(start.split(".")) == 3 else start  # noqa: PLR2004
-    return [i for i in python_versions() if str(i).startswith(start)][-1]
-
-
-def python_version() -> str:
-    """Major and Minor Python Version from ``$PYTHON_VERSION``, or  ``$PYTHON_REQUIRES`` or :obj:`sys.version`.
-
-    Examples:
-        >>> import os
-        >>> import platform
-        >>> from nodeps import python_version
-        >>>
-        >>> v = python_version()
-        >>> assert platform.python_version().startswith(v)
-        >>> assert len(v.split(".")) == 2
-        >>>
-        >>> os.environ["PYTHON_VERSION"] = "3.10"
-        >>> assert python_version() == "3.10"
-        >>>
-        >>> os.environ["PYTHON_VERSION"] = "3.12-dev"
-        >>> assert python_version() == "3.12-dev"
-        >>>
-        >>> os.environ["PYTHON_VERSION"] = "3.12.0b4"
-        >>> assert python_version() == "3.12"
-
-    Returns:
-        str
-    """
-    p = platform.python_version()
-    ver = os.environ.get("PYTHON_VERSION", p) or os.environ.get("PYTHON_REQUIRES", p)
-    if len(ver.split(".")) == 3:  # noqa: PLR2004
-        return ver.rpartition(".")[0]
-    return ver
-
-
-def python_versions() -> list[str]:
-    """Python versions avaialble.
-
-    Examples:
-        >>> import platform
-        >>> from nodeps import python_versions
-        >>>
-        >>> v = platform.python_version()
-        >>> if not "rc" in v:
-        ...     assert v in python_versions()
-
-    Returns:
-        Tuple of Python Versions
-    """
-    if bs4 is None or requests is None:
-        msg = f"bs4 and/or requests are not installed: installed with 'pip install {NODEPS_PROJECT_NAME}[requests]'"
-        raise ImportError(msg)
-
-    rv = []
-    for link in bs4.BeautifulSoup(requests.get(PYTHON_FTP, timeout=2).text, "html.parser").find_all("a"):
-        if link := re.match(r"((3\.([7-9]|[1-9][0-9]))|4).*", link.get("href").rstrip("/")):
-            rv.append(link.string)
-    rv.sort(key=lambda s: [int(u) for u in s.split(".")])
-    return rv
-
-
-def request_x_api_key_json(url, key: str = "") -> dict[str, str] | None:
-    """API request helper with API Key and returning json.
-
-    Examples:
-        >>> from nodeps import request_x_api_key_json
-        >>>
-        >>> request_x_api_key_json("https://api.iplocation.net/?ip=8.8.8.8", \
-                "rn5ya4fp/tzI/mENxaAvxcMo8GMqmg7eMnCvUFLIV/s=")
-        {'ip': '8.8.8.8', 'ip_number': '134744072', 'ip_version': 4, 'country_name': 'United States of America',\
- 'country_code2': 'US', 'isp': 'Google LLC', 'response_code': '200', 'response_message': 'OK'}
-
-    Args:
-        url: API url
-        key: API Key
-
-    Returns:
-        response json
-    """
-    if requests is None:
-        msg = f"bs4 and/or requests are not installed: installed with 'pip install {NODEPS_PROJECT_NAME}[requests]'"
-        raise ImportError(msg)
-
-    headers = {"headers": {"X-Api-Key": key}} if key else {}
-    response = requests.get(url, **headers, timeout=2)
-    if response.status_code == requests.codes.ok:
-        return response.json()
-    return None
-
-
 def sourcepath(data: Any) -> Path:
     """Get path of object.
 
@@ -5105,36 +4564,6 @@ def stdquiet() -> tuple[TextIO, TextIO]:
         new_stderr.seek(0)
         sys.stdout = old_stdout
         sys.stderr = old_stderr
-
-
-def strip(obj: str | Iterable[str], ansi: bool = False, new: bool = True) -> str | Iterable[str]:
-    r"""Strips ``\n`` And/Or Ansi from string or Iterable.
-
-    Args:
-        obj: object or None for redirect stdout
-        ansi: ansi (default: False)
-        new: newline (default: True)
-
-    Returns:
-        Same type with NEWLINE removed.
-    """
-
-    def rv(x):
-        if isinstance(x, str):
-            x = x.removesuffix("\n") if new else x
-            x = strip_ansi.strip_ansi(x) if ansi else x
-        if isinstance(x, bytes):
-            x = x.removesuffix(b"\n") if new else x
-        return x
-
-    if strip_ansi is None:
-        msg = f"strip_ansi is not installed: installed with 'pip install {NODEPS_PROJECT_NAME}[ansi]'"
-        raise ImportError(msg)
-
-    cls = type(obj)
-    if isinstance(obj, str):
-        return rv(obj)
-    return cls(rv(i) for i in obj)
 
 
 def suppress(
@@ -5322,7 +4751,7 @@ def tomodules(obj: Any, suffix: bool = True) -> str:
 
 
 def urljson(
-    url: str,
+    data: str,
 ) -> dict:
     """Url open json.
 
@@ -5340,16 +4769,18 @@ def urljson(
         >>> pypi = urljson(f"https://pypi.org/pypi/{NODEPS_PROJECT_NAME}/json")
         >>> assert pypi['info']['name'] == NODEPS_PROJECT_NAME
 
+    Args:
+        data: url
 
     Returns:
         dict: pypi information
     """
-    if url.lower().startswith("https"):
-        request = urllib.request.Request(url)
+    if data.lower().startswith("https"):
+        request = urllib.request.Request(data)
     else:
-        msg = f"Non-HTTPS URL: {url}"
+        msg = f"Non-HTTPS URL: {data}"
         raise ValueError(msg)
-    if "github" in url:
+    if "github" in data:
         request.add_header("Authorization", f"token {GITHUB_TOKEN}")
     with urllib.request.urlopen(request) as response:  # noqa: S310
         return json.loads(response.read().decode())
@@ -5394,472 +4825,8 @@ def which(data="sudo", raises: bool = False) -> str:
     return rv
 
 
-# <editor-fold desc="Color">
-def _msg_typer():
-    if typer is None:
-        msg = f"typer is not installed: installed with 'pip install {NODEPS_PROJECT_NAME}[echo]'"
-        raise ImportError(msg)
-
-
-def black(msg="", bold=False, underline=False, blink=False, err=False):
-    """black."""
-    _msg_typer()
-    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="black", err=err)
-
-
-def red(msg="", bold=False, underline=False, blink=False, err=True):
-    """red."""
-    _msg_typer()
-    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="red", err=err)
-
-
-def green(msg="", bold=False, underline=False, blink=False, err=False):
-    """green."""
-    _msg_typer()
-    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="green", err=err)
-
-
-def yellow(msg="", bold=False, underline=False, blink=False, err=False):
-    """yellow."""
-    _msg_typer()
-    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="yellow", err=err)
-
-
-def blue(msg="", bold=False, underline=False, blink=False, err=False):
-    """blue."""
-    _msg_typer()
-    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="blue", err=err)
-
-
-def magenta(msg="", bold=False, underline=False, blink=False, err=False):
-    """magenta."""
-    _msg_typer()
-    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="magenta", err=err)
-
-
-def cyan(msg="", bold=False, underline=False, blink=False, err=False):
-    """cyan."""
-    _msg_typer()
-    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="cyan", err=err)
-
-
-def white(msg="", bold=False, underline=False, blink=False, err=False):
-    """white."""
-    _msg_typer()
-    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="white", err=err)
-
-
-def bblack(msg="", bold=False, underline=False, blink=False, err=False):
-    """bblack."""
-    _msg_typer()
-    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="bright_black", err=err)
-
-
-def bred(msg="", bold=False, underline=False, blink=False, err=False):
-    """bred."""
-    _msg_typer()
-    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="bright_red", err=err)
-
-
-def bgreen(msg="", bold=False, underline=False, blink=False, err=False):
-    """bgreen."""
-    _msg_typer()
-    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="bright_green", err=err)
-
-
-def byellow(msg="", bold=False, underline=False, blink=False, err=False):
-    """byellow."""
-    _msg_typer()
-    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="bright_yellow", err=err)
-
-
-def bblue(msg="", bold=False, underline=False, blink=False, err=False):
-    """bblue."""
-    _msg_typer()
-    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="bright_blue", err=err)
-
-
-def bmagenta(msg="", bold=False, underline=False, blink=False, err=False):
-    """bmagenta."""
-    _msg_typer()
-    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="bright_magenta", err=err)
-
-
-def bcyan(msg="", bold=False, underline=False, blink=False, err=False):
-    """bcyan."""
-    _msg_typer()
-    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="bright_cyan", err=err)
-
-
-def bwhite(msg="", bold=False, underline=False, blink=False, err=False):
-    """bwhite."""
-    _msg_typer()
-    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="bright_white", err=err)
-
-
-def reset(msg="", bold=False, underline=False, blink=False, err=False):
-    """reset."""
-    _msg_typer()
-    click.secho(msg, bold=bold, underline=underline, blink=blink, color=True, fg="reset", err=err)
-
-
-class _Color(EnumLower):
-    # noinspection PyShadowingBuiltins
-    def __call__(
-        self,
-        message: Any = "",
-        exit: int | None = None,  # noqa: A002
-        stderr: bool = True,
-        file: IO[Any] | str | None = None,
-        newline: bool = True,
-        bg: str | int | tuple[int, int, int] | None = None,
-        bold: bool | None = None,
-        dim: bool | None = None,
-        underline: bool | None = None,
-        overline: bool | None = None,
-        italic: bool | None = None,
-        blink: bool | None = None,
-        reverse: bool | None = None,
-        strikethrough: bool | None = None,
-        reset: bool = True,
-        colorize: bool | None = None,
-    ) -> None:
-        """Wrapper for :func:`click.secho` getting the `fg` color from the enum.
-
-        To force showing or hiding colors and other styles colorized output use ``COLORIZE`` environment variable,
-        or set `colorize` to True or False respectively.
-
-        This function combines echo and style into one call. As such the following two calls are the same:
-
-            - click.secho('Hello World!', fg='green')
-            - click.echo(click.style('Hello World!', fg='green'))
-
-        All keyword arguments are forwarded to the underlying functions depending on which one they go with.
-
-        Non-string types will be converted to str. However, bytes are passed directly to echo without applying style.
-        If you want to style bytes that represent text, call `bytes.decode` first
-
-        See `click.secho <https://click.palletsprojects.com/en/8.0.x/api/#click.secho>`_ for more information.
-
-        Examples:
-            >>> from nodeps import Color
-            >>> Color.GREEN('Hello World!',)
-
-        Arguments:
-            message: Text to append to symbol (default: "")
-            exit: Exit code, will exit if not None (default: None)
-            stderr: Write to ``stderr`` instead of ``stdout`` (default: True)
-            file: The file to write to. (default: ``stdout``)
-            newline: Output new line (default: False)
-            bg: Background color (default: None)
-            bold: Bold text (default: None)
-            dim: Dim (default: None)
-            underline: Underline (default: None)
-            overline: Overline (default: None)
-            italic: Italic (default: None)
-            blink: Blink (default: None)
-            reverse: Reverse (default: None)
-            strikethrough: Strikethrough (default: None)
-            reset: Reset (default: True)
-            colorize: Force showing or hiding colors and other styles. By default, click will remove color
-                if the output does not look like an interactive terminal (default: ``COLORIZE`` environment variable)
-
-        Returns:
-            None
-        """
-        _msg_typer()
-        click.secho(
-            message,
-            err=stderr,
-            file=file,
-            nl=newline,
-            color=colorize or COLORIZE,
-            fg=self.value,
-            bg=bg,
-            bold=bold,
-            dim=dim,
-            underline=underline,
-            overline=overline,
-            italic=italic,
-            blink=blink,
-            reverse=reverse,
-            strikethrough=strikethrough,
-            reset=reset,
-        )
-        if exit is not None:
-            raise typer.Exit(exit)
-
-
-class _ColorAuto:
-    """Instances are replaced with an appropriate value in Enum class suites."""
-
-    value = enum._auto_null
-
-
-class Color(_Color):
-    """:func:`click.secho` and :func:`click.style` foreground color wrapper class."""
-    BLACK = enum.auto()
-    """might be a gray"""
-    BLUE = enum.auto()
-    CYAN = enum.auto()
-    GREEN = enum.auto()
-    MAGENTA = enum.auto()
-    RED = enum.auto()
-    WHITE = enum.auto()
-    """might be an grey"""
-    YELLOW = enum.auto()
-    """might be an orange"""
-    BRIGHT_BLACK = enum.auto()
-    BRIGHT_BLUE = enum.auto()
-    BRIGHT_CYAN = enum.auto()
-    BRIGHT_GREEN = enum.auto()
-    BRIGHT_MAGENTA = enum.auto()
-    BRIGHT_RED = enum.auto()
-    BRIGHT_WHITE = enum.auto()
-    BRIGHT_YELLOW = enum.auto()
-    RESET = enum.auto()
-    """reset the color only, not styles: bold, underline, etc."""
-
-    def style(
-        self,
-        text: Any,
-        bg: str | int | tuple[int, int, int] | None = None,
-        bold: bool | None = None,
-        dim: bool | None = None,
-        underline: bool | None = None,
-        overline: bool | None = None,
-        italic: bool | None = None,
-        blink: bool | None = None,
-        reverse: bool | None = None,
-        strikethrough: bool | None = None,
-        reset: bool = True,
-    ) -> str:
-        """Wrapper for :func:`click.style` getting the `fg` color from the enum.
-
-        Styles a text with ANSI styles and returns the new string.
-
-        By default, the styling is self-contained which means that at the end of the string a
-            reset code is issued (this can be prevented by passing reset=False.
-
-        If the terminal supports it, color may also be specified as:
-
-            - An integer in the interval [0, 255]. The terminal must support 8-bit/256-color mode.
-            - An RGB tuple of three integers in [0, 255]. The terminal must support 24-bit/true-color mode
-
-        See `click.style <https://click.palletsprojects.com/en/8.0.x/api/#click.style>`_ for more information.
-
-        Arguments:
-          text: Text to apply style
-          bg: Background color (default: None)
-          bold: Bold text (default: None)
-          dim: Dim (default: None)
-          underline: Underline (default: None)
-          overline: Overline (default: None)
-          italic: Italic (default: None)
-          blink: Blink (default: None)
-          reverse: Reverse (default: None)
-          strikethrough: Strikethrough (default: None)
-          reset: Reset (default: True)
-
-        Returns:
-            Formatted text
-        """
-        _msg_typer()
-        return click.style(
-            text,
-            fg=self.BLACK.value,
-            bg=bg,
-            bold=bold,
-            dim=dim,
-            underline=underline,
-            overline=overline,
-            italic=italic,
-            blink=blink,
-            reverse=reverse,
-            strikethrough=strikethrough,
-            reset=reset,
-        )
-
-
-class _Symbol(enum.Enum):
-    def _generate_next_value_(self, start, count, last_values):
-        if typer is None:
-            return self
-        return click.style(self, fg=cast(str, SYMBOL[self]["fg"].value), blink=SYMBOL[self].get("blink"), bold=True)
-
-    # noinspection PyShadowingBuiltins
-    def __call__(
-        self,
-        first: Any = "",
-        other: Any = "",
-        separator: str = ":",
-        exit: int | None = None,  # noqa: A002
-        stderr: bool = True,
-        file: IO[Any] | str | None = None,
-        newline: bool = True,
-        colorize: bool | None = None,
-    ) -> None:
-        """Print symbol from :obj:`SYMBOL`, with text in `first` and `other` according to :obj:`FIRST_OTHER` format.
-
-        Wrapper for :func:`click.echo` getting the `fg` color for the symbol from the :obj:`SYMBOL["fg"]`.
-
-        If `other` is specified will be appended to `first` text in :obj:`FIRST_OTHER["other"]` format with `separator`.
-
-        To force showing or hiding colors and other styles colorized output use ``COLORIZE`` environment variable,
-        or set `colorize` to True or False respectively.
-
-        Print a message and newline to stdout or a file. This should be used instead of print because it
-        provides better support for different data, files, and environments.
-
-        Compared to print, this does the following:
-
-            - Ensures that the output encoding is not misconfiguration on Linux.
-            - Supports Unicode in the Windows console.
-            - Supports writing to binary outputs, and supports writing bytes to text outputs.
-            - Supports colors and styles on Windows.
-            - Removes ANSI color and style codes if the output does not look like an interactive terminal.
-            - Always flushes the output.
-
-        Arguments:
-            first: First part of the text to append to :obj:`SYMBOL["text"]`
-                in :obj:`FIRST_OTHER["first"]` format (default: "")
-            other: Other parts to append to the `first` text in italic with `separator`
-                in :obj:`FIRST_OTHER["other"]` format (default: "None")
-            separator: Separator between `first` and `after` (default: ":")
-            exit: Exit code, will exit if not None (default: None)
-            stderr: Write to ``stderr`` instead of ``stdout`` (default: True)
-            file: The file to write to. (default: ``stdout``)
-            newline: Output new line (default: False)
-            colorize: Force showing or hiding colors and other styles. By default, click will remove color
-                if the output does not look like an interactive terminal (default: ``COLORIZE`` environment variable)
-        """
-        _msg_typer()
-        click.echo(
-            " ".join(
-                [
-                    self.value,
-                    click.style(f"{first}{separator if other else ''}", **COLOR_FIRST_OTHER["first"]),
-                    click.style(other, **COLOR_FIRST_OTHER["other"]),
-                ]
-            ),
-            err=stderr,
-            file=Path(file) if file else file,
-            nl=newline,
-            color=colorize or COLORIZE,
-        )
-        if exit is not None:
-            raise typer.Exit(exit)
-
-
-class _SymbolAuto:
-    """Instances are replaced with an appropriate value in Enum class suites."""
-
-    value = enum._auto_null
-
-
-class Symbol(_Symbol):
-    """:func:`click.echo` and :func:`click.style` wrapper class for :data:`SYMBOLS`.
-
-    Examples:
-        >>> from nodeps import Symbol
-        >>>
-        >>> Symbol.OK() # OK
-        >>>
-        >>> Symbol.OK("Install")  # OK Install
-        >>>
-        >>> Symbol.OK("Install", "Complete")  # OK Install: Complete
-        >>>
-        >>> Symbol.OK("Install", "Complete", stderr=False)
-        OK Install: Complete
-        >>>
-        >>> Symbol.OK("Debug", "Error", " |", stderr=False)
-        OK Debug | Error
-        >>>
-        >>> Symbol.OK("Value", "2", " ==", file="/tmp/test.txt")  # doctest: +SKIP
-        >>>
-        >>> Symbol.OK("Value", "2", newline=False)  # OK Value: 2
-    """
-    CRITICAL = enum.auto()
-    """symbol: '…', color: YELLOW (blink)"""
-    ERROR = enum.auto()
-    """symbol: '✘', color: RED"""
-    OK = enum.auto()
-    """symbol: '✔', color: GREEN"""
-    NOTICE = enum.auto()
-    """symbol: '‼', color: CYAN"""
-    SUCCESS = enum.auto()
-    """symbol: '◉', color: BLUE"""
-    VERBOSE = enum.auto()
-    """symbol: '＋', color: MAGENTA"""  # noqa: RUF001
-    WARNING = enum.auto()
-    """symbol: '！', color: YELLOW"""  # noqa: RUF001
-    MINUS = enum.auto()
-    """letter: '-', color: RED"""
-    MORE = enum.auto()
-    """letter: '>, color: MAGENTA"""
-    MULTIPLY = enum.auto()
-    """letter: 'x', color: BLUE"""
-    PLUS = enum.auto()
-    """letter: '+', color: GREEN"""
-    WAIT = enum.auto()
-    """symbol: '…', color: YELLOW (blink)"""
-# </editor-fold>
-
-
 EXECUTABLE = Path(sys.executable)
 EXECUTABLE_SITE = Path(EXECUTABLE).resolve()
-
-SYMBOL = {
-    "CRITICAL": {
-        "text": "✘",
-        "fg": Color.RED,
-        "blink": True,
-    },
-    "ERROR": {
-        "text": "✘",
-        "fg": Color.RED,
-    },
-    "OK": {
-        "text": "✔",
-        "fg": Color.GREEN,
-    },
-    "NOTICE": {
-        "text": "‼",
-        "fg": Color.CYAN,
-    },
-    "SUCCESS": {
-        "text": "◉",
-        "fg": Color.BLUE,
-    },
-    "VERBOSE": {
-        "text": "＋",
-        "fg": Color.MAGENTA,
-    },  # noqa: RUF001
-    "WARNING": {
-        "text": "！",
-        "fg": Color.YELLOW,
-    },  # noqa: RUF001
-    "MINUS": {
-        "text": "－",
-        "fg": Color.RED,
-    },  # noqa: RUF001
-    "MORE": {
-        "text": ">",
-        "fg": Color.MAGENTA,
-    },
-    "MULTIPLY": {
-        "text": "×",
-        "fg": Color.BLUE,
-    },  # noqa: RUF001
-    "PLUS": {
-        "text": "+",
-        "fg": Color.RED,
-    },
-    "WAIT": {
-        "text": "…",
-        "fg": Color.YELLOW,
-    },
-}
 
 
 subprocess.CalledProcessError = CalledProcessError

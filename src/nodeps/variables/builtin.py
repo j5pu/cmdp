@@ -1,4 +1,5 @@
 """NoDeps Variables Builtin Module."""  # noqa: INP001
+
 __all__ = (
     "BUILTIN",
     "BUILTIN_CLASS",

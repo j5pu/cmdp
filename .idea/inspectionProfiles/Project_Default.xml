@@ -100,7 +100,7 @@
       </option>
     </inspection_tool>
     <inspection_tool class="PyMissingTypeHintsInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
-    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="false" level="WARNING" enabled_by_default="false">
       <option name="ignoredPackages">
         <value>
           <list size="9">
@@ -156,6 +156,7 @@
           <option value="setuptools.build_meta.LEGACY_EDITABLE" />
           <option value="setuptools.build_meta._BuildMetaLegacyBackend" />
           <option value="openai.APIConnectionError" />
+          <option value="loguru.Logger._core" />
         </list>
       </option>
     </inspection_tool>

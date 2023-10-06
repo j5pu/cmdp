@@ -5,6 +5,7 @@ ignore-init-module-imports = true
 ignore = [
     "C901", # is too complex
     "E741", # Ambiguous variable name: `l`
+    "F403", # `from module import *` used; unable to detect undefined names
     "N805", # First argument of a method should be named `self`
     "PLR0913", # Too many arguments to function call (6 > 5)
     "PLW1510", # `subprocess.run` without explicit `check` argument
@@ -13,6 +14,7 @@ ignore = [
     "S607", # Starting a process with a partial executable path
     "SLF001", # Access to protected
     "T201", # `print` found
+    "TID252", # relative imports
     "TRY003", # long messages outside the exception class
     "W505", # Doc line too long (102 > 100 characters)
 ]
