@@ -6,30 +6,30 @@
   <component name="BlackConnectSettings" lineLength="120" previewMode="true" triggerOnReformat="true" showSyntaxErrorMsgs="true" />
   <component name="ChangeListManager">
     <list default="true" id="bf31d71b-78d7-4bdd-9f09-b7f6e0f14454" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/fileColors.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/scopes/src.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/nodeps/extras/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/nodeps/extras/ansi/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/nodeps/extras/echo/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/nodeps/extras/echo/color.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/nodeps/extras/echo/color.pyi" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/nodeps/extras/log/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/nodeps/extras/log/__init__.pyi" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/nodeps/extras/pickle/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/nodeps/extras/repo/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/nodeps/extras/url/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../envg/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../envg/.idea/ruff.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../huti/src/huti/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/../huti/src/huti/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../huti/src/huti/__main__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../huti/src/huti/cli/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../huti/src/huti/cli/app.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../huti/src/huti/cli/dependencies.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../huti/src/huti/constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/../huti/src/huti/constants.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../huti/src/huti/data/Brewfile" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../huti/src/huti/data/tests/5.2M.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../huti/src/huti/data/tests/BBVA.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../huti/src/huti/data/tests/ING.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../huti/src/huti/datas.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../huti/src/huti/exceptions.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../huti/src/huti/functions.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../huti/src/huti/huti.pth" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../huti/src/huti/post_install.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../huti/src/huti/variables.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/nodeps.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/nodeps.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ruff.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ruff.toml" beforeDir="false" afterPath="$PROJECT_DIR$/ruff.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/setup.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/setup.cfg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nodeps/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/nodeps/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nodeps/variables/builtin.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/nodeps/variables/builtin.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../ppip/src/ppip/utils/constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ppip/src/ppip/utils/constants.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pproj/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../pproj/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../secho/src/secho/color.py" beforeDir="false" afterPath="$PROJECT_DIR$/../secho/src/secho/color.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,7 +44,7 @@
     </option>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../huti" />
   </component>
   <component name="GitToolBoxStore">
     <option name="projectConfigVersion" value="5" />
@@ -102,7 +102,7 @@
     </option>
   </component>
   <component name="QodanaCloudProjectLink">
-    <option name="lastReportId" value="9L6q4" />
+    <option name="lastReportId" value="84aVG" />
     <option name="linkedProjectId" value="p0KVQ" />
     <option name="linkedProjectName" value="nodeps" />
     <option name="organizationId" value="ANQgy" />
@@ -121,7 +121,7 @@
       <recent name="$PROJECT_DIR$/backup" />
     </key>
   </component>
-  <component name="RunManager" selected="Python tests.pytest in test_import.py">
+  <component name="RunManager" selected="Python tests.Doctest python_latest (1)">
     <configuration name="Doctest Repo.__post_init__" type="tests" factoryName="Doctests" temporary="true" nameIsGenerated="true">
       <module name="nodeps" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -141,25 +141,6 @@
       <option name="USE_PATTERN" value="false" />
       <method v="2" />
     </configuration>
-    <configuration name="Doctest Repo.origin_url" type="tests" factoryName="Doctests" temporary="true" nameIsGenerated="true">
-      <module name="nodeps" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/nodeps" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/nodeps/__init__.py" />
-      <option name="CLASS_NAME" value="Repo" />
-      <option name="METHOD_NAME" value="origin_url" />
-      <option name="FOLDER_NAME" value="" />
-      <option name="TEST_TYPE" value="TEST_METHOD" />
-      <option name="PATTERN" value="" />
-      <option name="USE_PATTERN" value="false" />
-      <method v="2" />
-    </configuration>
     <configuration name="Doctest cache" type="tests" factoryName="Doctests" temporary="true" nameIsGenerated="true">
       <module name="nodeps" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -173,6 +154,25 @@
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/nodeps/__init__.py" />
       <option name="CLASS_NAME" value="" />
       <option name="METHOD_NAME" value="cache" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_FUNCTION" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Doctest python_latest (1)" type="tests" factoryName="Doctests" temporary="true" nameIsGenerated="true">
+      <module name="nodeps" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/nodeps/extras/url" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/nodeps/extras/url/__init__.py" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="python_latest" />
       <option name="FOLDER_NAME" value="" />
       <option name="TEST_TYPE" value="TEST_FUNCTION" />
       <option name="PATTERN" value="" />
@@ -217,11 +217,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python tests.Doctest python_latest (1)" />
         <item itemvalue="Python tests.pytest in test_import.py" />
         <item itemvalue="Python tests.Doctest cache" />
         <item itemvalue="Python tests.Doctest python_latest" />
         <item itemvalue="Python tests.Doctest Repo.__post_init__" />
-        <item itemvalue="Python tests.Doctest Repo.origin_url" />
       </list>
     </recent_temporary>
   </component>
@@ -233,6 +233,7 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/nodeps$Doctest_tardir.coverage" NAME="Doctest tardir Coverage Results" MODIFIED="1696496097810" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
+    <SUITE FILE_PATH="coverage/nodeps$Doctest_python_latest__1_.coverage" NAME="Doctest python_latest (1) Coverage Results" MODIFIED="1696598910332" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps/extras/url" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_aioclone.coverage" NAME="Doctest aioclone Coverage Results" MODIFIED="1696507772349" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctests_in_OwnerRepo.coverage" NAME="Doctests in OwnerRepo Coverage Results" MODIFIED="1696507291032" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_exec_module_from_file.coverage" NAME="Doctest exec_module_from_file Coverage Results" MODIFIED="1696482697936" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />

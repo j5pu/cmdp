@@ -20,7 +20,6 @@
     <orderEntry type="module" module-name="mongodata" />
     <orderEntry type="module" module-name="puntos" />
     <orderEntry type="module" module-name="sbit" />
-    <orderEntry type="module" module-name="secho" />
     <orderEntry type="module" module-name="shrc" />
     <orderEntry type="module" module-name="sitec" />
     <orderEntry type="module" module-name="secrets" />
