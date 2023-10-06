@@ -22,6 +22,12 @@ pickle = [
     "jsonpickle >= 3.0.2, <4",
     "structlog >=23.1.0, <24",
 ]
+pretty = [
+    "rich >=13.6.0, <14",
+]
+pth = [
+    "setuptools >= 68.2.2, <69",
+]
 repo = [
     "gitpython >=3.1.37, <4",
 ]
@@ -34,6 +40,8 @@ all = [
     "nodeps[echo]",
     "nodeps[log]",
     "nodeps[pickle]",
+    "nodeps[pretty]",
+    "nodeps[pth]",
     "nodeps[repo]",
     "nodeps[requests]",
 ]

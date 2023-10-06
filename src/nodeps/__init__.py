@@ -29,6 +29,7 @@ __all__ = (
     "CalledProcessError",
     "Chain",
     "CmdError",
+    "ColorLogger",
     "CommandNotFoundError",
     "EnumLower",
     "Env",
@@ -44,6 +45,10 @@ __all__ = (
     "PathStat",
     "Path",
     "PipMetaPathFinder",
+    "PTHBuildPy",
+    "PTHDevelop",
+    "PTHEasyInstall",
+    "PTHInstallLib",
     "TempDir",
     "aioclone",
     "aioclosed",
@@ -110,6 +115,7 @@ import collections
 import contextlib
 import dataclasses
 import enum
+import filecmp
 import fnmatch
 import getpass
 import grp
@@ -120,7 +126,9 @@ import importlib.util
 import inspect
 import io
 import ipaddress
+import itertools
 import json
+import logging
 import os
 import pathlib
 import pwd
@@ -140,6 +148,7 @@ import tokenize
 import types
 import urllib.request
 import venv
+import warnings
 from collections.abc import Callable, Hashable, Iterable, Iterator, MutableMapping, Sequence
 from ipaddress import IPv4Address, IPv6Address
 from typing import (
@@ -157,6 +166,18 @@ from typing import (
     cast,
 )
 from urllib.parse import ParseResult
+
+try:
+    # nodeps[pth] extras
+    from setuptools.command.build_py import build_py  # type: ignore[attr-defined]
+    from setuptools.command.develop import develop  # type: ignore[attr-defined]
+    from setuptools.command.easy_install import easy_install  # type: ignore[attr-defined]
+    from setuptools.command.install_lib import install_lib  # type: ignore[attr-defined]
+except ModuleNotFoundError:
+    build_py = object
+    develop = object
+    easy_install = object
+    install_lib = object
 
 from . import extras
 from .extras import *
@@ -561,6 +582,74 @@ class CmdError(subprocess.CalledProcessError):
         if self.stdout is not None:
             value += "\n" + self.stdout
         return value
+
+
+class ColorLogger(logging.Formatter):
+    """Color logger class."""
+
+    black = "\x1b[30m"
+    blue = "\x1b[34m"
+    cyan = "\x1b[36m"
+    green = "\x1b[32m"
+    grey = "\x1b[38;21m"
+    magenta = "\x1b[35m"
+    red = "\x1b[31;21m"
+    red_bold = "\x1b[31;1m"
+    reset = "\x1b[0m"
+    white = "\x1b[37m"
+    yellow = "\x1b[33;21m"
+    fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
+    vertical = f"{red}|{reset} "
+    FORMATS: ClassVar[dict[int, str]] = {
+        logging.DEBUG: grey + fmt + reset,
+        logging.INFO: f"{cyan}%(levelname)8s{reset} {vertical}"
+        f"{cyan}%(name)s{reset} {vertical}"
+        f"{cyan}%(filename)s{reset}:{cyan}%(lineno)d{reset} {vertical}"
+        f"{green}%(extra)s{reset} {vertical}"
+        f"{cyan}%(message)s{reset}",
+        logging.WARNING: f"{yellow}%(levelname)8s{reset} {vertical}"
+        f"{yellow}%(name)s{reset} {vertical}"
+        f"{yellow}%(filename)s{reset}:{yellow}%(lineno)d{reset} {vertical}"
+        f"{green}%(repo)s{reset} {vertical}"
+        f"{yellow}%(message)s{reset}",
+        logging.ERROR: red + fmt + reset,
+        logging.CRITICAL: red_bold + fmt + reset,
+    }
+
+    def format(self, record):  # noqa: A003
+        """Format log."""
+        log_fmt = self.FORMATS.get(record.levelno)
+        formatter = logging.Formatter(log_fmt)
+        return formatter.format(record)
+
+    @classmethod
+    def logger(cls, name: str = __name__) -> logging.Logger:
+        """Get logger.
+
+        Examples:
+            >>> from pproj.project import Logger
+            >>>
+            >>> lo = Logger.logger("proj")
+            >>> lo.info("hola", extra=dict(extra="bapy"))
+
+        Args:
+            name: logger name
+
+        Returns:
+            logging.Logger
+        """
+        l = logging.getLogger(name)
+        l.propagate = False
+        l.setLevel(logging.DEBUG)
+        if l.handlers:
+            l.handlers[0].setLevel(logging.DEBUG)
+            l.handlers[0].setFormatter(cls())
+        else:
+            handler = logging.StreamHandler()
+            handler.setLevel(logging.DEBUG)
+            handler.setFormatter(cls())
+            l.addHandler(handler)
+        return l
 
 
 class CommandNotFoundError(_NoDepsBaseError):
@@ -3257,6 +3346,49 @@ class PipMetaPathFinder(importlib.abc.MetaPathFinder):
         return None
 
 
+class PTHBuildPy(build_py):
+    """Build py with pth files installed."""
+
+    def run(self):
+        """Run build py."""
+        super().run()
+        self.outputs = []
+        self.outputs = _copy_pths(self, self.build_lib)
+
+    def get_outputs(self, include_bytecode=1):
+        """Get outputs."""
+        return itertools.chain(build_py.get_outputs(self, 0), self.outputs)
+
+
+class PTHDevelop(develop):
+    """PTH Develop Install."""
+    def run(self):
+        """Run develop."""
+        super().run()
+        _copy_pths(self, self.install_dir)
+
+
+class PTHEasyInstall(easy_install):
+    """PTH Easy Install."""
+    def run(self, *args, **kwargs):
+        """Run easy install."""
+        super().run(*args, **kwargs)
+        _copy_pths(self, self.install_dir)
+
+
+class PTHInstallLib(install_lib):
+    """PTH Install Library."""
+    def run(self):
+        """Run Install Library."""
+        super().run()
+        self.outputs = []
+        self.outputs = _copy_pths(self, self.install_dir)
+
+    def get_outputs(self):
+        """Get outputs."""
+        return itertools.chain(install_lib.get_outputs(self), self.outputs)
+
+
 class TempDir(tempfile.TemporaryDirectory):
     """Wrapper for :class:`tempfile.TemporaryDirectory` that provides Path-like.
 
@@ -3276,6 +3408,22 @@ class TempDir(tempfile.TemporaryDirectory):
             Path of the temporary directory
         """
         return Path(self.name)
+
+
+def _copy_pths(self: PTHBuildPy | PTHDevelop | PTHEasyInstall | PTHInstallLib,
+               directory: str) -> list[str]:
+    log = ColorLogger.logger()
+    outputs = []
+    data = self.get_outputs() if isinstance(self, (PTHBuildPy | PTHInstallLib)) else self.outputs
+    for source in data:
+        if source.endswith(".pth"):
+            destination = Path(directory, Path(source).name)
+            if not destination.is_file() or not filecmp.cmp(source, destination):
+                destination = str(destination)
+                log.info(self.__class__.__name__, extra={"extra": f"{source} -> {destination}"})
+                self.copy_file(source, destination)
+                outputs.append(destination)
+    return outputs
 
 
 async def aioclone(
@@ -4876,5 +5024,8 @@ def which(data="sudo", raises: bool = False) -> str:
 EXECUTABLE = Path(sys.executable)
 EXECUTABLE_SITE = Path(EXECUTABLE).resolve()
 
-
 subprocess.CalledProcessError = CalledProcessError
+warnings.filterwarnings("ignore", category=UserWarning, message="Setuptools is replacing distutils.")
+
+os.environ["PYTHONDONTWRITEBYTECODE"] = ""
+os.environ["PY_IGNORE_IMPORTMISMATCH"] = "1"

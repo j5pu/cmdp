@@ -77,7 +77,7 @@ class Repo(GitRepo):
         Examples:
             >>> import warnings
             >>> import nodeps
-            >>> from nodeps.extras.repo import Repo
+            >>> from nodeps.extras._repo import Repo
             >>> assert Repo(nodeps.__file__)
             >>> Repo("~/repo.git")  # doctest: +ELLIPSIS +IGNORE_EXCEPTION_DETAIL
             Traceback (most recent call last):
@@ -140,7 +140,7 @@ class Repo(GitRepo):
 
         Examples:
             >>> import nodeps
-            >>> from nodeps.extras.repo import Repo
+            >>> from nodeps.extras._repo import Repo
             >>>
             >>> conf = Repo(nodeps.__file__).git_config
             >>> conf.has_section('remote "origin"')
@@ -165,7 +165,7 @@ class Repo(GitRepo):
 
         Examples:
             >>> import nodeps
-            >>> from nodeps.extras.repo import Repo
+            >>> from nodeps.extras._repo import Repo
             >>>
             >>> Repo(nodeps.__file__).origin_url.geturl()   # doctest: +ELLIPSIS
             'https://github.com/.../nodeps'
@@ -177,4 +177,3 @@ class Repo(GitRepo):
         """Repo Top Directory Path."""
         path = pathlib.Path(self.working_dir)
         return pathlib.Path(path.parent if ".git" in path else path)
-

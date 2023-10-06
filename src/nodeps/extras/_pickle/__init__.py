@@ -38,7 +38,7 @@ def cache(
         >>> from typing import Coroutine
         >>> from environs import Env as Environs
         >>> from collections import namedtuple
-        >>> from nodeps import cache
+        >>> from nodeps.extras._pickle import cache
         >>>
         >>> @cache
         ... def test(a):

@@ -23,15 +23,40 @@
 
 ## Features
 
-Extras:
+### Extras:
 - `ansi`: for `getstdout` and `strip` function using `strip-ansi` library
 - `echo`: for `echo` package using `click` library
 - `log`: for `logger` function using `loguru` library
 - `pickle`: for `cache` function using `jsonpickle` and `structlog` libraries
+- `pth`: for `PTHBuildPy`, `PTHDevelop`, `PTHEasyInstall` and `PTHInstallLib` classes using `setuptools` library
+- `pretty`: for `rich` library install and `icecream.ic` configuration 
 - `repo`: for `Repo` class using `gitpython` library
 - `requests`: for `python_latest`, `python_versions` and `request_x_api_key_json` functions that use the `requests` and `beautifulsoup4` libraries
 
 Test imports uninstalling: `pip uninstall loguru beautifulsoup4 click jsonpickle strip_ansi structlog typer`
+### PTH
+
+Add to your `setup.cfg` and `<module>.pth` file in your package.
+
+```ìni
+[options]
+cmdclass =
+  build_py = nodeps.PTHBuildPy
+  develop = nodeps.PTHDevelop
+  easy_install = nodeps.PTHEasyInstall
+  install_lib = nodeps.PTHInstallLib
+```
+
+Add to your `pyproject.toml`:
+
+```toml
+[build-system]
+requires = [
+    "nodeps",
+    "setuptools_scm >= 8.0.3, <9",
+    "wheel >= 0.41.2, <1"
+]
+```
 
 ## Installation
 
