@@ -27,7 +27,7 @@ latest:
 next:
 	@$@
 
-pproj:
+nodeps:
 	@python3 -m pip install --upgrade -q $@
 
 publish:  # runs: docs, tests (build (clean, venv (requirements)), pytest, ruff & tox), commit, tag, push, twine & clean

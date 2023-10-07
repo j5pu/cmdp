@@ -23,8 +23,123 @@
 
 ## Features
 
+### proj
+
+#### Automatic installation of packages
+
+`PipMetaPathFinder` is a `sys.meta_path` finder that automatically installs packages when they are imported.
+
+#### Task dependencies
+- `venv` runs `write` and `requirements`
+- `build` runs  `venv`, `completions`, `docs` and `clean`.
+- `tests` runs `build`, `ruff`, `pytest` and `tox`
+- `publish` runs `tests`, `commit`, `tag`, `push`, `twine` and `clean`
+
+#### Completions
+
+To install completions after a package is installed:
+`proj completions [name]` or `completions [name]`
+
+#### Repos
+
+To synchronize (push or pull) all repos under `~/Archive` and `$HOME` run: `repos --sync` or `proj repos --sync`
+
+#### pyproject.toml
+
+##### Project
+
+Project section information in `pyproject.toml` is automatically updated when `Project.write()` is called, is key is not in project. 
+An empty `pyproject.toml` is needed.
+
+##### Extras
+To use all extras from nodeps to your project, add the following to your `pyproject.toml`:
+
+```toml
+[project.optional-dependencies]
+dev = [
+    "nodeps[all]",
+]
+```
+
+#### docs conf.py and requirements.txt
+
+doc `conf.py`,  `reference.md` and `requirements.txt` are automatically updated when `Project.write()` is called.
+
+#### Makefile
+
+```makefile
+.PHONY: docs tests venv
+
+brew:
+	@proj $@ --command gh
+
+browser:
+	@$@
+
+build:  # Build a project `venv`, `completions`, `docs` and `clean`.
+	@$@
+
+clean:
+	@$@
+
+commit: tests
+	@$@
+
+completions:
+	@$@
+
+coverage:
+	@proj $@
+
+docs:
+	@$@
+
+latest:
+	@$@
+
+next:
+	@$@
+
+nodeps:
+	@python3 -m pip install -q $@
+    
+publish:  # runs `tests`, `commit`, `tag`, `push`, `twine` and `clean`
+	@$@
+
+pyenv:
+	@pyenv install 3.11
+	@pyenv install 3.12-dev
+
+pytest:
+	@proj $@
+
+requirements:
+	@$@ --install
+
+ruff:
+	@proj $@
+
+secrets:
+	@$@
+
+tests:  # runs `build`, `ruff`, `pytest` and `tox`
+	@$@
+
+tox:
+	@proj $@
+
+twine:
+	@proj $@
+
+venv:  # runs `write` and `requirements`
+	@$@
+
+.DEFAULT_GOAL := publish
+```
+
 ### Extras:
 - `ansi`: for `getstdout` and `strip` function using `strip-ansi` library
+- `cli`: for `typer` to have CLI for `proj` command
 - `echo`: for `echo` package using `click` library
 - `log`: for `logger` function using `loguru` library
 - `pickle`: for `cache` function using `jsonpickle` and `structlog` libraries
@@ -106,10 +221,12 @@ please [file an issue] along with a detailed description.
 
 [pypi]: https://pypi.org/
 
-[file an issue]: https://github.com/j5pu/pproj/issues
+[file an issue]: https://github.com/j5pu/nodeps/issues
 
 [pip]: https://pip.pypa.io/
 
 <!-- github-only -->
 
-[license]: https://github.com/j5pu/pproj/blob/main/LICENSE
+[license]: https://github.com/j5pu/nodeps/blob/main/LICENSE
+
+[command-line reference]: https://nodeps.readthedocs.io/en/latest/usage.html

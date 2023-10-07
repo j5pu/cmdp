@@ -3542,7 +3542,7 @@ class Project:
         if build_dir.exists():
             shutil.rmtree(build_dir)
 
-        if subprocess.check_call(f"{self.bin('sphinx-autobuild')} {self.docsdir} {build_dir}", shell=True) == 0:
+        if subprocess.check_call(f"{self.bin('sphinx-autobuild')} -Q {self.docsdir} {build_dir}", shell=True) == 0:
             self.info(self.docs.__name__)
         return 0
 
@@ -3664,7 +3664,7 @@ class Project:
 
         if (
             subprocess.check_call(
-                f"{self.bin('sphinx-build')} --color {self.docsdir} {build_dir}",
+                f"{self.bin('sphinx-build')} -Q --color {self.docsdir} {build_dir}",
                 shell=True,
             )
             == 0
@@ -3694,10 +3694,10 @@ class Project:
             >>> import typer
             >>> from nodeps import Project
             >>>
-            >>> pproj = Project.pproj()
-            >>> pproj.extras()  # doctest: +ELLIPSIS
+            >>> nodeps = Project.nodeps()
+            >>> nodeps.extras()  # doctest: +ELLIPSIS
             {'dev': ['...
-            >>> pproj.extras(as_list=True)  # doctest: +ELLIPSIS
+            >>> nodeps.extras(as_list=True)  # doctest: +ELLIPSIS
             ['...
             >>> Project(typer.__name__).extras()  # doctest: +ELLIPSIS
             {'all':...
@@ -3796,8 +3796,8 @@ class Project:
         return latest
 
     @classmethod
-    def pproj(cls) -> Project:
-        """Project Instance of pproj."""
+    def nodeps(cls) -> Project:
+        """Project Instance of nodeps."""
         return cls(__file__)
 
     def publish(
@@ -4291,7 +4291,6 @@ def _pip_base_command(self: Command, args: list[str]) -> int:
         with self.main_context():
             rv = self._main(args)
             if rv == 0 and self.__class__.__name__ == "InstallCommand":
-                print(_NODEPS_PIP_POST_INSTALL)
                 for key, value in _NODEPS_PIP_POST_INSTALL.items():
                     for file in findfile(NODEPS_PIP_POST_INSTALL_FILENAME, value):
                         log.info(self.__class__.__name__, extra={"extra": f"post install '{key}': {file}"})

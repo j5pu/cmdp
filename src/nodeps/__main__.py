@@ -1,4 +1,4 @@
-"""CLI for pproj."""
+"""CLI for nodeps."""
 __all__ = (
     "_browser",
     "_build",
@@ -850,7 +850,7 @@ if "sphinx" in sys.modules and __name__ != "__main__":
         original = file.read_text()
         for key, value in globals().copy().items():
             if isinstance(value, typer.Typer):
-                text += f".. click:: pproj.__main__:{key}_click\n"
+                text += f".. click:: nodeps.__main__:{key}_click\n"
                 prog = "proj" if key == "app" else key.replace("_", "")
                 text += f"    :prog: {prog}\n"
                 text += "    :nested: full\n\n"
