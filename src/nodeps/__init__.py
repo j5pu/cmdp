@@ -12,6 +12,7 @@ __all__ = (
     "MACOS",
     "NODEPS_PIP_POST_INSTALL_FILENAME",
     "NODEPS_PROJECT_NAME",
+    "PYTHON_DEFAULT_VERSION",
     "USER",
     "EMAIL",
     "PW_ROOT",
@@ -27,6 +28,7 @@ __all__ = (
     "RunningLoop",
     "AnyPath",
     "LockClass",
+    "Bump",
     "CalledProcessError",
     "Chain",
     "CmdError",
@@ -37,6 +39,7 @@ __all__ = (
     "EnvBuilder",
     "FileConfig",
     "FrameSimple",
+    "GitSHA",
     "GroupUser",
     "InvalidArgumentError",
     "LetterCounter",
@@ -46,6 +49,7 @@ __all__ = (
     "PathStat",
     "Path",
     "PipMetaPathFinder",
+    "ProjectRepos",
     "PTHBuildPy",
     "PTHDevelop",
     "PTHEasyInstall",
@@ -116,6 +120,7 @@ import asyncio
 import collections
 import contextlib
 import dataclasses
+import datetime
 import enum
 import filecmp
 import fnmatch
@@ -201,8 +206,6 @@ from . import extras
 from .extras import *
 
 if TYPE_CHECKING:
-    from types import ModuleType
-
     # noinspection PyCompatibility
     from pip._internal.cli.base_command import Command
 
@@ -238,6 +241,8 @@ NODEPS_PIP_POST_INSTALL_FILENAME = "_post_install.py"
 """Filename that will be searched after pip installs a package."""
 NODEPS_PROJECT_NAME = "nodeps"
 """NoDeps Project Name"""
+PYTHON_DEFAULT_VERSION = "3.11"
+"""Python default version for venv, etc."""
 USER = os.getenv("USER")
 """"Environment Variable $USER"""
 
@@ -268,6 +273,13 @@ T = TypeVar("T")
 
 class _NoDepsBaseError(Exception):
     """Base Exception from which all other custom Exceptions defined in semantic_release inherit."""
+
+
+class Bump(str, enum.Enum):
+    """Bump class."""
+    MAJOR = enum.auto()
+    MINOR = enum.auto()
+    PATCH = enum.auto()
 
 
 class CalledProcessError(subprocess.SubprocessError):
@@ -1402,6 +1414,14 @@ class GroupUser:
 
     group: int | str
     user: int | str
+
+
+class GitSHA(str, enum.Enum):
+    """Git SHA options."""
+
+    BASE = enum.auto()
+    LOCAL = enum.auto()
+    REMOTE = enum.auto()
 
 
 class InvalidArgumentError(_NoDepsBaseError):
@@ -3363,7 +3383,7 @@ class PipMetaPathFinder(importlib.abc.MetaPathFinder):
     def find_spec(
             fullname: str,
             path: Sequence[str | bytes] | None,
-            target: ModuleType | None = None,
+            target: types.ModuleType | None = None,
     ) -> importlib._bootstrap.ModuleSpec | None:
         """Try to find a module spec for the specified module."""
         if path is None and fullname is not None:
@@ -3375,6 +3395,810 @@ class PipMetaPathFinder(importlib.abc.MetaPathFinder):
             except importlib.metadata.PackageNotFoundError:
                 pass
         return None
+
+
+class ProjectRepos(str, enum.Enum):
+    """Options to show repos in Project class."""
+
+    DICT = enum.auto()
+    INSTANCES = enum.auto()
+    NAMES = enum.auto()
+    PATHS = enum.auto()
+
+
+@dataclasses.dataclass
+class Project:
+    """Project Class."""
+    data: Path | str | types.ModuleType = None
+    """File, directory or name (str or path with one word) of project (default: current working directory)"""
+    brewfile: Path | None = dataclasses.field(default=None, init=False)
+    """Data directory Brewfile"""
+    ci: bool = dataclasses.field(default=False, init=False)
+    """running in CI or tox"""
+    data_dir: Path | None = dataclasses.field(default=None, init=False)
+    """Data directory"""
+    directory: Path | None = dataclasses.field(default=None, init=False)
+    """Parent of data if data is a file or None if it is a name (one word)"""
+    docsdir: Path | None = dataclasses.field(default=None, init=False)
+    """Docs directory"""
+    git: str = dataclasses.field(default="git", init=False)
+    """git -C directory if self.directory is not None"""
+    installed: bool = dataclasses.field(default=False, init=False)
+    name: str = dataclasses.field(default=None, init=False)
+    """Pypi project name from setup.cfg, pyproject.toml or top name or self.data when is one word"""
+    profile: Path | None = dataclasses.field(default=None, init=False)
+    """Data directory profile.d"""
+    pyproject_toml: FileConfig = dataclasses.field(default_factory=FileConfig, init=False)
+    repo: Path = dataclasses.field(default=None, init=False)
+    """top or superproject"""
+    root: Path = dataclasses.field(default=None, init=False)
+    """pyproject.toml or setup.cfg parent or superproject or top directory"""
+    source: Path | None = dataclasses.field(default=None, init=False)
+    """sources directory, parent of __init__.py or module path"""
+    tomlkit: types.ModuleType | None = dataclasses.field(default=None, init=False)
+    clean_match: ClassVar[list[str]] = ["*.egg-info", "build", "dist"]
+
+    def __post_init__(self):  # noqa: PLR0912, PLR0915
+        """Post init."""
+        self.ci = any([in_tox(), os.environ.get("CI")])
+        self.data = self.data if self.data else Path.cwd()
+        data = Path(self.data.__file__ if isinstance(self.data, types.ModuleType) else self.data)
+        if (
+            (isinstance(self.data, str) and len(toiter(self.data, split="/")) == 1)
+            or (isinstance(self.data, Path) and len(self.data.parts) == 1)
+        ) and (str(self.data) != "/"):
+            if r := self.repos(ret=ProjectRepos.DICT).get(self.data if isinstance(self.data, str) else self.data.name):
+                self.directory = r
+        elif data.is_dir():
+            self.directory = data.absolute()
+        elif data.is_file():
+            self.directory = data.parent.absolute()
+        else:
+            msg = f"Invalid argument: {self.data=}"
+            raise InvalidArgumentError(msg)
+
+        if self.directory:
+            self.git = f"git -C '{self.directory}'"
+            if path := (
+                findup(self.directory, name="pyproject.toml", uppermost=True)
+                or findfile("pyproject.toml", self.directory)
+            ):
+                path = path[0] if isinstance(path, list) else path
+                self.tomlkit = importlib.import_module("tomlkit")
+                with Path.open(path, "rb") as f:
+                    self.pyproject_toml = FileConfig(path, self.tomlkit.load(f))
+                self.name = self.pyproject_toml.config.get("project", {}).get("name")
+                self.root = path.parent
+
+            self.repo = self.top() or self.superproject()
+            purelib = sysconfig.get_paths()["purelib"]
+            if root := self.root or self.repo:
+                self.root = root.absolute()
+                if (src := (root / "src")) and (str(src) not in sys.path):
+                    sys.path.insert(0, str(src))
+            elif self.directory.is_relative_to(purelib):
+                self.name = Path(self.directory).relative_to(purelib).parts[0]
+            self.name = self.name if self.name else self.root.name if self.root else None
+        else:
+            self.name = str(self.data)
+
+        try:
+            if self.name and ((spec := importlib.util.find_spec(self.name)) and spec.origin):
+                self.source = Path(spec.origin).parent if "__init__.py" in spec.origin else Path(spec.origin)
+                self.installed = True
+                self.root = self.root if self.root else self.source.parent
+                purelib = sysconfig.get_paths()["purelib"]
+                self.installed = bool(self.source.is_relative_to(purelib) or Path(purelib).name in str(self.source))
+        except (ModuleNotFoundError, ImportError):
+            pass
+
+        if self.source:
+            self.data_dir = d if (d := self.source / "data").is_dir() else None
+            if self.data_dir:
+                self.brewfile = b if (b := self.data_dir / "Brewfile").is_file() else None
+                self.profile = pr if (pr := self.data_dir / "profile.d").is_dir() else None
+        if self.root:
+            self.docsdir = doc if (doc := self.root / "docs").is_dir() else None
+        self.log = ColorLogger.logger(__name__)
+
+    def info(self, msg: str):
+        """Logger info."""
+        self.log.info(msg, extra={"repo": self.name})
+
+    def warning(self, msg: str):
+        """Logger warning."""
+        self.log.warning(msg, extra={"repo": self.name})
+
+    def bin(self, executable: str | None = None) -> Path:  # noqa: A003
+        """Bin directory.
+
+        Args;
+            executable: command to add to path
+        """
+        return Path(self.executable()).parent / executable if executable else ""
+
+    def brew(self, c: str | None = None) -> int:
+        """Runs brew bundle."""
+        if which("brew") and self.brewfile and (c is None or not which(c)):
+            rv = subprocess.run(
+                [
+                    "brew",
+                    "bundle",
+                    "--no-lock",
+                    "--quiet",
+                    f"--file={self.brewfile}",
+                ],
+                shell=False,
+            ).returncode
+            self.info(self.brew.__name__)
+            return rv
+        return 0
+
+    def browser(self) -> int:
+        """Build and serve the documentation with live reloading on file changes."""
+        if not self.docsdir:
+            return 0
+        build_dir = self.docsdir / "_build"
+        if build_dir.exists():
+            shutil.rmtree(build_dir)
+
+        if subprocess.check_call(f"{self.bin('sphinx-autobuild')} {self.docsdir} {build_dir}", shell=True) == 0:
+            self.info(self.docs.__name__)
+        return 0
+
+    def build(self) -> Path | None:
+        """Build a project `venv`, `completions`, `docs` and `clean`."""
+        # TODO: el pth sale si execute en terminal pero no en run
+        if not self.pyproject_toml.file:
+            return None
+        self.venv()
+        self.completions()
+        self.docs()
+        self.clean()
+        rv = subprocess.run(
+            f"{self.executable()} -m build {self.root} --wheel",
+            stdout=subprocess.PIPE,
+            shell=True,
+        )
+        if rv.returncode != 0:
+            sys.exit(rv.returncode)
+        wheel = rv.stdout.splitlines()[-1].decode().split(" ")[2]
+        if "py3-none-any.whl" not in wheel:
+            raise CalledProcessError(completed=rv)
+        self.info(
+            f"{self.build.__name__}: {wheel}",
+        )
+        return self.root / "dist" / wheel
+
+    def buildrequires(self) -> list[str]:
+        """pyproject.toml build-system requires."""
+        if self.pyproject_toml.file:
+            return self.pyproject_toml.config.get("build-system", {}).get("requires", [])
+        return []
+
+    def clean(self) -> None:
+        """Clean project."""
+        if not in_tox():
+            for item in self.clean_match:
+                try:
+                    for file in self.root.rglob(item):
+                        if file.is_dir():
+                            shutil.rmtree(self.root / item, ignore_errors=True)
+                        else:
+                            file.unlink(missing_ok=True)
+                except FileNotFoundError:
+                    pass
+
+    def commit(self, msg: str | None = None) -> None:
+        """commit.
+
+        Raises:
+            CalledProcessError: if  fails
+            RuntimeError: if diverged or dirty
+        """
+        if self.dirty():
+            if self.needpull():
+                msg = f"Diverged: {self.name=}"
+                raise RuntimeError(msg)
+            if msg is None or msg == "":
+                msg = "fix: "
+            subprocess.check_call(f"{self.git} add -A", shell=True)
+            subprocess.check_call(f"{self.git} commit -a --quiet -m '{msg}'", shell=True)
+            self.info(self.commit.__name__)
+
+    def completions(self):
+        """Generate completions to /usr/local/etc/bash_completion.d."""
+        value = []
+
+        if self.pyproject_toml.file:
+            value = self.pyproject_toml.config.get("project", {}).get("scripts", {}).keys()
+        elif d := self.distribution():
+            value = [item.name for item in d.entry_points]
+        if value:
+            for item in value:
+                if file := completions(item):
+                    self.info(f"{self.completions.__name__}: {item} -> {file}")
+
+    def coverage(self) -> int:
+        """Runs coverage."""
+        if (
+            self.pyproject_toml.file
+            and subprocess.check_call(f"{self.executable()} -m coverage run -m pytest {self.root}", shell=True) == 0
+            and subprocess.check_call(
+                f"{self.executable()} -m coverage report --data-file={self.root}/reports/.coverage",
+                shell=True,
+            )
+            == 0
+        ):
+            self.info(self.coverage.__name__)
+        return 0
+
+    def dependencies(self) -> list[str]:
+        """Dependencies from pyproject.toml or distribution."""
+        if self.pyproject_toml.config:
+            return self.pyproject_toml.config.get("project", {}).get("dependencies", [])
+        if d := self.distribution():
+            return [item for item in d.requires if "; extra" not in item]
+        msg = f"Dependencies not found for {self.name=}"
+        raise RuntimeWarning(msg)
+
+    def dirty(self) -> bool:
+        """Is repository dirty  including untracked files."""
+        return bool(stdout(f"{self.git} status -s"))
+
+    def distribution(self) -> importlib.metadata.Distribution | None:
+        """Distribution."""
+        return suppress(importlib.metadata.Distribution.from_name, self.name)
+
+    def diverge(self) -> bool:
+        """Diverge."""
+        return (self.dirty() or self.needpush()) and self.needpull()
+
+    def docs(self) -> int:
+        """Build the documentation."""
+        if not self.docsdir:
+            return 0
+        build_dir = self.docsdir / "_build"
+        if build_dir.exists():
+            shutil.rmtree(build_dir)
+
+        if (
+            subprocess.check_call(
+                f"{self.bin('sphinx-build')} --color {self.docsdir} {build_dir}",
+                shell=True,
+            )
+            == 0
+        ):
+            self.info(self.docs.__name__)
+        return 0
+
+    def executable(self) -> Path:
+        """Executable."""
+        return v / "bin/python" if (v := self.root / "venv").is_dir() and not self.ci else sys.executable
+
+    @staticmethod
+    def _extras(d):
+        e = {}
+        for item in d:
+            if "; extra" in item:
+                key = item.split("; extra == ")[1].replace("'", "").replace('"', "").removesuffix(" ")
+                if key not in e:
+                    e[key] = []
+                e[key].append(item.split("; extra == ")[0].replace('"', "").removesuffix(" "))
+        return e
+
+    def extras(self, as_list: bool = False) -> dict[str, list[str]] | list[str]:
+        """Optional dependencies from pyproject.toml or distribution.
+
+        Examples:
+            >>> import typer
+            >>> from nodeps import Project
+            >>>
+            >>> pproj = Project.pproj()
+            >>> pproj.extras()  # doctest: +ELLIPSIS
+            {'dev': ['...
+            >>> pproj.extras(as_list=True)  # doctest: +ELLIPSIS
+            ['...
+            >>> Project(typer.__name__).extras()  # doctest: +ELLIPSIS
+            {'all':...
+            >>> Project("sampleproject").extras()  # doctest: +ELLIPSIS
+            {'dev':...
+
+        Args:
+            as_list: return as list
+
+        Returns:
+            dict or list
+        """
+        if self.pyproject_toml.config:
+            e = self.pyproject_toml.config.get("project", {}).get("optional-dependencies", {})
+        elif d := self.distribution():
+            e = self._extras(d.requires)
+        elif pypi := self.pypi():
+            e = self._extras(pypi["info"]["requires_dist"])
+        else:
+            msg = f"Extras not found for {self.name=}"
+            raise RuntimeWarning(msg)
+
+        if as_list:
+            return sorted({extra for item in e.values() for extra in item})
+        return e
+
+    def github(
+        self,
+    ) -> dict[str, str | list | dict[str, str | list | dict[str, str | list]]]:
+        """GitHub repo api.
+
+        Examples:
+            >>> from nodeps import Project
+            >>> from nodeps import NODEPS_PROJECT_NAME
+            >>>
+            >>> assert Project(NODEPS_PROJECT_NAME).github()["name"] == NODEPS_PROJECT_NAME
+
+        Returns:
+            dict: pypi information
+        """
+        return urljson(f"https://api.github.com/repos/{GIT}/{self.name}")
+
+    def latest(self) -> str:
+        """Latest tag: git {c} describe --abbrev=0 --tags."""
+        latest = stdout(f"{self.git} tag | sort -V | tail -1") or ""
+        if not latest:
+            latest = "0.0.0"
+            self.commit()
+            self._tag(latest)
+        return latest
+
+    def needpull(self) -> bool:
+        """Needs pull."""
+        return (self.sha() != self.sha(GitSHA.REMOTE)) and (self.sha() == self.sha(GitSHA.BASE))
+
+    def needpush(self) -> bool:
+        """Needs push, commits not been pushed already."""
+        return (
+            (self.sha() != self.sha(GitSHA.REMOTE))
+            and (self.sha() != self.sha(GitSHA.BASE))
+            and (self.sha(GitSHA.REMOTE) == self.sha(GitSHA.BASE))
+        )
+
+    def _next(self, part: Bump = Bump.PATCH) -> str:
+        latest = self.latest()
+        v = "v" if latest.startswith("v") else ""
+        version = latest.replace(v, "").split(".")
+        match part:
+            case Bump.MAJOR:
+                index = 0
+            case Bump.MINOR:
+                index = 1
+            case _:
+                index = 2
+        version[index] = str(int(version[index]) + 1)
+        return f"{v}{'.'.join(version)}"
+
+    def next(self, part: Bump = Bump.PATCH, force: bool = False) -> str:  # noqa: A003
+        """Show next version based on fix: feat: or BREAKING CHANGE:.
+
+        Args:
+            part: part to increase if force
+            force: force bump
+        """
+        latest = self.latest()
+        out = stdout(f"git log --pretty=format:'%s' {latest}..@")
+        if force:
+            return self._next(part)
+        if out:
+            if "BREAKING CHANGE:" in out:
+                return self._next(Bump.MAJOR)
+            if "feat:" in out:
+                return self._next(Bump.MINOR)
+            if "fix:" in out:
+                return self._next()
+        return latest
+
+    @classmethod
+    def pproj(cls) -> Project:
+        """Project Instance of pproj."""
+        return cls(__file__)
+
+    def publish(
+        self,
+        part: Bump = Bump.PATCH,
+        force: bool = False,
+        ruff: bool = True,
+        tox: bool = True,
+    ):
+        """Publish runs runs `tests`, `commit`, `tag`, `push`, `twine` and `clean`.
+
+        Args:
+            part: part to increase if force
+            force: force bump
+            ruff: run ruff
+            tox: run tox
+        """
+        self.tests(ruff=ruff, tox=tox)
+        self.commit()
+        if (n := self.next(part=part, force=force)) != (l := self.latest()):
+            self.tag(n)
+            self.push()
+            if rc := self.twine() != 0:
+                sys.exit(rc)
+            self.info(f"{self.publish.__name__}: {l} -> {n}")
+        else:
+            self.warning(f"{self.publish.__name__}: {n} -> nothing to do")
+
+        self.clean()
+
+    def pull(self) -> None:
+        """pull.
+
+        Raises:
+            CalledProcessError: if pull fails
+            RuntimeError: if diverged or dirty
+        """
+        if self.diverge():
+            msg = f"Diverged: {self.diverge()} or dirty: {self.diverge()} - {self.name=}"
+            raise RuntimeError(msg)
+        if self.needpull():
+            subprocess.check_call(f"{self.git} fetch --all  --tags --quiet", shell=True)
+            subprocess.check_call(f"{self.git} pull --quiet", shell=True)
+            self.info(self.pull.__name__)
+
+    def push(self) -> None:
+        """push.
+
+        Raises:
+            CalledProcessError: if push fails
+            RuntimeError: if diverged
+        """
+        self.commit()
+        if self.needpush():
+            if self.needpull():
+                msg = f"Diverged: {self.name=}"
+                raise RuntimeError(msg)
+            subprocess.check_call(f"{self.git} push --quiet", shell=True)
+            self.info(self.push.__name__)
+
+    def pypi(
+        self,
+    ) -> dict[str, str | list | dict[str, str | list | dict[str, str | list]]]:
+        """Pypi information for a package.
+
+        Examples:
+            >>> from nodeps import Project
+            >>> from nodeps import NODEPS_PROJECT_NAME
+            >>>
+            >>> assert Project(NODEPS_PROJECT_NAME).pypi()["info"]["name"] == NODEPS_PROJECT_NAME
+
+        Returns:
+            dict: pypi information
+        """
+        return urljson(f"https://pypi.org/pypi/{self.name}/json")
+
+    def pytest(self) -> int:
+        """Runs pytest."""
+        if self.pyproject_toml.file:
+            rc = subprocess.run(f"{self.executable()} -m pytest {self.root}", shell=True).returncode
+            self.info(self.pytest.__name__)
+            return rc
+        return 0
+
+    @classmethod
+    def repos(
+        cls,
+        ret: ProjectRepos = ProjectRepos.NAMES,
+        py: bool = False,
+        sync: bool = False,
+    ) -> list[Path] | list[str] | dict[str, Project | str]:
+        """Repo paths, names or Project instances under home and Archive.
+
+        Args:
+            ret: return names, paths, dict or instances
+            py: return only python projects instances
+            sync: push or pull all repos
+
+        """
+        if py or sync:
+            ret = ProjectRepos.INSTANCES
+        names = ret is ProjectRepos.NAMES
+        archive = sorted(archive.iterdir()) if (archive := Path.home() / "Archive").is_dir() else []
+
+        rv = [
+            item.name if names else item
+            for item in archive + sorted(Path.home().iterdir())
+            if item.is_dir() and (item / ".git").exists()
+        ]
+        if ret == ProjectRepos.DICT:
+            return {item.name: item for item in rv}
+        if ret == ProjectRepos.INSTANCES:
+            rv = {item.name: cls(item) for item in rv}
+            if sync:
+                for item in rv.values():
+                    item.sync()
+            if py:
+                rv = [item for item in rv.values() if item.pyproject_toml.file]
+            return rv
+        return rv
+
+    def requirements(self, install: bool = False, upgrade: bool = False) -> list[str] | int:
+        """Dependencies and optional dependencies from pyproject.toml or distribution."""
+        req = sorted({*self.dependencies() + self.extras(as_list=True)})
+        if (install or upgrade) and req:
+            upgrade = ["--upgrade"] if upgrade else []
+            rv = subprocess.check_call([self.executable(), "-m", "pip", "install", "-q", *upgrade, *req])
+            self.info(self.requirements.__name__)
+            return rv
+        return req
+
+    def ruff(self) -> int:
+        """Runs ruff."""
+        if self.pyproject_toml.file:
+            rv = subprocess.run(f"{self.executable()} -m ruff check {self.root}", shell=True).returncode
+            self.info(self.ruff.__name__)
+            return rv
+        return 0
+
+    def secrets(self) -> int:
+        """Runs ruff."""
+        if os.environ.get("CI"):
+            return 0
+        if (
+            subprocess.check_call("gh secret set GH_TOKEN --body $GITHUB_TOKEN", shell=True) == 0
+            and (secrets := Path.home() / "secrets/profile.d/secrets.sh").is_file()
+        ):
+            with tempfile.NamedTemporaryFile() as tmp:
+                subprocess.check_call(
+                    f"grep -v GITHUB_ {secrets} > {tmp.name} && gh secret set -f {tmp.name}",
+                    shell=True,
+                )
+                self.info(self.secrets.__name__)
+        return 0
+
+    def sha(self, ref: GitSHA = GitSHA.LOCAL) -> str:
+        """Sha for local, base or remote."""
+        if ref is GitSHA.LOCAL:
+            args = "rev-parse @"
+        elif ref is GitSHA.BASE:
+            args = "merge-base @ @{u}"
+        elif ref is GitSHA.REMOTE:
+            args = "rev-parse @{u}"
+        else:
+            msg = f"Invalid argument: {ref=}"
+            raise InvalidArgumentError(msg)
+        return stdout(f"{self.git} {args}")
+
+    def sync(self):
+        """Sync repository."""
+        self.push()
+        self.pull()
+
+    def superproject(self) -> Path | None:
+        """Git rev-parse --show-superproject-working-tree --show-toplevel."""
+        if v := stdout(
+            f"{self.git} rev-parse --show-superproject-working-tree --show-toplevel",
+            split=True,
+        ):
+            return Path(v[0])
+        return None
+
+    def _tag(self, tag: str) -> None:
+        subprocess.check_call(f"{self.git} tag {tag}", shell=True)
+        subprocess.check_call(f"{self.git} push origin {tag} --quiet", shell=True)
+        self.info(f"{self.tag.__name__}: {tag}")
+
+    def tag(self, tag: str) -> None:
+        """tag.
+
+        Raises:
+            CalledProcessError: if push fails
+        """
+        if self.latest() == tag:
+            self.warning(f"{self.tag.__name__}: {tag} -> nothing to do")
+            return
+        self._tag(tag)
+
+    # TODO: delete all tags and pypi versions
+
+    def tests(self, ruff: bool = True, tox: bool = True) -> int:
+        """Test project, runs `build`, `ruff`, `pytest` and `tox`."""
+        self.build()
+        if ruff and (rc := self.ruff() != 0):
+            sys.exit(rc)
+
+        if rc := self.pytest() != 0:
+            sys.exit(rc)
+
+        if tox and (rc := self.tox() != 0):
+            sys.exit(rc)
+
+        return rc
+
+    def top(self) -> Path | None:
+        """Git rev-parse --show-toplevel."""
+        if v := stdout(f"{self.git} rev-parse --show-toplevel"):
+            return Path(v)
+        return None
+
+    def tox(self) -> int:
+        """Runs tox."""
+        if self.pyproject_toml.file:
+            rv = subprocess.run(f"{self.executable()} -m tox --root {self.root}", shell=True).returncode
+            self.info(self.tox.__name__)
+            return rv
+        return 0
+
+    def twine(
+        self,
+        part: Bump = Bump.PATCH,
+        force: bool = False,
+    ) -> int:
+        """Twine.
+
+        Args:
+            part: part to increase if force
+            force: force bump
+        """
+        pypi = d.version if (d := self.distribution()) else None
+
+        if (
+            self.pyproject_toml.file
+            and (pypi != self.next(part=part, force=force))
+            and "Private :: Do Not Upload" not in self.pyproject_toml.config.get("project", {}).get("classifiers", [])
+        ):
+            return subprocess.run(
+                f"{self.executable()} -m twine upload -u __token__  {self.build()}",
+                shell=True,
+            ).returncode
+        return 0
+
+    def version(self) -> str:
+        """Version from pyproject.toml, tag, distribution or pypi."""
+        if (v := self.pyproject_toml.config.get("project", {}).get("version")) or (self.top and (v := self.latest())):
+            return v
+        if d := self.distribution():
+            return d.version
+        if pypi := self.pypi():
+            return pypi["info"]["version"]
+        msg = f"Version not found for {self.name=} {self.directory=}"
+        raise RuntimeWarning(msg)
+
+    def venv(
+        self,
+        version: str = PYTHON_DEFAULT_VERSION,
+        force: bool = False,
+        upgrade: bool = False,
+    ):
+        """Creates venv, runs: `write` and `requirements`."""
+        version = "" if self.ci else version
+        if not self.pyproject_toml.file:
+            return
+        if not self.root:
+            msg = f"Undefined: {self.root=} for {self.name=} {self.directory=}"
+            raise RuntimeError(msg)
+        self.write()
+        if not self.ci:
+            v = self.root / "venv"
+            if force:
+                shutil.rmtree(v, ignore_errors=True)
+            if not v.is_dir():
+                subprocess.check_call(f"python{version} -m venv {v}", shell=True)
+                self.info(f"{self.venv.__name__}: {v}")
+            subprocess.check_call(
+                [
+                    self.executable(),
+                    "-m",
+                    "pip",
+                    "install",
+                    "--upgrade",
+                    "-q",
+                    "pip",
+                    "wheel",
+                    "setuptools",
+                    "build",
+                ]
+            )
+        self.requirements(install=True, upgrade=upgrade)
+
+    def write(self):
+        """Updates pyproject.toml and docs conf.py."""
+        if self.pyproject_toml.file:
+            original_project = self.pyproject_toml.config.get("project", {}).copy()
+            github = self.github()
+            project = {
+                "name": github["name"],
+                "authors": [
+                    {"name": AUTHOR, "email": EMAIL},
+                ],
+                "description": github["description"],
+                "urls": {"Homepage": github["html_url"]},
+                "dynamic": ["version"],
+                "license": {"text": "MIT"},
+                "readme": "README.md",
+                "requires-python": f">={PYTHON_DEFAULT_VERSION}",
+            }
+            if "project" not in self.pyproject_toml.config:
+                self.pyproject_toml.config["project"] = {}
+            for key, value in project.items():
+                if key not in self.pyproject_toml.config["project"]:
+                    self.pyproject_toml.config["project"][key] = value
+
+            if original_project != self.pyproject_toml.config["project"]:
+                with self.pyproject_toml.file.open("w") as f:
+                    self.tomlkit.dump(self.pyproject_toml.config, f)
+                    self.info(f"{self.write.__name__}: {self.pyproject_toml.file}")
+
+            if self.docsdir:
+                conf = f"""import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
+project = "{github["name"]}"
+author = "{AUTHOR}"
+copyright = "{datetime.datetime.now().year}, {AUTHOR}"
+extensions = [
+    "myst_parser",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.extlinks",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.viewcode",
+    "sphinx_click",
+    "sphinx.ext.intersphinx",
+]
+autoclass_content = "both"
+autodoc_default_options = {{"members": True, "member-order": "bysource",
+                           "undoc-members": True, "show-inheritance": True}}
+autodoc_typehints = "description"
+html_theme = "furo"
+html_title, html_last_updated_fmt = "{self.name} docs", "%Y-%m-%dT%H:%M:%S"
+inheritance_alias = {{}}
+nitpicky = True
+nitpick_ignore = [('py:class', '*')]
+toc_object_entries = True
+toc_object_entries_show_parents = "all"
+pygments_style, pygments_dark_style = "sphinx", "monokai"
+extlinks = {{
+    "issue": ("https://github.com/{GIT}/{self.name}/issues/%s", "#%s"),
+    "pull": ("https://github.com/{GIT}/{self.name}/pull/%s", "PR #%s"),
+    "user": ("https://github.com/%s", "@%s"),
+}}
+intersphinx_mapping = {{
+    "python": ("https://docs.python.org/3", None),
+    "packaging": ("https://packaging.pypa.io/en/latest", None),
+}}
+"""  # noqa: DTZ005
+                file = self.docsdir / "conf.py"
+                original = file.read_text() if file.is_file() else ""
+                if original != conf:
+                    file.write_text(conf)
+                    self.info(f"{self.write.__name__}: {file}")
+
+                requirements = """furo >=2023.9.10, <2024
+myst-parser >=2.0.0, <3
+sphinx >=7.2.6, <8
+sphinx-autobuild >=2021.3.14, <2022
+sphinx-click >=5.0.1, <6
+sphinx_autodoc_typehints
+sphinxcontrib-napoleon >=0.7, <1
+"""
+                file = self.docsdir / "requirements.txt"
+                original = file.read_text() if file.is_file() else ""
+                if original != requirements:
+                    file.write_text(requirements)
+                    self.info(f"{self.write.__name__}: {file}")
+
+                reference = f"""# Reference
+
+## {self.name}
+
+```{{eval-rst}}
+.. automodule:: {self.name}
+   :members:
+```
+"""
+                file = self.docsdir / "reference.md"
+                original = file.read_text() if file.is_file() else ""
+                if original != reference:
+                    file.write_text(reference)
+                    self.info(f"{self.write.__name__}: {file}")
 
 
 class PTHBuildPy(build_py):
@@ -3467,6 +4291,7 @@ def _pip_base_command(self: Command, args: list[str]) -> int:
         with self.main_context():
             rv = self._main(args)
             if rv == 0 and self.__class__.__name__ == "InstallCommand":
+                print(_NODEPS_PIP_POST_INSTALL)
                 for key, value in _NODEPS_PIP_POST_INSTALL.items():
                     for file in findfile(NODEPS_PIP_POST_INSTALL_FILENAME, value):
                         log.info(self.__class__.__name__, extra={"extra": f"post install '{key}': {file}"})
@@ -4157,7 +4982,7 @@ def elementadd(name: str | tuple[str, ...], closing: bool | None = False) -> str
     return "".join(f'<{"/" if closing else ""}{i}>' for i in ((name,) if isinstance(name, str) else name))
 
 
-def exec_module_from_file(file: Path | str, name: str | None = None) -> ModuleType:
+def exec_module_from_file(file: Path | str, name: str | None = None) -> types.ModuleType:
     """Executes module from file location.
 
     Examples:

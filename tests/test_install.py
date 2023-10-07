@@ -10,6 +10,7 @@ from pip._internal.cli.main import main as _main
 ROOT = Path(__file__).parent.parent
 PACKAGE = nodeps.__name__
 
+
 def setup_module():
     """ setup any state specific to the execution of the given module."""
     rc = _main(["install", "-q", str(ROOT)])
