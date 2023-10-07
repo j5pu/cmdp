@@ -38,11 +38,13 @@ import typer
 from rich import print
 
 from . import (
+    NODEPS_PROJECT_NAME,
     PYTHON_DEFAULT_VERSION,
     Bump,
     GitSHA,
     Project,
     ProjectRepos,
+    dict_sort,
 )
 
 
@@ -841,24 +843,39 @@ def write(
 
 
 if "sphinx" in sys.modules and __name__ != "__main__":
+    import tomlkit
+
     text = """# Usage
 
 ```{eval-rst}
 """
-    file = Path(__file__).parent.parent.parent / "docs/usage.md"
+    root = Path(__file__).parent.parent.parent
+    pyproject_toml = root / "pyproject.toml"
+    file = root / "docs/usage.md"
     if file.exists():
         original = file.read_text()
+        # TODO: escribir el pyproject.toml poner global para el nombre del programa
+        with Path.open(pyproject_toml, "rb") as f:
+            toml = tomlkit.load(f)
+            new = toml.copy()
+            new["project"]["scripts"] = []
         for key, value in globals().copy().items():
             if isinstance(value, typer.Typer):
-                text += f".. click:: nodeps.__main__:{key}_click\n"
-                prog = "proj" if key == "app" else key.replace("_", "")
-                text += f"    :prog: {prog}\n"
+                program = "proj" if key == "app" else key.replace("_", "")
+                cls = f"{NODEPS_PROJECT_NAME}.__main__:{key}"
+                new["project"]["scripts"].append({program: cls})
+                text += f".. click:: {cls}_click\n"
+                text += f"    :prog: {program}\n"
                 text += "    :nested: full\n\n"
                 globals()[f"{key}_click"] = typer.main.get_command(value)
         text += "```\n"
         if original != text:
             file.write_text(text)
             print(f"{file}: updated!")
+        new["project"] = dict_sort(new["project"])
+        if toml != new:
+            with pyproject_toml.open("w") as f:
+                tomlkit.dump(new, f)
 
 if __name__ == "__main__":
     try:

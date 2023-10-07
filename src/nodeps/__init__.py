@@ -10,6 +10,7 @@ __all__ = (
     "GITHUB_URL",
     "LINUX",
     "MACOS",
+    "NODEPS_EXECUTABLE",
     "NODEPS_PIP_POST_INSTALL_FILENAME",
     "NODEPS_PROJECT_NAME",
     "PYTHON_DEFAULT_VERSION",
@@ -237,6 +238,8 @@ LINUX = sys.platform == "linux"
 """Is Linux? sys.platform == 'linux'"""
 MACOS = sys.platform == "darwin"
 """Is macOS? sys.platform == 'darwin'"""
+NODEPS_EXECUTABLE = "proj"
+"""NoDeps Executable Name"""
 NODEPS_PIP_POST_INSTALL_FILENAME = "_post_install.py"
 """Filename that will be searched after pip installs a package."""
 NODEPS_PROJECT_NAME = "nodeps"
@@ -4121,6 +4124,7 @@ class Project:
                 if key not in self.pyproject_toml.config["project"]:
                     self.pyproject_toml.config["project"][key] = value
 
+            self.pyproject_toml.config["project"] = dict_sort(self.pyproject_toml.config["project"])
             if original_project != self.pyproject_toml.config["project"]:
                 with self.pyproject_toml.file.open("w") as f:
                     self.tomlkit.dump(self.pyproject_toml.config, f)
