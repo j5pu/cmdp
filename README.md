@@ -34,9 +34,10 @@
 - `requests`: for `python_latest`, `python_versions` and `request_x_api_key_json` functions that use the `requests` and `beautifulsoup4` libraries
 
 Test imports uninstalling: `pip uninstall loguru beautifulsoup4 click jsonpickle strip_ansi structlog typer`
+
 ### PTH
 
-Add to your `setup.cfg` and `<module>.pth` file in your package.
+Add to your `setup.cfg` and `<mypackage>.pth` file in your package.
 
 ```ìni
 [options]
@@ -45,6 +46,9 @@ cmdclass =
   develop = nodeps.PTHDevelop
   easy_install = nodeps.PTHEasyInstall
   install_lib = nodeps.PTHInstallLib
+[options.package_data]
+mypackage =
+  *.pth
 ```
 
 Add to your `pyproject.toml`:
@@ -53,10 +57,18 @@ Add to your `pyproject.toml`:
 [build-system]
 requires = [
     "nodeps",
+    "setuptools >= 68.2.2, <69",
     "setuptools_scm >= 8.0.3, <9",
     "wheel >= 0.41.2, <1"
 ]
 ```
+
+To verify that `nodeps.pth` is being installed use:
+`python -c "import venv; print(venv.CORE_VENV_DEPS)"`
+
+### Post install
+
+File `_post_install.py` is automatically executed after `pip install` with the `pip` install patch.
 
 ## Installation
 

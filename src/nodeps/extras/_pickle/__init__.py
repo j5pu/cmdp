@@ -126,7 +126,6 @@ def cache(
         raise ImportError(msg)
     memo = {}
     log = structlog.get_logger()
-    structlog.configure(logger_factory=structlog.stdlib.LoggerFactory())
     coro = inspect.iscoroutinefunction(func)
     if coro:
 

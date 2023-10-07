@@ -21,7 +21,18 @@ LOGGER_DEFAULT_FMT = (
 
 
 def logger(fmt=LOGGER_DEFAULT_FMT):
-    """Returns a new logger."""
+    """Returns a new logger.
+
+    Examples:
+        >>> from nodeps import logger
+        >>>
+        >>> l = logger("<level>{level: <8}</level> <red>|</red> "
+        ...     "<cyan>{name}</cyan> <red>|</red> "
+        ...     "<blue><level>{message}</level></blue><red>:</red> "
+        ...     "<level>{extra[source]}</level> <red>-></red> "
+        ...     "<level>{extra[destination]}</level>")
+        >>> l.info("test", source="source", destination="destination")
+    """
     if loguru_logger is None:
         msg = "loguru is not installed: installed with 'pip install nodeps[log]'"
         raise ImportError(msg)

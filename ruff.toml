@@ -1,4 +1,4 @@
-exclude = ["docs", "tests"]
+exclude = ["docs", "tests", "src/nodeps/data"]
 include = ["src/**"]
 fix = true
 ignore-init-module-imports = true

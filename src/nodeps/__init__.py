@@ -10,6 +10,7 @@ __all__ = (
     "GITHUB_URL",
     "LINUX",
     "MACOS",
+    "NODEPS_PIP_POST_INSTALL_FILENAME",
     "NODEPS_PROJECT_NAME",
     "USER",
     "EMAIL",
@@ -92,6 +93,7 @@ __all__ = (
     "parent",
     "parse_str",
     "returncode",
+    "siteimported",
     "sourcepath",
     "split_pairs",
     "stdout",
@@ -149,6 +151,7 @@ import types
 import urllib.request
 import venv
 import warnings
+import zipfile
 from collections.abc import Callable, Hashable, Iterable, Iterator, MutableMapping, Sequence
 from ipaddress import IPv4Address, IPv6Address
 from typing import (
@@ -179,14 +182,35 @@ except ModuleNotFoundError:
     easy_install = object
     install_lib = object
 
+try:
+    if "_in_process.py" not in sys.argv[0]:
+        # Avoids failing when asking for build requirements and distutils.core is not available since pip patch it
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=UserWarning, message="Setuptools is replacing distutils.")
+
+            # Must be imported after setuptools
+            # noinspection PyCompatibility
+            import pip._internal.cli.base_command
+            import pip._internal.models.direct_url
+            import pip._internal.models.scheme
+            import pip._internal.operations.install.wheel
+except ModuleNotFoundError:
+    pip = object
+
 from . import extras
 from .extras import *
 
 if TYPE_CHECKING:
     from types import ModuleType
 
+    # noinspection PyCompatibility
+    from pip._internal.cli.base_command import Command
+
 __all__ += extras.__all__
 
+
+_NODEPS_PIP_POST_INSTALL = {}
+"""Holds the context with wheels installed and paths to package installed to be used in post install"""
 AUTHOR = "José Antonio Puértolas Montañés"
 GIT = os.environ.get("GIT", "j5pu")
 """GitHub user name"""
@@ -210,6 +234,8 @@ LINUX = sys.platform == "linux"
 """Is Linux? sys.platform == 'linux'"""
 MACOS = sys.platform == "darwin"
 """Is macOS? sys.platform == 'darwin'"""
+NODEPS_PIP_POST_INSTALL_FILENAME = "_post_install.py"
+"""Filename that will be searched after pip installs a package."""
 NODEPS_PROJECT_NAME = "nodeps"
 """NoDeps Project Name"""
 USER = os.getenv("USER")
@@ -265,12 +291,12 @@ class CalledProcessError(subprocess.SubprocessError):
 
     # noinspection PyShadowingNames
     def __init__(
-        self,
-        returncode: int | None = None,
-        cmd: StrOrBytesPath | Sequence[StrOrBytesPath] | None = None,
-        output: AnyStr | None = None,
-        stderr: AnyStr | None = None,
-        completed: subprocess.CompletedProcess | None = None,
+            self,
+            returncode: int | None = None,
+            cmd: StrOrBytesPath | Sequence[StrOrBytesPath] | None = None,
+            output: AnyStr | None = None,
+            stderr: AnyStr | None = None,
+            completed: subprocess.CompletedProcess | None = None,
     ) -> None:
         r"""Patched :class:`subprocess.CalledProcessError`.
 
@@ -489,9 +515,9 @@ Test1(a=1, b=2), <....Test4 object at 0x...>)
                 except KeyError:
                     pass
             elif (
-                hasattr(mapping, "__getattribute__")
-                and isinstance(key, str)
-                and not isinstance(mapping, (tuple | bool | int | str | bytes))
+                    hasattr(mapping, "__getattribute__")
+                    and isinstance(key, str)
+                    and not isinstance(mapping, (tuple | bool | int | str | bytes))
             ):
                 try:
                     value = getattr(mapping, key)
@@ -586,7 +612,6 @@ class CmdError(subprocess.CalledProcessError):
 
 class ColorLogger(logging.Formatter):
     """Color logger class."""
-
     black = "\x1b[30m"
     blue = "\x1b[34m"
     cyan = "\x1b[36m"
@@ -603,15 +628,15 @@ class ColorLogger(logging.Formatter):
     FORMATS: ClassVar[dict[int, str]] = {
         logging.DEBUG: grey + fmt + reset,
         logging.INFO: f"{cyan}%(levelname)8s{reset} {vertical}"
-        f"{cyan}%(name)s{reset} {vertical}"
-        f"{cyan}%(filename)s{reset}:{cyan}%(lineno)d{reset} {vertical}"
-        f"{green}%(extra)s{reset} {vertical}"
-        f"{cyan}%(message)s{reset}",
+                      f"{cyan}%(name)s{reset} {vertical}"
+                      f"{cyan}%(filename)s{reset}:{cyan}%(lineno)d{reset} {vertical}"
+                      f"{green}%(extra)s{reset} {vertical}"
+                      f"{cyan}%(message)s{reset}",
         logging.WARNING: f"{yellow}%(levelname)8s{reset} {vertical}"
-        f"{yellow}%(name)s{reset} {vertical}"
-        f"{yellow}%(filename)s{reset}:{yellow}%(lineno)d{reset} {vertical}"
-        f"{green}%(repo)s{reset} {vertical}"
-        f"{yellow}%(message)s{reset}",
+                         f"{yellow}%(name)s{reset} {vertical}"
+                         f"{yellow}%(filename)s{reset}:{yellow}%(lineno)d{reset} {vertical}"
+                         f"{green}%(repo)s{reset} {vertical}"
+                         f"{yellow}%(message)s{reset}",
         logging.ERROR: red + fmt + reset,
         logging.CRITICAL: red_bold + fmt + reset,
     }
@@ -627,9 +652,9 @@ class ColorLogger(logging.Formatter):
         """Get logger.
 
         Examples:
-            >>> from pproj.project import Logger
+            >>> from nodeps import ColorLogger
             >>>
-            >>> lo = Logger.logger("proj")
+            >>> lo = ColorLogger.logger("proj")
             >>> lo.info("hola", extra=dict(extra="bapy"))
 
         Args:
@@ -677,11 +702,13 @@ class Env:
     If you generate a value in one step of a job, you can use the value in subsequent ``steps`` of
         the same job by assigning the value to an existing or new environment variable and then writing
         this to the ``GITHUB_ENV`` environment file, see `Commands
-        <https://docs.github.com/en/enterprise-cloud@latest/actions/reference/workflow-commands-for-github-actions/#setting-an-environment-variable>`_.
+        <https://docs.github.com/en/enterprise-cloud@latest/actions/reference/workflow-commands-for-github-actions
+        /#setting-an-environment-variable>`_.
 
     If you want to pass a value from a step in one job in a ``workflow`` to a step in another job in the workflow,
         you can define the value as a job output, see `Syntax
-        <https://docs.github.com/en/enterprise-cloud@latest/actions/learn-github-actions/workflow-syntax-for-github-actions#jobsjob_idoutputs>`_.
+        <https://docs.github.com/en/enterprise-cloud@latest/actions/learn-github-actions/workflow-syntax-for-github
+        -actions#jobsjob_idoutputs>`_.
     """
 
     CI: bool | str | None = dataclasses.field(default=None, init=False)
@@ -761,7 +788,8 @@ class Env:
     For example, ``/home/runner/work/_temp/_runner_file_commands/set_env_87406d6e-4979-4d42-98e1-3dab1f48b13a``.
 
     For more information, see `Workflow commands for GitHub Actions.
-    <https://docs.github.com/en/enterprise-cloud@latest/actions/using-workflows/workflow-commands-for-github-actions#setting-an-environment-variable>`_
+    <https://docs.github.com/en/enterprise-cloud@latest/actions/using-workflows/workflow-commands-for-github-actions
+    #setting-an-environment-variable>`_
     """
 
     GITHUB_EVENT_NAME: str | None = dataclasses.field(default=None, init=False)
@@ -798,7 +826,8 @@ class Env:
     GITHUB_JOB: str | None = dataclasses.field(default=None, init=False)
     """
     The `job_id
-    <https://docs.github.com/en/enterprise-cloud@latest/actions/reference/workflow-syntax-for-github-actions#jobsjob_id>`_
+    <https://docs.github.com/en/enterprise-cloud@latest/actions/reference/workflow-syntax-for-github-actions
+    #jobsjob_id>`_
     of the current job.
 
     For example, ``greeting_job``.
@@ -812,7 +841,8 @@ class Env:
     For example, ``/home/runner/work/_temp/_runner_file_commands/add_path_899b9445-ad4a-400c-aa89-249f18632cf5``.
 
     For more information, see `Workflow commands for GitHub Actions.
-    <https://docs.github.com/en/enterprise-cloud@latest/actions/using-workflows/workflow-commands-for-github-actions#adding-a-system-path>`_
+    <https://docs.github.com/en/enterprise-cloud@latest/actions/using-workflows/workflow-commands-for-github-actions
+    #adding-a-system-path>`_
     """
 
     GITHUB_REF: str | None = dataclasses.field(default=None, init=False)
@@ -976,7 +1006,8 @@ class Env:
     The path to the directory containing preinstalled tools for GitHub-hosted runners.
 
     For more information, see `About GitHub-hosted runners.
-    <https://docs.github.com/en/enterprise-cloud@latest/actions/reference/specifications-for-github-hosted-runners/#supported-software>`_
+    <https://docs.github.com/en/enterprise-cloud@latest/actions/reference/specifications-for-github-hosted-runners
+    /#supported-software>`_
 
     `Ubuntu latest <https://github.com/actions/virtual-environments/blob/main/images/linux/Ubuntu2004-Readme.md>`_
     `macOS latest <https://github.com/actions/virtual-environments/blob/main/images/macos/macos-11-Readme.md>`_
@@ -1082,7 +1113,7 @@ class Env:
 
     @staticmethod
     def parse_as_bool(
-        variable: str = "USER",
+            variable: str = "USER",
     ) -> bool | Path | ParseResult | IPv4Address | IPv6Address | int | str | None:
         """Parses variable from environment 1 and 0 as bool instead of int.
 
@@ -1166,8 +1197,8 @@ class Env:
 
     @classmethod
     def parse_as_int(
-        cls,
-        name: str = "USER",
+            cls,
+            name: str = "USER",
     ) -> bool | Path | ParseResult | IPv4Address | IPv6Address | int | str | None:
         """Parses variable from environment using :func:`mreleaser.parse_str`,.
 
@@ -1748,13 +1779,13 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
     """Path helper class."""
 
     def __call__(
-        self,
-        name: AnyPath = "",
-        file: PathIsLiteral = "is_dir",
-        passwd: Passwd | None = None,
-        mode: int | str | None = None,
-        effective_ids: bool = False,
-        follow_symlinks: bool = False,
+            self,
+            name: AnyPath = "",
+            file: PathIsLiteral = "is_dir",
+            passwd: Passwd | None = None,
+            mode: int | str | None = None,
+            effective_ids: bool = False,
+            follow_symlinks: bool = False,
     ) -> Path:
         """Make dir or touch file and create subdirectories as needed.
 
@@ -1868,12 +1899,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return self.parts >= other.parts
 
     def access(
-        self,
-        os_mode: int = os.W_OK,
-        *,
-        dir_fd: int | None = None,
-        effective_ids: bool = False,
-        follow_symlinks: bool = False,
+            self,
+            os_mode: int = os.W_OK,
+            *,
+            dir_fd: int | None = None,
+            effective_ids: bool = False,
+            follow_symlinks: bool = False,
     ) -> bool | None:
         # noinspection LongLine
         """Checks if file or directory exists and has access (returns None if file/directory does not exist.
@@ -2052,9 +2083,9 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return path
 
     def checksum(
-        self,
-        algorithm: Literal["md5", "sha1", "sha224", "sha256", "sha384", "sha512"] = "sha256",
-        block_size: int = 65536,
+            self,
+            algorithm: Literal["md5", "sha1", "sha224", "sha256", "sha384", "sha512"] = "sha256",
+            block_size: int = 65536,
     ) -> str:
         """Calculate the checksum of a file.
 
@@ -2079,12 +2110,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return sha.hexdigest()
 
     def chmod(
-        self,
-        mode: int | str | None = None,
-        effective_ids: bool = False,
-        exception: bool = True,
-        follow_symlinks: bool = False,
-        recursive: bool = False,
+            self,
+            mode: int | str | None = None,
+            effective_ids: bool = False,
+            exception: bool = True,
+            follow_symlinks: bool = False,
+            recursive: bool = False,
     ) -> Path:
         """Change mode of self.
 
@@ -2137,12 +2168,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return self
 
     def chown(
-        self,
-        passwd=None,
-        effective_ids: bool = False,
-        exception: bool = True,
-        follow_symlinks: bool = False,
-        recursive: bool = False,
+            self,
+            passwd=None,
+            effective_ids: bool = False,
+            exception: bool = True,
+            follow_symlinks: bool = False,
+            recursive: bool = False,
     ) -> Path:
         """Change owner of path.
 
@@ -2241,12 +2272,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return self.checksum() == self.__class__(other).checksum()
 
     def cp(
-        self,
-        dest: AnyPath,
-        contents: bool = False,
-        effective_ids: bool = False,
-        follow_symlinks: bool = False,
-        preserve: bool = False,
+            self,
+            dest: AnyPath,
+            contents: bool = False,
+            effective_ids: bool = False,
+            follow_symlinks: bool = False,
+            preserve: bool = False,
     ) -> Path:
         """Wrapper for shell `cp` command to copy file recursivily and adding sudo if necessary.
 
@@ -2409,12 +2440,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
                     raise NotADirectoryError(msg)
                 return path
             if path.is_dir() or (
-                path := path.parent.resolve() if follow_symlinks else path.parent.absolute()
+                    path := path.parent.resolve() if follow_symlinks else path.parent.absolute()
             ) == self.__class__("/"):
                 return None
 
     def find_up(
-        self, function: PathIsLiteral = "is_file", name: str = "__init__.py", uppermost: bool = False
+            self, function: PathIsLiteral = "is_file", name: str = "__init__.py", uppermost: bool = False
     ) -> Path | None:
         """Find file or dir up.
 
@@ -2516,12 +2547,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return dest
 
     def mkdir(
-        self,
-        name: AnyPath = "",
-        passwd: Passwd | None = None,
-        mode: int | str | None = None,
-        effective_ids: bool = False,
-        follow_symlinks: bool = False,
+            self,
+            name: AnyPath = "",
+            passwd: Passwd | None = None,
+            mode: int | str | None = None,
+            effective_ids: bool = False,
+            follow_symlinks: bool = False,
     ) -> Path:
         """Add directory, make directory, change mode and return new Path.
 
@@ -2617,13 +2648,13 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return dest
 
     def open(  # noqa: A003
-        self,
-        mode: str = "r",
-        buffering: int = -1,
-        encoding: str | None = None,
-        errors: str | None = None,
-        newline: str | None = None,
-        token: bool = False,
+            self,
+            mode: str = "r",
+            buffering: int = -1,
+            encoding: str | None = None,
+            errors: str | None = None,
+            newline: str | None = None,
+            token: bool = False,
     ) -> AnyIO | None:
         """Open the file pointed by this path and return a file object, as the built-in open function does."""
         if token:
@@ -2683,7 +2714,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return self.relative_to(p) if self.absolute().is_relative_to(p) else None
 
     def rm(
-        self, *args: str, effective_ids: bool = False, follow_symlinks: bool = False, missing_ok: bool = True
+            self, *args: str, effective_ids: bool = False, follow_symlinks: bool = False, missing_ok: bool = True
     ) -> None:
         """Delete a folder/file (even if the folder is not empty).
 
@@ -2764,11 +2795,11 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
                 self.__class__(d).rmdir()
 
     def setid(
-        self,
-        name: bool | str | None = None,
-        uid: bool = True,
-        effective_ids: bool = False,
-        follow_symlinks: bool = False,
+            self,
+            name: bool | str | None = None,
+            uid: bool = True,
+            effective_ids: bool = False,
+            follow_symlinks: bool = False,
     ) -> Path:
         """Sets the set-user-ID-on-execution or set-group-ID-on-execution bits.
 
@@ -2839,11 +2870,11 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return target
 
     def setid_cp(
-        self,
-        name: bool | str | None = None,
-        uid: bool = True,
-        effective_ids: bool = False,
-        follow_symlinks: bool = False,
+            self,
+            name: bool | str | None = None,
+            uid: bool = True,
+            effective_ids: bool = False,
+            follow_symlinks: bool = False,
     ) -> Path:
         """Sets the set-user-ID-on-execution or set-group-ID-on-execution bits.
 
@@ -2992,12 +3023,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         )
 
     def sudo(
-        self,
-        force: bool = False,
-        to_list: bool = True,
-        os_mode: int = os.W_OK,
-        effective_ids: bool = False,
-        follow_symlinks: bool = False,
+            self,
+            force: bool = False,
+            to_list: bool = True,
+            os_mode: int = os.W_OK,
+            effective_ids: bool = False,
+            follow_symlinks: bool = False,
     ) -> list[str] | str | None:
         """Returns sudo command if path or ancestors exist and is not own by user and sudo command not installed.
 
@@ -3031,9 +3062,9 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             path = self
             while path:
                 if path.access(
-                    os_mode=os_mode,
-                    effective_ids=effective_ids,
-                    follow_symlinks=follow_symlinks,
+                        os_mode=os_mode,
+                        effective_ids=effective_ids,
+                        follow_symlinks=follow_symlinks,
                 ):
                     if not force:
                         rv = ""
@@ -3059,7 +3090,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
     @classmethod
     @contextlib.contextmanager
     def tempcd(
-        cls, suffix: AnyStr | None = None, prefix: AnyStr | None = None, directory: AnyPath | None = None
+            cls, suffix: AnyStr | None = None, prefix: AnyStr | None = None, directory: AnyPath | None = None
     ) -> Path:
         """Create temporaly directory, change to it and return it.
 
@@ -3098,7 +3129,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
     @classmethod
     @contextlib.contextmanager
     def tempdir(
-        cls, suffix: AnyStr | None = None, prefix: AnyStr | None = None, directory: AnyPath | None = None
+            cls, suffix: AnyStr | None = None, prefix: AnyStr | None = None, directory: AnyPath | None = None
     ) -> Path:
         """Create and return tmp directory.  This has the same behavior as mkdtemp but can be used as a context manager.
 
@@ -3134,34 +3165,34 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
     @classmethod
     @contextlib.contextmanager
     def tempfile(
-        cls,
-        mode: Literal[
-            "r",
-            "w",
-            "a",
-            "x",
-            "r+",
-            "w+",
-            "a+",
-            "x+",
-            "rt",
-            "wt",
-            "at",
-            "xt",
-            "r+t",
-            "w+t",
-            "a+t",
-            "x+t",
-        ] = "w",
-        buffering: int = -1,
-        encoding: str | None = None,
-        newline: str | None = None,
-        suffix: AnyStr | None = None,
-        prefix: AnyStr | None = None,
-        directory: AnyPath | None = None,
-        delete: bool = True,
-        *,
-        errors: str | None = None,
+            cls,
+            mode: Literal[
+                "r",
+                "w",
+                "a",
+                "x",
+                "r+",
+                "w+",
+                "a+",
+                "x+",
+                "rt",
+                "wt",
+                "at",
+                "xt",
+                "r+t",
+                "w+t",
+                "a+t",
+                "x+t",
+            ] = "w",
+            buffering: int = -1,
+            encoding: str | None = None,
+            newline: str | None = None,
+            suffix: AnyStr | None = None,
+            prefix: AnyStr | None = None,
+            directory: AnyPath | None = None,
+            delete: bool = True,
+            *,
+            errors: str | None = None,
     ) -> Path:
         """Create and return a temporary file.
 
@@ -3189,15 +3220,15 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             deleted when it is closed unless the 'delete' argument is set to False.
         """
         with tempfile.NamedTemporaryFile(
-            mode=mode,
-            buffering=buffering,
-            encoding=encoding,
-            newline=newline,
-            suffix=suffix,
-            prefix=prefix,
-            dir=directory,
-            delete=delete,
-            errors=errors,
+                mode=mode,
+                buffering=buffering,
+                encoding=encoding,
+                newline=newline,
+                suffix=suffix,
+                prefix=prefix,
+                dir=directory,
+                delete=delete,
+                errors=errors,
         ) as tmp:
             try:
                 yield cls(tmp.name)
@@ -3218,12 +3249,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return self.parent if self.is_file() else self
 
     def touch(
-        self,
-        name: AnyPath = "",
-        passwd: Passwd | None = None,
-        mode: int | str | None = None,
-        effective_ids: bool = False,
-        follow_symlinks: bool = False,
+            self,
+            name: AnyPath = "",
+            passwd: Passwd | None = None,
+            mode: int | str | None = None,
+            effective_ids: bool = False,
+            follow_symlinks: bool = False,
     ) -> Path:
         """Add file, touch and return post_init Path. Parent paths are created.
 
@@ -3264,9 +3295,9 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         path = self / str(name)
         path = path.resolve() if follow_symlinks else path.absolute()
         if (
-            not path.is_file()
-            and not path.is_dir()
-            and path.parent.file_in_parents(follow_symlinks=follow_symlinks) is None
+                not path.is_file()
+                and not path.is_dir()
+                and path.parent.file_in_parents(follow_symlinks=follow_symlinks) is None
         ):
             if not (d := path.parent).exists():
                 d.mkdir(
@@ -3330,9 +3361,9 @@ class PipMetaPathFinder(importlib.abc.MetaPathFinder):
 
     # noinspection PyMethodOverriding,PyMethodParameters
     def find_spec(
-        fullname: str,
-        path: Sequence[str | bytes] | None,
-        target: ModuleType | None = None,
+            fullname: str,
+            path: Sequence[str | bytes] | None,
+            target: ModuleType | None = None,
     ) -> importlib._bootstrap.ModuleSpec | None:
         """Try to find a module spec for the specified module."""
         if path is None and fullname is not None:
@@ -3362,6 +3393,7 @@ class PTHBuildPy(build_py):
 
 class PTHDevelop(develop):
     """PTH Develop Install."""
+
     def run(self):
         """Run develop."""
         super().run()
@@ -3370,6 +3402,7 @@ class PTHDevelop(develop):
 
 class PTHEasyInstall(easy_install):
     """PTH Easy Install."""
+
     def run(self, *args, **kwargs):
         """Run easy install."""
         super().run(*args, **kwargs)
@@ -3378,6 +3411,7 @@ class PTHEasyInstall(easy_install):
 
 class PTHInstallLib(install_lib):
     """PTH Install Library."""
+
     def run(self):
         """Run Install Library."""
         super().run()
@@ -3426,11 +3460,54 @@ def _copy_pths(self: PTHBuildPy | PTHDevelop | PTHEasyInstall | PTHInstallLib,
     return outputs
 
 
+def _pip_base_command(self: Command, args: list[str]) -> int:
+    """Post install pip patch."""
+    try:
+        log = ColorLogger.logger()
+        with self.main_context():
+            rv = self._main(args)
+            if rv == 0 and self.__class__.__name__ == "InstallCommand":
+                for key, value in _NODEPS_PIP_POST_INSTALL.items():
+                    for file in findfile(NODEPS_PIP_POST_INSTALL_FILENAME, value):
+                        log.info(self.__class__.__name__, extra={"extra": f"post install '{key}': {file}"})
+                        exec_module_from_file(file)
+            return rv
+    finally:
+        logging.shutdown()
+
+
+def _pip_install_wheel(
+        name: str,
+        wheel_path: str,
+        scheme: pip._internal.models.scheme.Scheme,
+        req_description: str,
+        pycompile: bool = True,
+        warn_script_location: bool = True,
+        direct_url: pip._internal.models.direct_url.DirectUrl | None = None,
+        requested: bool = False,
+):
+    """Pip install wheel patch to post install."""
+    with (zipfile.ZipFile(wheel_path) as z,
+          pip._internal.operations.install.wheel.req_error_context(req_description)):
+        pip._internal.operations.install.wheel._install_wheel(
+            name=name,
+            wheel_zip=z,
+            wheel_path=wheel_path,
+            scheme=scheme,
+            pycompile=pycompile,
+            warn_script_location=warn_script_location,
+            direct_url=direct_url,
+            requested=requested,
+        )
+        global _NODEPS_PIP_POST_INSTALL  # noqa: PLW0602
+        _NODEPS_PIP_POST_INSTALL[name] = Path(scheme.purelib, name)
+
+
 async def aioclone(
-    owner: str | None = None,
-    repository: str = NODEPS_PROJECT_NAME,
-    scheme: GitSchemeLiteral = GIT_DEFAULT_SCHEME,
-    path: Path | str | None = None,
+        owner: str | None = None,
+        repository: str = NODEPS_PROJECT_NAME,
+        scheme: GitSchemeLiteral = GIT_DEFAULT_SCHEME,
+        path: Path | str | None = None,
 ) -> Path:
     """Async Clone Repository.
 
@@ -3503,7 +3580,7 @@ async def aiocmd(*args, **kwargs) -> subprocess.CompletedProcess:
 
 
 async def aiocommand(
-    data: str | list, decode: bool = True, utf8: bool = False, lines: bool = False
+        data: str | list, decode: bool = True, utf8: bool = False, lines: bool = False
 ) -> subprocess.CompletedProcess:
     """Asyncio run cmd.
 
@@ -3818,7 +3895,7 @@ def cmd(*args, **kwargs) -> subprocess.CompletedProcess:
 
 
 def cmdrun(
-    data: Iterable, exc: bool = False, lines: bool = True, shell: bool = True, py: bool = False, pysite: bool = True
+        data: Iterable, exc: bool = False, lines: bool = True, shell: bool = True, py: bool = False, pysite: bool = True
 ) -> subprocess.CompletedProcess | int | list | str:
     r"""Runs a cmd.
 
@@ -3978,7 +4055,7 @@ def current_task_name() -> str:
 
 
 def dict_sort(
-    data: dict[_KT, _VT], ordered: bool = False, reverse: bool = False
+        data: dict[_KT, _VT], ordered: bool = False, reverse: bool = False
 ) -> dict[_KT, _VT] | collections.OrderedDict[_KT, _VT]:
     """Order a dict based on keys.
 
@@ -4107,7 +4184,7 @@ def exec_module_from_file(file: Path | str, name: str | None = None) -> ModuleTy
 
 
 def filterm(
-    d: MutableMapping[_KT, _VT], k: Callable[..., bool] = lambda x: True, v: Callable[..., bool] = lambda x: True
+        d: MutableMapping[_KT, _VT], k: Callable[..., bool] = lambda x: True, v: Callable[..., bool] = lambda x: True
 ) -> MutableMapping[_KT, _VT]:
     """Filter Mutable Mapping.
 
@@ -4153,10 +4230,10 @@ def findfile(pattern, path: StrOrBytesPath = None) -> list[Path]:
 
 
 def findup(
-    path: StrOrBytesPath = None,
-    kind: Literal["exists", "is_dir", "is_file"] = "is_file",
-    name: str | Path = ".env",
-    uppermost: bool = False,
+        path: StrOrBytesPath = None,
+        kind: Literal["exists", "is_dir", "is_file"] = "is_file",
+        name: str | Path = ".env",
+        uppermost: bool = False,
 ) -> Path | None:
     """Find up if name exists or is file or directory.
 
@@ -4232,10 +4309,10 @@ def firstfound(data: Iterable, apply: Callable) -> Any:
 
 
 def flatten(
-    data: tuple | list | set,
-    recurse: bool = False,
-    unique: bool = False,
-    sort: bool = True,
+        data: tuple | list | set,
+        recurse: bool = False,
+        unique: bool = False,
+        sort: bool = True,
 ) -> tuple | list | set:
     """Flattens an Iterable.
 
@@ -4399,11 +4476,11 @@ def getpths() -> dict[str, Path] | None:
         Dictionary with pth name and file
     """
     try:
-        sitedir = getsitedir()
-        names = os.listdir(sitedir)
+        s = getsitedir()
+        names = os.listdir(s)
     except OSError:
         return None
-    return {re.sub("(-[0-9].*|.pth)", "", name): Path(sitedir / name) for name in names if name.endswith(".pth")}
+    return {re.sub("(-[0-9].*|.pth)", "", name): Path(s / name) for name in names if name.endswith(".pth")}
 
 
 def getsitedir(index: bool = 2) -> Path:
@@ -4419,9 +4496,9 @@ def getsitedir(index: bool = 2) -> Path:
     Returns:
         Path instance with site directory
     """
-    if (sitedir := sys._getframe(index).f_locals.get("sitedir")) is None:
-        sitedir = sysconfig.get_paths()["purelib"]
-    return Path(sitedir)
+    if (s := sys._getframe(index).f_locals.get("sitedir")) is None:
+        s = sysconfig.get_paths()["purelib"]
+    return Path(s)
 
 
 def group_user(name: int | str = USER) -> GroupUser:
@@ -4455,17 +4532,17 @@ def group_user(name: int | str = USER) -> GroupUser:
         struct = (
             struct
             if name  # noqa: PLR1714
-            == (struct := PW_USER).pw_name
-            or name == (struct := PW_ROOT).pw_name
+               == (struct := PW_USER).pw_name
+               or name == (struct := PW_ROOT).pw_name
             else pwd.getpwnam(name)
         )
         return GroupUser(group=struct.pw_gid, user=struct.pw_uid)
     struct = (
         struct
         if (
-            name  # noqa: PLR1714
-            == (struct := PW_USER).pw_uid
-            or name == (struct := PW_ROOT).pw_uid
+                name  # noqa: PLR1714
+                == (struct := PW_USER).pw_uid
+                or name == (struct := PW_ROOT).pw_uid
         )
         else pwd.getpwuid(name)
     )
@@ -4513,7 +4590,7 @@ def in_tox() -> bool:
 
 
 def noexc(
-    func: Callable[..., _T], *args: Any, default_: Any = None, exc_: ExcType = Exception, **kwargs: Any
+        func: Callable[..., _T], *args: Any, default_: Any = None, exc_: ExcType = Exception, **kwargs: Any
 ) -> _T | Any:
     """Execute function suppressing exceptions.
 
@@ -4562,7 +4639,7 @@ def parent(path: StrOrBytesPath = __file__, none: bool = True) -> Path | None:
 
 
 def parse_str(  # noqa: PLR0911
-    data: Any | None = None,
+        data: Any | None = None,
 ) -> bool | Path | ParseResult | IPv4Address | IPv6Address | int | str | None:
     """Parses str or data.__str__().
 
@@ -4620,10 +4697,10 @@ def parse_str(  # noqa: PLR0911
         if "://" in data or "@" in data:
             return urllib.parse.urlparse(data)
         if (
-            (
-                data[0] in ["/", "~"] or (len(data) >= 2 and f"{data[0]}{data[1]}" == "./")  # noqa: PLR2004
-            )
-            and ":" not in data
+                (
+                        data[0] in ["/", "~"] or (len(data) >= 2 and f"{data[0]}{data[1]}" == "./")  # noqa: PLR2004
+                )
+                and ":" not in data
         ) or data == ".":
             return Path(data)
         try:
@@ -4684,6 +4761,15 @@ def sourcepath(data: Any) -> Path:
         except TypeError:
             f = None
     return Path(f or str(data))
+
+
+def siteimported() -> str | None:
+    """True if imported by :mod:`site` in a ``.pth`` file."""
+    s = None
+    _frame = sys._getframe()
+    while _frame and (s := _frame.f_locals.get("sitedir")) is None:
+        _frame = _frame.f_back
+    return s
 
 
 def split_pairs(text):
@@ -4763,10 +4849,10 @@ def stdquiet() -> tuple[TextIO, TextIO]:
 
 
 def suppress(
-    func: Callable[P, T],
-    *args: P.args,
-    exception: ExcType | None = Exception,
-    **kwargs: P.kwargs,
+        func: Callable[P, T],
+        *args: P.args,
+        exception: ExcType | None = Exception,
+        **kwargs: P.kwargs,
 ) -> T:
     """Try and supress exception.
 
@@ -4947,7 +5033,7 @@ def tomodules(obj: Any, suffix: bool = True) -> str:
 
 
 def urljson(
-    data: str,
+        data: str,
 ) -> dict:
     """Url open json.
 
@@ -5011,9 +5097,9 @@ def which(data="sudo", raises: bool = False) -> str:
         Cmd path or ""
     """
     rv = (
-        shutil.which(data, mode=os.X_OK)
-        or subprocess.run(f"command -v {data}", shell=True, text=True, capture_output=True).stdout.rstrip("\n")
-        or ""
+            shutil.which(data, mode=os.X_OK)
+            or subprocess.run(f"command -v {data}", shell=True, text=True, capture_output=True).stdout.rstrip("\n")
+            or ""
     )
 
     if raises and not rv:
@@ -5025,7 +5111,12 @@ EXECUTABLE = Path(sys.executable)
 EXECUTABLE_SITE = Path(EXECUTABLE).resolve()
 
 subprocess.CalledProcessError = CalledProcessError
-warnings.filterwarnings("ignore", category=UserWarning, message="Setuptools is replacing distutils.")
 
 os.environ["PYTHONDONTWRITEBYTECODE"] = ""
 os.environ["PY_IGNORE_IMPORTMISMATCH"] = "1"
+
+if "pip._internal.operations.install.wheel" in sys.modules:
+    pip._internal.operations.install.wheel.install_wheel = _pip_install_wheel
+    pip._internal.cli.base_command.Command.main = _pip_base_command
+
+venv.CORE_VENV_DEPS = ["ipython", "pip", "setuptools", "wheel"]
