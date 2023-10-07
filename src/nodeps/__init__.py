@@ -3445,7 +3445,7 @@ class Project:
         data = Path(self.data.__file__ if isinstance(self.data, types.ModuleType) else self.data)
         if (
             (isinstance(self.data, str) and len(toiter(self.data, split="/")) == 1)
-            or (isinstance(self.data, Path) and len(self.data.parts) == 1)
+            or (isinstance(self.data, pathlib.PosixPath) and len(self.data.parts) == 1)
         ) and (str(self.data) != "/"):
             if r := self.repos(ret=ProjectRepos.DICT).get(self.data if isinstance(self.data, str) else self.data.name):
                 self.directory = r
