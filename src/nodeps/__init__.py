@@ -51,6 +51,7 @@ __all__ = (
     "Path",
     "PipMetaPathFinder",
     "ProjectRepos",
+    "Project",
     "PTHBuildPy",
     "PTHDevelop",
     "PTHEasyInstall",
@@ -188,11 +189,8 @@ except ModuleNotFoundError:
     easy_install = object
     install_lib = object
 
-# for f in inspect.stack():
-# while _frame and (SITEDIR := _frame.f_locals.get("sitedir")) is None:
-
 try:
-    if "_in_process.py" not in sys.argv[0] and "pip._internal.operations.install.wheel" not in sys.modules:
+    if "_in_process.py" not in sys.argv[0]:
         # Avoids failing when asking for build requirements and distutils.core is not available since pip patch it
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=UserWarning, message="Setuptools is replacing distutils.")
@@ -659,7 +657,7 @@ class ColorLogger(logging.Formatter):
         logging.CRITICAL: red_bold + fmt + reset,
     }
 
-    def format(self, record: logging.LogRecord):  # noqa: A003
+    def format(self, record):  # noqa: A003
         """Format log."""
         log_fmt = self.FORMATS.get(record.levelno)
         formatter = logging.Formatter(log_fmt)
@@ -3400,13 +3398,9 @@ class PipMetaPathFinder(importlib.abc.MetaPathFinder):
             package = fullname.split(".")[0].replace("_", "-")
             try:
                 importlib.metadata.Distribution.from_name(package)
-            except importlib.metadata.PackageNotFoundError as e:
-                if subprocess.run([sys.executable, "-m", "pip", "install", "-q", package]).returncode != 0:
-                    msg = f"Not able to install: {fullname=}, {package=}"
-                    raise RuntimeWarning(msg) from e
-            if package not in sys.modules:
-                return importlib.import_module(fullname)
-            return sys.modules[package]
+            except importlib.metadata.PackageNotFoundError:
+                if subprocess.run([sys.executable, "-m", "pip", "install", "-q", package]).returncode == 0:
+                    return importlib.import_module(fullname)
         return None
 
 
@@ -4117,13 +4111,12 @@ class Project:
         if self.pyproject_toml.file:
             original_project = self.pyproject_toml.config.get("project", {}).copy()
             github = self.github()
-            description = {"description": description} if (description := github.get("description")) else {}
             project = {
                 "name": github["name"],
                 "authors": [
                     {"name": AUTHOR, "email": EMAIL},
                 ],
-                **description,
+                "description": github["description"],
                 "urls": {"Homepage": github["html_url"]},
                 "dynamic": ["version"],
                 "license": {"text": "MIT"},

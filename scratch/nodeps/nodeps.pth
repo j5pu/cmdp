@@ -1,1 +1,0 @@
-import sys; m = __import__('nodeps'); sys.modules.setdefault('nodeps', m)
