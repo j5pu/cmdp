@@ -2,6 +2,7 @@
 __all__ = (
     "_browser",
     "_build",
+    "_builds",
     "_buildrequires",
     "_clean",
     "_commit",
@@ -20,14 +21,18 @@ __all__ = (
     "_pull",
     "_push",
     "_pypi",
+    "_pytests",
     "_repos",
+    "_requirement",
     "_requirements",
     "_secrets",
     "_sha",
     "_superproject",
+    "_test",
     "_tests",
     "_version",
     "_venv",
+    "_venvs",
 )
 
 import sys
@@ -37,6 +42,7 @@ from typing import Annotated
 from . import (
     NODEPS_PROJECT_NAME,
     PYTHON_DEFAULT_VERSION,
+    PYTHON_VERSIONS,
     Bump,
     GitSHA,
     Project,
@@ -49,13 +55,25 @@ with pipmetapathfinder():
     import typer
 
 
-def repos_completions(ctx: typer.Context, args: list[str], incomplete: str):
+def _repos_completions(ctx: typer.Context, args: list[str], incomplete: str):
     from rich.console import Console
 
     console = Console(stderr=True)
     console.print(f"{args}")
     r = Project().repos(ProjectRepos.DICT)
     valid = list(r.keys()) + [str(item) for item in r.values()]
+    provided = ctx.params.get("name") or []
+    for item in valid:
+        if item.startswith(incomplete) and item not in provided:
+            yield item
+
+
+def _versions_completions(ctx: typer.Context, args: list[str], incomplete: str):
+    from rich.console import Console
+
+    console = Console(stderr=True)
+    console.print(f"{args}")
+    valid = PYTHON_VERSIONS
     provided = ctx.params.get("name") or []
     for item in valid:
         if item.startswith(incomplete) and item not in provided:
@@ -74,6 +92,11 @@ _build = typer.Typer(
     add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="build",
+)
+_builds = typer.Typer(
+    add_completion=False,
+    context_settings={"help_option_names": ["-h", "--help"]},
+    name="builds",
 )
 _buildrequires = typer.Typer(
     add_completion=False,
@@ -165,10 +188,20 @@ _pypi = typer.Typer(
     context_settings={"help_option_names": ["-h", "--help"]},
     name="pypi",
 )
+_pytests = typer.Typer(
+    add_completion=False,
+    context_settings={"help_option_names": ["-h", "--help"]},
+    name="pytests",
+)
 _repos = typer.Typer(
     add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="repos",
+)
+_requirement = typer.Typer(
+    add_completion=False,
+    context_settings={"help_option_names": ["-h", "--help"]},
+    name="requirement",
 )
 _requirements = typer.Typer(
     add_completion=False,
@@ -190,6 +223,11 @@ _superproject = typer.Typer(
     context_settings={"help_option_names": ["-h", "--help"]},
     name="superproject",
 )
+_test = typer.Typer(
+    add_completion=False,
+    context_settings={"help_option_names": ["-h", "--help"]},
+    name="test",
+)
 _tests = typer.Typer(
     add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
@@ -205,6 +243,11 @@ _venv = typer.Typer(
     context_settings={"help_option_names": ["-h", "--help"]},
     name="venv",
 )
+_venvs = typer.Typer(
+    add_completion=False,
+    context_settings={"help_option_names": ["-h", "--help"]},
+    name="venvs",
+)
 
 
 @app.command()
@@ -213,7 +256,7 @@ def brew(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
     command: str = typer.Option("", help="Command to check in order to run brew"),
@@ -229,13 +272,15 @@ def browser(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    version: Annotated[str, typer.Option(help="python major and minor version",
+                                         autocompletion=_versions_completions)] = PYTHON_DEFAULT_VERSION,
     quiet: bool = True,
 ):
     """Build and serve the documentation with live reloading on file changes."""
-    Project(data).browser(quiet=quiet)
+    Project(data).browser(version=version, quiet=quiet)
 
 
 @app.command()
@@ -245,13 +290,31 @@ def build(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
+        ),
+    ] = _cwd,
+    version: Annotated[str, typer.Option(help="python major and minor version",
+                                         autocompletion=_versions_completions)] = PYTHON_DEFAULT_VERSION,
+    quiet: bool = True,
+):
+    """Build a project `venv`, `completions`, `docs` and `clean`."""
+    Project(data).build(version=version, quiet=quiet)
+
+
+@app.command()
+@_builds.command()
+def builds(
+    data: Annotated[
+        Path,
+        typer.Argument(
+            help="Path/file to project or name of project",
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
     quiet: bool = True,
 ):
-    """Build a project `venv`, `completions`, `docs` and `clean`."""
-    Project(data).build(quiet=quiet)
+    """Build a project `venv`, `completions`, `docs` and `clean` for all versions."""
+    Project(data).builds(quiet=quiet)
 
 
 @app.command()
@@ -261,7 +324,7 @@ def buildrequires(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
@@ -277,7 +340,7 @@ def clean(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
@@ -292,7 +355,7 @@ def commit(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
     msg: str = typer.Option("", "-m", "--message", "--msg", help="Commit message"),
@@ -308,7 +371,7 @@ def completions(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
@@ -322,7 +385,7 @@ def coverage(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
@@ -337,7 +400,7 @@ def dependencies(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
@@ -353,7 +416,7 @@ def dirty(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
@@ -371,7 +434,7 @@ def distribution(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
@@ -386,7 +449,7 @@ def diverge(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
@@ -404,13 +467,15 @@ def docs(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    version: Annotated[str, typer.Option(help="python major and minor version",
+                                         autocompletion=_versions_completions)] = PYTHON_DEFAULT_VERSION,
     quiet: bool = True,
 ):
     """Build the documentation."""
-    Project(data).docs(quiet=quiet)
+    Project(data).docs(version=version, quiet=quiet)
 
 
 @app.command()
@@ -419,7 +484,7 @@ def executable(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
@@ -434,7 +499,7 @@ def extras(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
@@ -449,7 +514,7 @@ def github(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
@@ -464,7 +529,7 @@ def latest(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
@@ -479,7 +544,7 @@ def needpull(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
@@ -497,7 +562,7 @@ def needpush(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
@@ -515,7 +580,7 @@ def __next(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
     part: Annotated[Bump, typer.Option(help="part to increase if force")] = Bump.PATCH,
@@ -532,7 +597,7 @@ def publish(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
     part: Annotated[Bump, typer.Option(help="part to increase if force")] = Bump.PATCH,
@@ -552,7 +617,7 @@ def pull(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
@@ -567,7 +632,7 @@ def push(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
@@ -582,7 +647,7 @@ def pypi(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
@@ -596,12 +661,29 @@ def pytest(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
+        ),
+    ] = _cwd,
+    version: Annotated[str, typer.Option(help="python major and minor version",
+                                         autocompletion=_versions_completions)] = PYTHON_DEFAULT_VERSION,
+):
+    """Run pytest."""
+    sys.exit(Project(data).pytest(version=version))
+
+
+@app.command()
+@_pytests.command()
+def pytests(
+    data: Annotated[
+        Path,
+        typer.Argument(
+            help="Path/file to project or name of project",
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
-    """Run pytest."""
-    sys.exit(Project(data).pytest())
+    """Run pytest for all versions."""
+    sys.exit(Project(data).pytests())
 
 
 @app.command()
@@ -611,7 +693,7 @@ def repos(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
     ret: Annotated[ProjectRepos, typer.Option(help="return names, paths, dict or instances")] = ProjectRepos.NAMES,
@@ -631,24 +713,42 @@ def repos(
 
 
 @app.command()
+@_requirement.command()
+def requirement(
+    data: Annotated[
+        Path,
+        typer.Argument(
+            help="Path/file to project or name of project",
+            autocompletion=_repos_completions,
+        ),
+    ] = _cwd,
+    version: Annotated[str, typer.Option(help="python major and minor version",
+                                         autocompletion=_versions_completions)] = PYTHON_DEFAULT_VERSION,
+    install: Annotated[bool, typer.Option(help="install requirements, dependencies and extras")] = False,
+    upgrade: Annotated[bool, typer.Option(help="upgrade requirements, dependencies and extras")] = False,
+):
+    """Requirements for package."""
+    rv = Project(data).requirement(version=version, install=install, upgrade=upgrade)
+    if install or upgrade:
+        return
+    for item in rv:
+        print(item)
+
+
+@app.command()
 @_requirements.command()
 def requirements(
     data: Annotated[
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
-    install: Annotated[bool, typer.Option(help="install requirements, dependencies and extras")] = False,
     upgrade: Annotated[bool, typer.Option(help="upgrade requirements, dependencies and extras")] = False,
 ):
-    """SHA for local, base or remote."""
-    rv = Project(data).requirements(install, upgrade)
-    if install or upgrade:
-        return
-    for item in rv:
-        print(item)
+    """Install requirements for all python versions."""
+    Project(data).requirements(upgrade=upgrade)
 
 
 @app.command(name="ruff")
@@ -657,12 +757,14 @@ def _ruff(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    version: Annotated[str, typer.Option(help="python major and minor version",
+                                         autocompletion=_versions_completions)] = PYTHON_DEFAULT_VERSION,
 ):
     """Run ruff."""
-    sys.exit(Project(data).ruff())
+    sys.exit(Project(data).ruff(version=version))
 
 
 @app.command()
@@ -672,7 +774,7 @@ def secrets(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
@@ -687,7 +789,7 @@ def sha(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
     ref: Annotated[GitSHA, typer.Option(help="local, base or remote")] = GitSHA.LOCAL,
@@ -703,7 +805,7 @@ def superproject(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
@@ -717,7 +819,7 @@ def __sync(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
@@ -732,12 +834,32 @@ def __tag(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
     """Tag repo."""
     Project(data).tag(tag)
+
+
+@app.command(name="test")
+@_test.command(name="test")
+def test(
+    data: Annotated[
+        Path,
+        typer.Argument(
+            help="Path/file to project or name of project",
+            autocompletion=_repos_completions,
+        ),
+    ] = _cwd,
+    version: Annotated[str, typer.Option(help="python major and minor version",
+                                         autocompletion=_versions_completions)] = PYTHON_DEFAULT_VERSION,
+    ruff: Annotated[bool, typer.Option(help="run ruff")] = True,
+    tox: Annotated[bool, typer.Option(help="run tox")] = False,
+    quiet: bool = True,
+):
+    """Test project, runs `build`, `ruff`, `pytest` and `tox`."""
+    sys.exit(Project(data).test(version=version, ruff=ruff, tox=tox, quiet=quiet))
 
 
 @app.command(name="tests")
@@ -747,11 +869,11 @@ def tests(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
     ruff: Annotated[bool, typer.Option(help="run ruff")] = True,
-    tox: Annotated[bool, typer.Option(help="run tox")] = True,
+    tox: Annotated[bool, typer.Option(help="run tox")] = False,
     quiet: bool = True,
 ):
     """Test project, runs `build`, `ruff`, `pytest` and `tox`."""
@@ -764,7 +886,7 @@ def top(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
@@ -778,7 +900,7 @@ def _tox(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
@@ -792,7 +914,7 @@ def twine(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
     part: Annotated[Bump, typer.Option(help="part to increase if force")] = Bump.PATCH,
@@ -809,7 +931,7 @@ def __version(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):
@@ -824,15 +946,33 @@ def venv(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
-    version: Annotated[str, typer.Option(help="python major and minor version")] = PYTHON_DEFAULT_VERSION,
+    version: Annotated[str, typer.Option(help="python major and minor version",
+                                         autocompletion=_versions_completions)] = PYTHON_DEFAULT_VERSION,
     force: Annotated[bool, typer.Option(help="force removal of venv before")] = False,
     upgrade: Annotated[bool, typer.Option(help="upgrade all dependencies")] = False,
 ):
     """Creates venv, runs: `write` and `requirements`."""
-    Project(data).venv(version, force, upgrade)
+    Project(data).venv(version=version, force=force, upgrade=upgrade)
+
+
+@app.command()
+@_venvs.command()
+def venvs(
+    data: Annotated[
+        Path,
+        typer.Argument(
+            help="Path/file to project or name of project",
+            autocompletion=_repos_completions,
+        ),
+    ] = _cwd,
+    force: Annotated[bool, typer.Option(help="force removal of venv before")] = False,
+    upgrade: Annotated[bool, typer.Option(help="upgrade all dependencies")] = False,
+):
+    """Creates venv, runs: `write` and `requirements`."""
+    Project(data).venv(force=force, upgrade=upgrade)
 
 
 @app.command()
@@ -841,7 +981,7 @@ def write(
         Path,
         typer.Argument(
             help="Path/file to project or name of project",
-            autocompletion=repos_completions,
+            autocompletion=_repos_completions,
         ),
     ] = _cwd,
 ):

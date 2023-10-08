@@ -21,6 +21,13 @@ def test_build_name(invoke):
     assert invoke.exit_code == 0
 
 
+# FIXME: change to tests when aiohttp can be install in 3.12
+@pytest.mark.skip(reason="3.12 aiohttp install error")
+@pytest.mark.parametrize("invoke", [[_builds]], indirect=True)
+def test_builds(invoke):
+    assert invoke.exit_code == 0
+
+
 @pytest.mark.parametrize("invoke", [[_buildrequires]], indirect=True)
 def test_buildrequires(invoke):
     assert invoke.exit_code == 0

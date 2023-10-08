@@ -13,6 +13,9 @@ browser:
 build:  # Build a project `venv`, `completions`, `docs` and `clean`.
 	@python3 -m $(PACKAGE) $@
 
+builds:  # Build a project `venv`, `completions`, `docs` and `clean`.
+	@python3 -m $(PACKAGE) $@
+
 clean:
 	@python3 -m $(PACKAGE) $@
 
@@ -44,8 +47,14 @@ pyenv:
 pytest:
 	@python3 -m $(PACKAGE) $@
 
-requirements:
+pytests:
+	@python3 -m $(PACKAGE) $@
+
+requirement:
 	@python3 -m $(PACKAGE) $@ --install
+
+requirements:
+	@python3 -m $(PACKAGE) $@
 
 ruff:
 	@python3 -m $(PACKAGE) $@
@@ -63,6 +72,9 @@ twine:
 	@python3 -m $(PACKAGE) $@
 
 venv:  # runs `write` and `requirements`
+	@python3 -m $(PACKAGE) $@
+
+venvs:  # runs `write` and `requirements`
 	@python3 -m $(PACKAGE) $@
 
 .DEFAULT_GOAL := publish

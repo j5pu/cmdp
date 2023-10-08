@@ -13,6 +13,7 @@ __all__ = (
     "NODEPS_EXECUTABLE",
     "NODEPS_PIP_POST_INSTALL_FILENAME",
     "NODEPS_PROJECT_NAME",
+    "PYTHON_VERSIONS",
     "PYTHON_DEFAULT_VERSION",
     "USER",
     "EMAIL",
@@ -245,7 +246,12 @@ NODEPS_PIP_POST_INSTALL_FILENAME = "_post_install.py"
 """Filename that will be searched after pip installs a package."""
 NODEPS_PROJECT_NAME = "nodeps"
 """NoDeps Project Name"""
-PYTHON_DEFAULT_VERSION = "3.11"
+PYTHON_VERSIONS = (
+    "3.11",
+    "3.12",
+)
+"""Python versions for venv, etc."""
+PYTHON_DEFAULT_VERSION = PYTHON_VERSIONS[0]
 """Python default version for venv, etc."""
 USER = os.getenv("USER")
 """"Environment Variable $USER"""
@@ -3546,10 +3552,11 @@ class Project:
             return rv
         return 0
 
-    def browser(self, quiet: bool = True) -> int:
+    def browser(self, version: str = PYTHON_DEFAULT_VERSION, quiet: bool = True) -> int:
         """Build and serve the documentation with live reloading on file changes.
 
         Arguments:
+            version: python version
             quiet: quiet mode (default: True)
         """
         if not self.docsdir:
@@ -3559,25 +3566,31 @@ class Project:
         if build_dir.exists():
             shutil.rmtree(build_dir)
 
-        if subprocess.check_call(f"{self.bin('sphinx-autobuild')} {q} {self.docsdir} {build_dir}", shell=True) == 0:
+        if (
+            subprocess.check_call(
+                f"{self.executable(version=version)} -m sphinx_autobuild {q} {self.docsdir} {build_dir}", shell=True
+            )
+            == 0
+        ):
             self.info(self.docs.__name__)
         return 0
 
-    def build(self, quiet: bool = True) -> Path | None:
+    def build(self, version: str = PYTHON_DEFAULT_VERSION, quiet: bool = True) -> Path | None:
         """Build a project `venv`, `completions`, `docs` and `clean`.
 
         Arguments:
+            version: python version (default: PYTHON_DEFAULT_VERSION)
             quiet: quiet mode (default: True)
         """
         # TODO: el pth sale si execute en terminal pero no en run
         if not self.pyproject_toml.file:
             return None
-        self.venv()
+        self.venv(version=version)
         self.completions()
         self.docs(quiet=quiet)
         self.clean()
         rv = subprocess.run(
-            f"{self.executable()} -m build {self.root} --wheel",
+            f"{self.executable(version=version)} -m build {self.root} --wheel",
             stdout=subprocess.PIPE,
             shell=True,
         )
@@ -3587,9 +3600,18 @@ class Project:
         if "py3-none-any.whl" not in wheel:
             raise CalledProcessError(completed=rv)
         self.info(
-            f"{self.build.__name__}: {wheel}",
+            f"{self.build.__name__}: {wheel}: {version}",
         )
         return self.root / "dist" / wheel
+
+    def builds(self, quiet: bool = True) -> None:
+        """Build a project `venv`, `completions`, `docs` and `clean`.
+
+        Arguments:
+            quiet: quiet mode (default: True)
+        """
+        for version in PYTHON_VERSIONS:
+            self.build(version=version, quiet=quiet)
 
     def buildrequires(self) -> list[str]:
         """pyproject.toml build-system requires."""
@@ -3675,10 +3697,11 @@ class Project:
         """Diverge."""
         return (self.dirty() or self.needpush()) and self.needpull()
 
-    def docs(self, quiet: bool = True) -> int:
+    def docs(self, version: str = PYTHON_DEFAULT_VERSION, quiet: bool = True) -> int:
         """Build the documentation.
 
         Arguments:
+            version: python version
             quiet: quiet mode (default: True)
         """
         if not self.docsdir:
@@ -3690,17 +3713,17 @@ class Project:
 
         if (
             subprocess.check_call(
-                f"{self.bin('sphinx-build')} {q} --color {self.docsdir} {build_dir}",
+                f"{self.executable(version=version)} -m sphinx {q} --color {self.docsdir} {build_dir}",
                 shell=True,
             )
             == 0
         ):
-            self.info(self.docs.__name__)
+            self.info(f"{self.docs.__name__}: {version}")
         return 0
 
-    def executable(self) -> Path:
+    def executable(self, version: str = PYTHON_DEFAULT_VERSION) -> Path:
         """Executable."""
-        return v / "bin/python" if (v := self.root / "venv").is_dir() and not self.ci else sys.executable
+        return v / f"bin/python{version}" if (v := self.root / "venv").is_dir() and not self.ci else sys.executable
 
     @staticmethod
     def _extras(d):
@@ -3843,7 +3866,8 @@ class Project:
             tox: run tox
             quiet: quiet mode (default: True)
         """
-        self.tests(ruff=ruff, tox=tox, quiet=quiet)
+        # FIXME: change to tests when aiohttp can be install in 3.12
+        self.test(ruff=ruff, tox=tox, quiet=quiet)
         self.commit()
         if (n := self.next(part=part, force=force)) != (l := self.latest()):
             self.tag(n)
@@ -3902,13 +3926,22 @@ class Project:
         """
         return urljson(f"https://pypi.org/pypi/{self.name}/json")
 
-    def pytest(self) -> int:
+    def pytest(self, version: str = PYTHON_DEFAULT_VERSION) -> int:
         """Runs pytest."""
         if self.pyproject_toml.file:
-            rc = subprocess.run(f"{self.executable()} -m pytest {self.root}", shell=True).returncode
-            self.info(self.pytest.__name__)
+            rc = subprocess.run(f"{self.executable(version=version)} -m pytest {self.root}", shell=True).returncode
+            self.info(f"{self.pytest.__name__}: {version}")
             return rc
         return 0
+
+    def pytests(self) -> int:
+        """Runs pytest for all versions."""
+        rc = 0
+        for version in PYTHON_VERSIONS:
+            rc = self.pytest(version=version)
+            if rc != 0:
+                sys.exit(rc)
+        return rc
 
     @classmethod
     def repos(
@@ -3929,11 +3962,11 @@ class Project:
         if py or sync:
             ret = ProjectRepos.INSTANCES
         names = ret is ProjectRepos.NAMES
-        archive = sorted(archive.iterdir()) if (archive := Path.home() / "Archive").is_dir() and archive else []
+        add = sorted(add.iterdir()) if (add := Path.home() / "Archive").is_dir() and archive else []
 
         rv = [
             item.name if names else item
-            for item in archive + sorted(Path.home().iterdir())
+            for item in add + sorted(Path.home().iterdir())
             if item.is_dir() and (item / ".git").exists()
         ]
         if ret == ProjectRepos.DICT:
@@ -3948,22 +3981,29 @@ class Project:
             return rv
         return rv
 
-    def requirements(self, install: bool = False, upgrade: bool = False) -> list[str] | int:
+    def requirement(
+        self, version: str = PYTHON_DEFAULT_VERSION, install: bool = False, upgrade: bool = False
+    ) -> list[str] | int:
         """Dependencies and optional dependencies from pyproject.toml or distribution."""
         req = sorted({*self.dependencies() + self.extras(as_list=True)})
         req = [item for item in req if not item.startswith(f"{self.name}[")]
         if (install or upgrade) and req:
             upgrade = ["--upgrade"] if upgrade else []
-            rv = subprocess.check_call([self.executable(), "-m", "pip", "install", "-q", *upgrade, *req])
-            self.info(self.requirements.__name__)
+            rv = subprocess.check_call([self.executable(version), "-m", "pip", "install", "-q", *upgrade, *req])
+            self.info(f"{self.requirements.__name__}: {version}")
             return rv
         return req
 
-    def ruff(self) -> int:
+    def requirements(self, upgrade: bool = False) -> None:
+        """Install dependencies and optional dependencies from pyproject.toml or distribution for python versions."""
+        for version in PYTHON_VERSIONS:
+            self.requirement(version=version, install=True, upgrade=upgrade)
+
+    def ruff(self, version: str = PYTHON_DEFAULT_VERSION) -> int:
         """Runs ruff."""
         if self.pyproject_toml.file:
-            rv = subprocess.run(f"{self.executable()} -m ruff check {self.root}", shell=True).returncode
-            self.info(self.ruff.__name__)
+            rv = subprocess.run(f"{self.executable(version=version)} -m ruff check {self.root}", shell=True).returncode
+            self.info(f"{self.ruff.__name__}: {version}")
             return rv
         return 0
 
@@ -4028,24 +4068,42 @@ class Project:
 
     # TODO: delete all tags and pypi versions
 
-    def tests(self, ruff: bool = True, tox: bool = True, quiet: bool = True) -> int:
+    def test(
+        self, version: str = PYTHON_DEFAULT_VERSION, ruff: bool = True, tox: bool = False, quiet: bool = True
+    ) -> int:
         """Test project, runs `build`, `ruff`, `pytest` and `tox`.
 
         Arguments:
+            version: python version
             ruff: run ruff (default: True)
             tox: run tox (default: True)
             quiet: quiet mode (default: True)
         """
-        self.build(quiet=quiet)
-        if ruff and (rc := self.ruff() != 0):
+        self.build(version=version, quiet=quiet)
+        if ruff and (rc := self.ruff(version=version) != 0):
             sys.exit(rc)
 
-        if rc := self.pytest() != 0:
+        if rc := self.pytest(version=version) != 0:
             sys.exit(rc)
 
         if tox and (rc := self.tox() != 0):
             sys.exit(rc)
 
+        return rc
+
+    def tests(self, ruff: bool = True, tox: bool = False, quiet: bool = True) -> int:
+        """Test project, runs `build`, `ruff`, `pytest` and `tox` for all versions.
+
+        Arguments:
+            ruff: runs ruff
+            tox: runs tox
+            quiet: quiet mode (default: True)
+        """
+        rc = 0
+        for version in PYTHON_VERSIONS:
+            rc = self.test(version=version, ruff=ruff, tox=tox, quiet=quiet)
+            if rc != 0:
+                sys.exit(rc)
         return rc
 
     def top(self) -> Path | None:
@@ -4117,7 +4175,7 @@ class Project:
                 shutil.rmtree(v, ignore_errors=True)
             if not v.is_dir():
                 subprocess.check_call(f"python{version} -m venv {v}", shell=True)
-                self.info(f"{self.venv.__name__}: {v}")
+                self.info(f"{self.venv.__name__}: {version}")
             subprocess.check_call(
                 [
                     self.executable(),
@@ -4132,7 +4190,16 @@ class Project:
                     "build",
                 ]
             )
-        self.requirements(install=True, upgrade=upgrade)
+        self.requirement(version=version, install=True, upgrade=upgrade)
+
+    def venvs(
+        self,
+        force: bool = False,
+        upgrade: bool = False,
+    ):
+        """Installs venv for all python versions in :data:`PYTHON_DEFAULT_VERSION`."""
+        for version in PYTHON_VERSIONS:
+            self.venv(version=version, force=force, upgrade=upgrade)
 
     def write(self):
         """Updates pyproject.toml and docs conf.py."""
@@ -4314,7 +4381,8 @@ def _copy_pths(self: PTHBuildPy | PTHDevelop | PTHEasyInstall | PTHInstallLib, d
             destination = Path(directory, Path(source).name)
             if not destination.is_file() or not filecmp.cmp(source, destination):
                 destination = str(destination)
-                log.info(self.__class__.__name__, extra={"extra": f"{source} -> {destination}"})
+                msg = f"{self.__class__.__name__}: {str(Path(sys.executable).resolve())[-4:]}"
+                log.info(msg, extra={"extra": f"{source} -> {destination}"},)
                 self.copy_file(source, destination)
                 outputs.append(destination)
     return outputs
