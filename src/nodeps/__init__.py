@@ -5551,8 +5551,8 @@ def pipmetapathfinder():
     Examples:
         >>> from nodeps import pipmetapathfinder
         >>>
-        >>> with pipmetapathfinder():
-        ...    import sampleproject
+        >>> with pipmetapathfinder():  # doctest: +SKIP
+        ...    import sampleproject  # type: ignore[attr-defined]
     """
     sys.meta_path.append(PipMetaPathFinder)
     try:

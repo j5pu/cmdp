@@ -1,3 +1,4 @@
+import sys
 import sysconfig
 from pathlib import Path
 
@@ -8,13 +9,7 @@ import nodeps
 from pip._internal.cli.main import main as _main
 
 ROOT = Path(__file__).parent.parent
-PACKAGE = nodeps.__name__
-
-
-def setup_module():
-    """ setup any state specific to the execution of the given module."""
-    rc = _main(["install", "-q", str(ROOT)])
-    assert rc == 0
+PACKAGE = "sampleproject"
 
 
 def teardown_module():
@@ -25,9 +20,10 @@ def teardown_module():
 
 @pytest.mark.skipif(nodeps.in_tox(), reason="in tox")
 def test_pipmetapathfinder() -> None:
-    paths = sysconfig.get_paths()
-    purelib = Path(paths["purelib"])
-    scripts = Path(paths["scripts"])
-    assert (purelib / f"{PACKAGE}.pth").is_file()
-    assert (scripts / f"git-mod-add").is_file()
-    assert (purelib / f"{PACKAGE}/data/Brewfile").is_file()
+    with pytest.raises(ModuleNotFoundError):
+        import sampleproject  # type: ignore[attr-defined]
+    with nodeps.pipmetapathfinder():  # doctest: +SKIP
+        print(sys.meta_path)
+        import sampleproject  # type: ignore[attr-defined]
+        assert sampleproject.__name__ == PACKAGE
+        assert PACKAGE in sys.modules
