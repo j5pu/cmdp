@@ -603,7 +603,7 @@ def publish(
     part: Annotated[Bump, typer.Option(help="part to increase if force")] = Bump.PATCH,
     force: Annotated[bool, typer.Option(help="force bump")] = False,
     ruff: Annotated[bool, typer.Option(help="run ruff")] = True,
-    tox: Annotated[bool, typer.Option(help="run tox")] = True,
+    tox: Annotated[bool, typer.Option(help="run tox")] = False,
     quiet: bool = True,
 ):
     """Publish runs runs `tests`, `commit`, `tag`, `push`, `twine` and `clean`."""

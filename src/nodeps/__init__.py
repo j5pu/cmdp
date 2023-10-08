@@ -3855,7 +3855,7 @@ class Project:
         part: Bump = Bump.PATCH,
         force: bool = False,
         ruff: bool = True,
-        tox: bool = True,
+        tox: bool = False,
         quiet: bool = True,
     ):
         """Publish runs runs `tests`, `commit`, `tag`, `push`, `twine` and `clean`.
