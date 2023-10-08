@@ -4399,6 +4399,9 @@ def _pip_base_command(self: Command, args: list[str]) -> int:
             rv = self._main(args)
             if rv == 0 and self.__class__.__name__ == "InstallCommand":
                 for key, value in _NODEPS_PIP_POST_INSTALL.items():
+                    p = Project(key)
+                    p.completions()
+                    p.brew()
                     for file in findfile(NODEPS_PIP_POST_INSTALL_FILENAME, value):
                         log.info(self.__class__.__name__, extra={"extra": f"post install '{key}': {file}"})
                         exec_module_from_file(file)
