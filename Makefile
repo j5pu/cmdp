@@ -62,6 +62,9 @@ ruff:
 secrets:
 	@python3 -m $(PACKAGE) $@
 
+test:  # runs `build`, `ruff`, `pytest` and `tox`
+	@python3 -m $(PACKAGE) $@
+
 tests:  # runs `build`, `ruff`, `pytest` and `tox`
 	@python3 -m $(PACKAGE) $@
 
