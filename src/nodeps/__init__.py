@@ -5543,7 +5543,8 @@ def parse_str(  # noqa: PLR0911
                 return int(data)
     return data
 
-
+def pipmetapathfinder():
+    """"""
 def returncode(c: str | list[str], shell: bool = True) -> int:
     """Runs command in shell and returns returncode showing stdout and stderr.
 
