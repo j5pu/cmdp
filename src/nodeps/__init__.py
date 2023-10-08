@@ -5543,8 +5543,23 @@ def parse_str(  # noqa: PLR0911
                 return int(data)
     return data
 
+
+@contextlib.contextmanager
 def pipmetapathfinder():
-    """"""
+    """Context for :class:`PipMetaPathFinder`.
+
+    Examples:
+        >>> from nodeps import pipmetapathfinder
+        >>>
+        >>> with pipmetapathfinder():
+        ...    import sampleproject
+    """
+    sys.meta_path.append(PipMetaPathFinder)
+    try:
+        yield
+    finally:
+        sys.meta_path.pop()
+
 def returncode(c: str | list[str], shell: bool = True) -> int:
     """Runs command in shell and returns returncode showing stdout and stderr.
 
