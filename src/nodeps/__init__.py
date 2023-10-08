@@ -3482,7 +3482,8 @@ class Project:
                 or findfile("pyproject.toml", self.directory)
             ):
                 path = path[0] if isinstance(path, list) else path
-                self.tomlkit = importlib.import_module("tomlkit")
+                with pipmetapathfinder():
+                    self.tomlkit = importlib.import_module("tomlkit")
                 with Path.open(path, "rb") as f:
                     self.pyproject_toml = FileConfig(path, self.tomlkit.load(f))
                 self.name = self.pyproject_toml.config.get("project", {}).get("name")
