@@ -188,8 +188,11 @@ except ModuleNotFoundError:
     easy_install = object
     install_lib = object
 
+# for f in inspect.stack():
+# while _frame and (SITEDIR := _frame.f_locals.get("sitedir")) is None:
+
 try:
-    if "_in_process.py" not in sys.argv[0]:
+    if "_in_process.py" not in sys.argv[0] and "pip._internal.operations.install.wheel" not in sys.modules:
         # Avoids failing when asking for build requirements and distutils.core is not available since pip patch it
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=UserWarning, message="Setuptools is replacing distutils.")
@@ -656,10 +659,12 @@ class ColorLogger(logging.Formatter):
         logging.CRITICAL: red_bold + fmt + reset,
     }
 
-    def format(self, record):  # noqa: A003
+    def format(self, record: logging.LogRecord):  # noqa: A003
         """Format log."""
         log_fmt = self.FORMATS.get(record.levelno)
         formatter = logging.Formatter(log_fmt)
+        if "extra" not in record.__dict__:
+            record.__dict__["extra"] = ""
         return formatter.format(record)
 
     @classmethod
@@ -668,9 +673,11 @@ class ColorLogger(logging.Formatter):
 
         Examples:
             >>> from nodeps import ColorLogger
+            >>> from nodeps import NODEPS_PROJECT_NAME
             >>>
-            >>> lo = ColorLogger.logger("proj")
+            >>> lo = ColorLogger.logger(NODEPS_PROJECT_NAME)
             >>> lo.info("hola", extra=dict(extra="bapy"))
+            >>> lo.info("hola")
 
         Args:
             name: logger name
@@ -3393,10 +3400,13 @@ class PipMetaPathFinder(importlib.abc.MetaPathFinder):
             package = fullname.split(".")[0].replace("_", "-")
             try:
                 importlib.metadata.Distribution.from_name(package)
-                if subprocess.run([sys.executable, "-m", "pip", "install", "-q", package]).returncode == 0:
-                    return importlib.import_module(fullname)
-            except importlib.metadata.PackageNotFoundError:
-                pass
+            except importlib.metadata.PackageNotFoundError as e:
+                if subprocess.run([sys.executable, "-m", "pip", "install", "-q", package]).returncode != 0:
+                    msg = f"Not able to install: {fullname=}, {package=}"
+                    raise RuntimeWarning(msg) from e
+            if package not in sys.modules:
+                return importlib.import_module(fullname)
+            return sys.modules[package]
         return None
 
 
@@ -3506,11 +3516,11 @@ class Project:
 
     def info(self, msg: str):
         """Logger info."""
-        self.log.info(msg, extra={"repo": self.name})
+        self.log.info(msg, extra={"extra": self.name})
 
     def warning(self, msg: str):
         """Logger warning."""
-        self.log.warning(msg, extra={"repo": self.name})
+        self.log.warning(msg, extra={"extra": self.name})
 
     def bin(self, executable: str | None = None) -> Path:  # noqa: A003
         """Bin directory.
@@ -3925,6 +3935,7 @@ class Project:
     def requirements(self, install: bool = False, upgrade: bool = False) -> list[str] | int:
         """Dependencies and optional dependencies from pyproject.toml or distribution."""
         req = sorted({*self.dependencies() + self.extras(as_list=True)})
+        req = [item for item in req if not item.startswith(f"{self.name}[")]
         if (install or upgrade) and req:
             upgrade = ["--upgrade"] if upgrade else []
             rv = subprocess.check_call([self.executable(), "-m", "pip", "install", "-q", *upgrade, *req])
@@ -4106,12 +4117,13 @@ class Project:
         if self.pyproject_toml.file:
             original_project = self.pyproject_toml.config.get("project", {}).copy()
             github = self.github()
+            description = {"description": description} if (description := github.get("description")) else {}
             project = {
                 "name": github["name"],
                 "authors": [
                     {"name": AUTHOR, "email": EMAIL},
                 ],
-                "description": github["description"],
+                **description,
                 "urls": {"Homepage": github["html_url"]},
                 "dynamic": ["version"],
                 "license": {"text": "MIT"},

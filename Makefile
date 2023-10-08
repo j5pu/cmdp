@@ -1,64 +1,68 @@
-.PHONY: docs tests venv
+.PHONY: build docs tests venv
+ROOT_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
+PACKAGE := $(shell basename $(ROOT_DIR))
+PYTHONPATH := $(ROOT_DIR)/src
+export PYTHONPATH
+
+brew:
+	@python3 -m $(PACKAGE) $@ --command gh
 
 browser:
-	@$@
+	@python3 -m $(PACKAGE) $@
 
-build:  # run: write, docs, clean and venv (requirements)
-	@$@
+build:  # Build a project `venv`, `completions`, `docs` and `clean`.
+	@python3 -m $(PACKAGE) $@
 
 clean:
-	@$@
+	@python3 -m $(PACKAGE) $@
 
 commit: tests
-	@$@
+	@python3 -m $(PACKAGE) $@
 
 completions:
-	@$@
+	@python3 -m $(PACKAGE) $@
 
 coverage:
-	@proj $@
+	@python3 -m $(PACKAGE) $@
 
 docs:
-	@$@
+	@python3 -m $(PACKAGE) $@
 
 latest:
-	@$@
+	@python3 -m $(PACKAGE) $@
 
 next:
-	@$@
+	@python3 -m $(PACKAGE) $@
 
-nodeps:
-	@python3 -m pip install --upgrade -q $@
-
-publish:  # runs: docs, tests (build (clean, venv (requirements)), pytest, ruff & tox), commit, tag, push, twine & clean
-	@$@
+publish:  # runs `tests`, `commit`, `tag`, `push`, `twine` and `clean`
+	@python3 -m $(PACKAGE) $@
 
 pyenv:
 	@pyenv install 3.11
 	@pyenv install 3.12-dev
 
 pytest:
-	@proj $@
+	@python3 -m $(PACKAGE) $@
 
 requirements:
-	@$@ --install
+	@python3 -m $(PACKAGE) $@ --install
 
 ruff:
-	@proj $@
+	@python3 -m $(PACKAGE) $@
 
 secrets:
-	@$@
+	@python3 -m $(PACKAGE) $@
 
-tests:  # runs: build (clean, venv (requirements)), pytest, ruff and tox
-	@$@
+tests:  # runs `build`, `ruff`, `pytest` and `tox`
+	@python3 -m $(PACKAGE) $@
 
 tox:
-	@proj $@
+	@python3 -m $(PACKAGE) $@
 
 twine:
-	@proj $@
+	@python3 -m $(PACKAGE) $@
 
-venv:  # runs: requirements
-	@$@
+venv:  # runs `write` and `requirements`
+	@python3 -m $(PACKAGE) $@
 
 .DEFAULT_GOAL := publish

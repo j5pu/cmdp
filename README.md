@@ -157,10 +157,10 @@ Add to your `setup.cfg` and `<mypackage>.pth` file in your package.
 ```ìni
 [options]
 cmdclass =
-  build_py = nodeps.PTHBuildPy
-  develop = nodeps.PTHDevelop
-  easy_install = nodeps.PTHEasyInstall
-  install_lib = nodeps.PTHInstallLib
+  build_py = pth.BuildPy
+  develop = pth.Develop
+  easy_install = pth.EasyInstall
+  install_lib = pth.InstallLib
 [options.package_data]
 mypackage =
   *.pth

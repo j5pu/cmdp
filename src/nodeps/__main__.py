@@ -30,12 +30,17 @@ __all__ = (
     "_venv",
 )
 
+import importlib
+import subprocess
 import sys
 from pathlib import Path
 from typing import Annotated
 
-import typer
-from rich import print
+try:
+    import typer
+except ModuleNotFoundError:
+    if subprocess.run([sys.executable, "-m", "pip", "install", "-q", "typer"]).returncode == 0:
+        typer = importlib.import_module("typer")
 
 from . import (
     NODEPS_PROJECT_NAME,
