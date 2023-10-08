@@ -28,7 +28,6 @@ __all__ = (
     "_secrets",
     "_sha",
     "_superproject",
-    "_test",
     "_tests",
     "_version",
     "_venv",
@@ -223,11 +222,6 @@ _superproject = typer.Typer(
     add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="superproject",
-)
-_test = typer.Typer(
-    add_completion=False,
-    context_settings={"help_option_names": ["-h", "--help"]},
-    name="test",
 )
 _tests = typer.Typer(
     add_completion=False,
@@ -844,7 +838,6 @@ def __tag(
 
 
 @app.command(name="test")
-@_test.command(name="test")
 def test(
     data: Annotated[
         Path,

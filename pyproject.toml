@@ -10,6 +10,7 @@ email = "63794670+j5pu@users.noreply.github.com"
 
 
 
+
 [project.license]
 text = "MIT"
 
@@ -132,7 +133,6 @@ requirements = "nodeps.__main__:_requirements"
 secrets = "nodeps.__main__:_secrets"
 sha = "nodeps.__main__:_sha"
 superproject = "nodeps.__main__:_superproject"
-test = "nodeps.__main__:_test"
 tests = "nodeps.__main__:_tests"
 version = "nodeps.__main__:_version"
 venv = "nodeps.__main__:_venv"
@@ -140,6 +140,7 @@ venvs = "nodeps.__main__:_venvs"
 
 [project.urls]
 Homepage = "https://github.com/j5pu/nodeps"
+
 
 
 

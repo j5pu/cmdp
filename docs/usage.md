@@ -117,10 +117,6 @@
     :prog: superproject
     :nested: full
 
-.. click:: nodeps.__main__:_test_click
-    :prog: test
-    :nested: full
-
 .. click:: nodeps.__main__:_tests_click
     :prog: tests
     :nested: full
