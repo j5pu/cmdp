@@ -4232,10 +4232,11 @@ class Project:
                     self.info(f"{self.write.__name__}: {self.pyproject_toml.file}")
 
             if self.docsdir:
+                imp = f"import {NODEPS_PROJECT_NAME}.__main__" if self.name == NODEPS_PROJECT_NAME else ''
                 conf = f"""import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
+{imp}
 project = "{github["name"]}"
 author = "{AUTHOR}"
 copyright = "{datetime.datetime.now().year}, {AUTHOR}"

@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
+import nodeps.__main__
 project = "nodeps"
 author = "José Antonio Puértolas Montañés"
 copyright = "2023, José Antonio Puértolas Montañés"

@@ -1023,6 +1023,7 @@ if "sphinx" in sys.modules and __name__ != "__main__":
         if toml != new:
             with pyproject_toml.open("w") as f:
                 tomlkit.dump(new, f)
+                print(f"{pyproject_toml}: updated!")
 
 if __name__ == "__main__":
     try:
