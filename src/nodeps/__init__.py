@@ -3396,7 +3396,7 @@ class PipMetaPathFinder(importlib.abc.MetaPathFinder):
         target: types.ModuleType | None = None,
     ) -> importlib._bootstrap.ModuleSpec | None:
         """Try to find a module spec for the specified module."""
-        if path is None and fullname is not None:
+        if path is None and fullname is not None and fullname not in ["cPickle"]:
             package = fullname.split(".")[0].replace("_", "-")
             try:
                 importlib.metadata.Distribution.from_name(package)
