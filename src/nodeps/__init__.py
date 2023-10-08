@@ -98,6 +98,7 @@ __all__ = (
     "noexc",
     "parent",
     "parse_str",
+    "pipmetapathfinder",
     "returncode",
     "siteimported",
     "sourcepath",
@@ -3398,9 +3399,11 @@ class PipMetaPathFinder(importlib.abc.MetaPathFinder):
             package = fullname.split(".")[0].replace("_", "-")
             try:
                 importlib.metadata.Distribution.from_name(package)
-            except importlib.metadata.PackageNotFoundError:
+            except importlib.metadata.PackageNotFoundError as e:
                 if subprocess.run([sys.executable, "-m", "pip", "install", "-q", package]).returncode == 0:
                     return importlib.import_module(fullname)
+                msg = f"Cannot install: {package=},  {fullname=}"
+                raise RuntimeError(msg) from e
         return None
 
 
@@ -5552,7 +5555,7 @@ def pipmetapathfinder():
         >>> from nodeps import pipmetapathfinder
         >>>
         >>> with pipmetapathfinder():  # doctest: +SKIP
-        ...    import sampleproject  # type: ignore[attr-defined]
+        ...    import simplejson  # type: ignore[attr-defined]
     """
     sys.meta_path.append(PipMetaPathFinder)
     try:

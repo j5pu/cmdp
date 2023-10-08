@@ -50,7 +50,11 @@ from . import (
     Project,
     ProjectRepos,
     dict_sort,
+    pipmetapathfinder,
 )
+
+with pipmetapathfinder():
+    import typer
 
 
 def repos_completions(ctx: typer.Context, args: list[str], incomplete: str):
