@@ -30,17 +30,9 @@ __all__ = (
     "_venv",
 )
 
-import importlib
-import subprocess
 import sys
 from pathlib import Path
 from typing import Annotated
-
-try:
-    import typer
-except ModuleNotFoundError:
-    if subprocess.run([sys.executable, "-m", "pip", "install", "-q", "typer"]).returncode == 0:
-        typer = importlib.import_module("typer")
 
 from . import (
     NODEPS_PROJECT_NAME,
@@ -240,9 +232,10 @@ def browser(
             autocompletion=repos_completions,
         ),
     ] = _cwd,
+    quiet: bool = True,
 ):
     """Build and serve the documentation with live reloading on file changes."""
-    Project(data).browser()
+    Project(data).browser(quiet=quiet)
 
 
 @app.command()
@@ -255,9 +248,10 @@ def build(
             autocompletion=repos_completions,
         ),
     ] = _cwd,
+    quiet: bool = True,
 ):
     """Build a project `venv`, `completions`, `docs` and `clean`."""
-    Project(data).build()
+    Project(data).build(quiet=quiet)
 
 
 @app.command()
@@ -413,9 +407,10 @@ def docs(
             autocompletion=repos_completions,
         ),
     ] = _cwd,
+    quiet: bool = True,
 ):
     """Build the documentation."""
-    Project(data).docs()
+    Project(data).docs(quiet=quiet)
 
 
 @app.command()
@@ -544,9 +539,10 @@ def publish(
     force: Annotated[bool, typer.Option(help="force bump")] = False,
     ruff: Annotated[bool, typer.Option(help="run ruff")] = True,
     tox: Annotated[bool, typer.Option(help="run tox")] = True,
+    quiet: bool = True,
 ):
     """Publish runs runs `tests`, `commit`, `tag`, `push`, `twine` and `clean`."""
-    Project(data).publish(part=part, force=force, ruff=ruff, tox=tox)
+    Project(data).publish(part=part, force=force, ruff=ruff, tox=tox, quiet=quiet)
 
 
 @app.command()
@@ -621,9 +617,10 @@ def repos(
     ret: Annotated[ProjectRepos, typer.Option(help="return names, paths, dict or instances")] = ProjectRepos.NAMES,
     py: Annotated[bool, typer.Option(help="return only python projects instances")] = False,
     sync: Annotated[bool, typer.Option(help="push or pull all repos")] = False,
+    archive: Annotated[bool, typer.Option(help="look for repos under ~/Archive")] = False,
 ):
     """Manage repos and projects under HOME and HOME/Archive."""
-    rv = Project(data).repos(ret=ret, py=py, sync=sync)
+    rv = Project(data).repos(ret=ret, py=py, sync=sync, archive=archive)
     if sync is False:
         if ret == ProjectRepos.PATHS:
             for repo in rv:
@@ -755,9 +752,10 @@ def tests(
     ] = _cwd,
     ruff: Annotated[bool, typer.Option(help="run ruff")] = True,
     tox: Annotated[bool, typer.Option(help="run tox")] = True,
+    quiet: bool = True,
 ):
     """Test project, runs `build`, `ruff`, `pytest` and `tox`."""
-    sys.exit(Project(data).tests(ruff=ruff, tox=tox))
+    sys.exit(Project(data).tests(ruff=ruff, tox=tox, quiet=quiet))
 
 
 @app.command()

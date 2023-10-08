@@ -11,6 +11,12 @@ ROOT = Path(__file__).parent.parent
 PACKAGE = "simplejson"
 
 
+def setup_module():
+    """teardown any state that was previously setup with a setup_module method."""
+    if not nodeps.in_tox():
+        _main(["uninstall", "-q", "-y", PACKAGE])
+
+
 def teardown_module():
     """teardown any state that was previously setup with a setup_module method."""
     if not nodeps.in_tox():

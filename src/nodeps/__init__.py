@@ -3563,14 +3563,18 @@ class Project:
             self.info(self.docs.__name__)
         return 0
 
-    def build(self) -> Path | None:
-        """Build a project `venv`, `completions`, `docs` and `clean`."""
+    def build(self, quiet: bool = True) -> Path | None:
+        """Build a project `venv`, `completions`, `docs` and `clean`.
+
+        Arguments:
+            quiet: quiet mode (default: True)
+        """
         # TODO: el pth sale si execute en terminal pero no en run
         if not self.pyproject_toml.file:
             return None
         self.venv()
         self.completions()
-        self.docs()
+        self.docs(quiet=quiet)
         self.clean()
         rv = subprocess.run(
             f"{self.executable()} -m build {self.root} --wheel",
@@ -3686,7 +3690,7 @@ class Project:
 
         if (
             subprocess.check_call(
-                f"{self.bin('sphinx-build')} {q} - -color{self.docsdir} {build_dir}",
+                f"{self.bin('sphinx-build')} {q} -color{self.docsdir} {build_dir}",
                 shell=True,
             )
             == 0
@@ -3706,7 +3710,7 @@ class Project:
                 key = item.split("; extra == ")[1].replace("'", "").replace('"', "").removesuffix(" ")
                 if key not in e:
                     e[key] = []
-                e[key].append(item.sqplit("; extra == ")[0].replace('"', "").removesuffix(" "))
+                e[key].append(item.split("; extra == ")[0].replace('"', "").removesuffix(" "))
         return e
 
     def extras(self, as_list: bool = False) -> dict[str, list[str]] | list[str]:
@@ -3828,6 +3832,7 @@ class Project:
         force: bool = False,
         ruff: bool = True,
         tox: bool = True,
+        quiet: bool = True,
     ):
         """Publish runs runs `tests`, `commit`, `tag`, `push`, `twine` and `clean`.
 
@@ -3836,8 +3841,9 @@ class Project:
             force: force bump
             ruff: run ruff
             tox: run tox
+            quiet: quiet mode (default: True)
         """
-        self.tests(ruff=ruff, tox=tox)
+        self.tests(ruff=ruff, tox=tox, quiet=quiet)
         self.commit()
         if (n := self.next(part=part, force=force)) != (l := self.latest()):
             self.tag(n)
@@ -3910,6 +3916,7 @@ class Project:
         ret: ProjectRepos = ProjectRepos.NAMES,
         py: bool = False,
         sync: bool = False,
+        archive: bool = False,
     ) -> list[Path] | list[str] | dict[str, Project | str]:
         """Repo paths, names or Project instances under home and Archive.
 
@@ -3917,12 +3924,13 @@ class Project:
             ret: return names, paths, dict or instances
             py: return only python projects instances
             sync: push or pull all repos
+            archive: look for repos under ~/Archive
 
         """
         if py or sync:
             ret = ProjectRepos.INSTANCES
         names = ret is ProjectRepos.NAMES
-        archive = sorted(archive.iterdir()) if (archive := Path.home() / "Archive").is_dir() else []
+        archive = sorted(archive.iterdir()) if (archive := Path.home() / "Archive").is_dir() and archive else []
 
         rv = [
             item.name if names else item
@@ -4021,9 +4029,15 @@ class Project:
 
     # TODO: delete all tags and pypi versions
 
-    def tests(self, ruff: bool = True, tox: bool = True) -> int:
-        """Test project, runs `build`, `ruff`, `pytest` and `tox`."""
-        self.build()
+    def tests(self, ruff: bool = True, tox: bool = True, quiet: bool = True) -> int:
+        """Test project, runs `build`, `ruff`, `pytest` and `tox`.
+
+        Arguments:
+            ruff: run ruff (default: True)
+            tox: run tox (default: True)
+            quiet: quiet mode (default: True)
+        """
+        self.build(quiet=quiet)
         if ruff and (rc := self.ruff() != 0):
             sys.exit(rc)
 
