@@ -113,7 +113,6 @@ __all__ = (
     "toiter",
     "urljson",
     "which",
-
     "EXECUTABLE",
     "EXECUTABLE_SITE",
 )
@@ -282,6 +281,7 @@ class _NoDepsBaseError(Exception):
 
 class Bump(str, enum.Enum):
     """Bump class."""
+
     MAJOR = enum.auto()
     MINOR = enum.auto()
     PATCH = enum.auto()
@@ -308,12 +308,12 @@ class CalledProcessError(subprocess.SubprocessError):
 
     # noinspection PyShadowingNames
     def __init__(
-            self,
-            returncode: int | None = None,
-            cmd: StrOrBytesPath | Sequence[StrOrBytesPath] | None = None,
-            output: AnyStr | None = None,
-            stderr: AnyStr | None = None,
-            completed: subprocess.CompletedProcess | None = None,
+        self,
+        returncode: int | None = None,
+        cmd: StrOrBytesPath | Sequence[StrOrBytesPath] | None = None,
+        output: AnyStr | None = None,
+        stderr: AnyStr | None = None,
+        completed: subprocess.CompletedProcess | None = None,
     ) -> None:
         r"""Patched :class:`subprocess.CalledProcessError`.
 
@@ -532,9 +532,9 @@ Test1(a=1, b=2), <....Test4 object at 0x...>)
                 except KeyError:
                     pass
             elif (
-                    hasattr(mapping, "__getattribute__")
-                    and isinstance(key, str)
-                    and not isinstance(mapping, (tuple | bool | int | str | bytes))
+                hasattr(mapping, "__getattribute__")
+                and isinstance(key, str)
+                and not isinstance(mapping, (tuple | bool | int | str | bytes))
             ):
                 try:
                     value = getattr(mapping, key)
@@ -629,6 +629,7 @@ class CmdError(subprocess.CalledProcessError):
 
 class ColorLogger(logging.Formatter):
     """Color logger class."""
+
     black = "\x1b[30m"
     blue = "\x1b[34m"
     cyan = "\x1b[36m"
@@ -645,15 +646,15 @@ class ColorLogger(logging.Formatter):
     FORMATS: ClassVar[dict[int, str]] = {
         logging.DEBUG: grey + fmt + reset,
         logging.INFO: f"{cyan}%(levelname)8s{reset} {vertical}"
-                      f"{cyan}%(name)s{reset} {vertical}"
-                      f"{cyan}%(filename)s{reset}:{cyan}%(lineno)d{reset} {vertical}"
-                      f"{green}%(extra)s{reset} {vertical}"
-                      f"{cyan}%(message)s{reset}",
+        f"{cyan}%(name)s{reset} {vertical}"
+        f"{cyan}%(filename)s{reset}:{cyan}%(lineno)d{reset} {vertical}"
+        f"{green}%(extra)s{reset} {vertical}"
+        f"{cyan}%(message)s{reset}",
         logging.WARNING: f"{yellow}%(levelname)8s{reset} {vertical}"
-                         f"{yellow}%(name)s{reset} {vertical}"
-                         f"{yellow}%(filename)s{reset}:{yellow}%(lineno)d{reset} {vertical}"
-                         f"{green}%(repo)s{reset} {vertical}"
-                         f"{yellow}%(message)s{reset}",
+        f"{yellow}%(name)s{reset} {vertical}"
+        f"{yellow}%(filename)s{reset}:{yellow}%(lineno)d{reset} {vertical}"
+        f"{green}%(repo)s{reset} {vertical}"
+        f"{yellow}%(message)s{reset}",
         logging.ERROR: red + fmt + reset,
         logging.CRITICAL: red_bold + fmt + reset,
     }
@@ -1134,7 +1135,7 @@ class Env:
 
     @staticmethod
     def parse_as_bool(
-            variable: str = "USER",
+        variable: str = "USER",
     ) -> bool | Path | ParseResult | IPv4Address | IPv6Address | int | str | None:
         """Parses variable from environment 1 and 0 as bool instead of int.
 
@@ -1218,8 +1219,8 @@ class Env:
 
     @classmethod
     def parse_as_int(
-            cls,
-            name: str = "USER",
+        cls,
+        name: str = "USER",
     ) -> bool | Path | ParseResult | IPv4Address | IPv6Address | int | str | None:
         """Parses variable from environment using :func:`mreleaser.parse_str`,.
 
@@ -1808,13 +1809,13 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
     """Path helper class."""
 
     def __call__(
-            self,
-            name: AnyPath = "",
-            file: PathIsLiteral = "is_dir",
-            passwd: Passwd | None = None,
-            mode: int | str | None = None,
-            effective_ids: bool = False,
-            follow_symlinks: bool = False,
+        self,
+        name: AnyPath = "",
+        file: PathIsLiteral = "is_dir",
+        passwd: Passwd | None = None,
+        mode: int | str | None = None,
+        effective_ids: bool = False,
+        follow_symlinks: bool = False,
     ) -> Path:
         """Make dir or touch file and create subdirectories as needed.
 
@@ -1928,12 +1929,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return self.parts >= other.parts
 
     def access(
-            self,
-            os_mode: int = os.W_OK,
-            *,
-            dir_fd: int | None = None,
-            effective_ids: bool = False,
-            follow_symlinks: bool = False,
+        self,
+        os_mode: int = os.W_OK,
+        *,
+        dir_fd: int | None = None,
+        effective_ids: bool = False,
+        follow_symlinks: bool = False,
     ) -> bool | None:
         # noinspection LongLine
         """Checks if file or directory exists and has access (returns None if file/directory does not exist.
@@ -2112,9 +2113,9 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return path
 
     def checksum(
-            self,
-            algorithm: Literal["md5", "sha1", "sha224", "sha256", "sha384", "sha512"] = "sha256",
-            block_size: int = 65536,
+        self,
+        algorithm: Literal["md5", "sha1", "sha224", "sha256", "sha384", "sha512"] = "sha256",
+        block_size: int = 65536,
     ) -> str:
         """Calculate the checksum of a file.
 
@@ -2139,12 +2140,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return sha.hexdigest()
 
     def chmod(
-            self,
-            mode: int | str | None = None,
-            effective_ids: bool = False,
-            exception: bool = True,
-            follow_symlinks: bool = False,
-            recursive: bool = False,
+        self,
+        mode: int | str | None = None,
+        effective_ids: bool = False,
+        exception: bool = True,
+        follow_symlinks: bool = False,
+        recursive: bool = False,
     ) -> Path:
         """Change mode of self.
 
@@ -2197,12 +2198,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return self
 
     def chown(
-            self,
-            passwd=None,
-            effective_ids: bool = False,
-            exception: bool = True,
-            follow_symlinks: bool = False,
-            recursive: bool = False,
+        self,
+        passwd=None,
+        effective_ids: bool = False,
+        exception: bool = True,
+        follow_symlinks: bool = False,
+        recursive: bool = False,
     ) -> Path:
         """Change owner of path.
 
@@ -2301,12 +2302,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return self.checksum() == self.__class__(other).checksum()
 
     def cp(
-            self,
-            dest: AnyPath,
-            contents: bool = False,
-            effective_ids: bool = False,
-            follow_symlinks: bool = False,
-            preserve: bool = False,
+        self,
+        dest: AnyPath,
+        contents: bool = False,
+        effective_ids: bool = False,
+        follow_symlinks: bool = False,
+        preserve: bool = False,
     ) -> Path:
         """Wrapper for shell `cp` command to copy file recursivily and adding sudo if necessary.
 
@@ -2469,12 +2470,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
                     raise NotADirectoryError(msg)
                 return path
             if path.is_dir() or (
-                    path := path.parent.resolve() if follow_symlinks else path.parent.absolute()
+                path := path.parent.resolve() if follow_symlinks else path.parent.absolute()
             ) == self.__class__("/"):
                 return None
 
     def find_up(
-            self, function: PathIsLiteral = "is_file", name: str = "__init__.py", uppermost: bool = False
+        self, function: PathIsLiteral = "is_file", name: str = "__init__.py", uppermost: bool = False
     ) -> Path | None:
         """Find file or dir up.
 
@@ -2576,12 +2577,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return dest
 
     def mkdir(
-            self,
-            name: AnyPath = "",
-            passwd: Passwd | None = None,
-            mode: int | str | None = None,
-            effective_ids: bool = False,
-            follow_symlinks: bool = False,
+        self,
+        name: AnyPath = "",
+        passwd: Passwd | None = None,
+        mode: int | str | None = None,
+        effective_ids: bool = False,
+        follow_symlinks: bool = False,
     ) -> Path:
         """Add directory, make directory, change mode and return new Path.
 
@@ -2677,13 +2678,13 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return dest
 
     def open(  # noqa: A003
-            self,
-            mode: str = "r",
-            buffering: int = -1,
-            encoding: str | None = None,
-            errors: str | None = None,
-            newline: str | None = None,
-            token: bool = False,
+        self,
+        mode: str = "r",
+        buffering: int = -1,
+        encoding: str | None = None,
+        errors: str | None = None,
+        newline: str | None = None,
+        token: bool = False,
     ) -> AnyIO | None:
         """Open the file pointed by this path and return a file object, as the built-in open function does."""
         if token:
@@ -2743,7 +2744,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return self.relative_to(p) if self.absolute().is_relative_to(p) else None
 
     def rm(
-            self, *args: str, effective_ids: bool = False, follow_symlinks: bool = False, missing_ok: bool = True
+        self, *args: str, effective_ids: bool = False, follow_symlinks: bool = False, missing_ok: bool = True
     ) -> None:
         """Delete a folder/file (even if the folder is not empty).
 
@@ -2824,11 +2825,11 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
                 self.__class__(d).rmdir()
 
     def setid(
-            self,
-            name: bool | str | None = None,
-            uid: bool = True,
-            effective_ids: bool = False,
-            follow_symlinks: bool = False,
+        self,
+        name: bool | str | None = None,
+        uid: bool = True,
+        effective_ids: bool = False,
+        follow_symlinks: bool = False,
     ) -> Path:
         """Sets the set-user-ID-on-execution or set-group-ID-on-execution bits.
 
@@ -2899,11 +2900,11 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return target
 
     def setid_cp(
-            self,
-            name: bool | str | None = None,
-            uid: bool = True,
-            effective_ids: bool = False,
-            follow_symlinks: bool = False,
+        self,
+        name: bool | str | None = None,
+        uid: bool = True,
+        effective_ids: bool = False,
+        follow_symlinks: bool = False,
     ) -> Path:
         """Sets the set-user-ID-on-execution or set-group-ID-on-execution bits.
 
@@ -3052,12 +3053,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         )
 
     def sudo(
-            self,
-            force: bool = False,
-            to_list: bool = True,
-            os_mode: int = os.W_OK,
-            effective_ids: bool = False,
-            follow_symlinks: bool = False,
+        self,
+        force: bool = False,
+        to_list: bool = True,
+        os_mode: int = os.W_OK,
+        effective_ids: bool = False,
+        follow_symlinks: bool = False,
     ) -> list[str] | str | None:
         """Returns sudo command if path or ancestors exist and is not own by user and sudo command not installed.
 
@@ -3091,9 +3092,9 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             path = self
             while path:
                 if path.access(
-                        os_mode=os_mode,
-                        effective_ids=effective_ids,
-                        follow_symlinks=follow_symlinks,
+                    os_mode=os_mode,
+                    effective_ids=effective_ids,
+                    follow_symlinks=follow_symlinks,
                 ):
                     if not force:
                         rv = ""
@@ -3119,7 +3120,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
     @classmethod
     @contextlib.contextmanager
     def tempcd(
-            cls, suffix: AnyStr | None = None, prefix: AnyStr | None = None, directory: AnyPath | None = None
+        cls, suffix: AnyStr | None = None, prefix: AnyStr | None = None, directory: AnyPath | None = None
     ) -> Path:
         """Create temporaly directory, change to it and return it.
 
@@ -3158,7 +3159,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
     @classmethod
     @contextlib.contextmanager
     def tempdir(
-            cls, suffix: AnyStr | None = None, prefix: AnyStr | None = None, directory: AnyPath | None = None
+        cls, suffix: AnyStr | None = None, prefix: AnyStr | None = None, directory: AnyPath | None = None
     ) -> Path:
         """Create and return tmp directory.  This has the same behavior as mkdtemp but can be used as a context manager.
 
@@ -3194,34 +3195,34 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
     @classmethod
     @contextlib.contextmanager
     def tempfile(
-            cls,
-            mode: Literal[
-                "r",
-                "w",
-                "a",
-                "x",
-                "r+",
-                "w+",
-                "a+",
-                "x+",
-                "rt",
-                "wt",
-                "at",
-                "xt",
-                "r+t",
-                "w+t",
-                "a+t",
-                "x+t",
-            ] = "w",
-            buffering: int = -1,
-            encoding: str | None = None,
-            newline: str | None = None,
-            suffix: AnyStr | None = None,
-            prefix: AnyStr | None = None,
-            directory: AnyPath | None = None,
-            delete: bool = True,
-            *,
-            errors: str | None = None,
+        cls,
+        mode: Literal[
+            "r",
+            "w",
+            "a",
+            "x",
+            "r+",
+            "w+",
+            "a+",
+            "x+",
+            "rt",
+            "wt",
+            "at",
+            "xt",
+            "r+t",
+            "w+t",
+            "a+t",
+            "x+t",
+        ] = "w",
+        buffering: int = -1,
+        encoding: str | None = None,
+        newline: str | None = None,
+        suffix: AnyStr | None = None,
+        prefix: AnyStr | None = None,
+        directory: AnyPath | None = None,
+        delete: bool = True,
+        *,
+        errors: str | None = None,
     ) -> Path:
         """Create and return a temporary file.
 
@@ -3249,15 +3250,15 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             deleted when it is closed unless the 'delete' argument is set to False.
         """
         with tempfile.NamedTemporaryFile(
-                mode=mode,
-                buffering=buffering,
-                encoding=encoding,
-                newline=newline,
-                suffix=suffix,
-                prefix=prefix,
-                dir=directory,
-                delete=delete,
-                errors=errors,
+            mode=mode,
+            buffering=buffering,
+            encoding=encoding,
+            newline=newline,
+            suffix=suffix,
+            prefix=prefix,
+            dir=directory,
+            delete=delete,
+            errors=errors,
         ) as tmp:
             try:
                 yield cls(tmp.name)
@@ -3278,12 +3279,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return self.parent if self.is_file() else self
 
     def touch(
-            self,
-            name: AnyPath = "",
-            passwd: Passwd | None = None,
-            mode: int | str | None = None,
-            effective_ids: bool = False,
-            follow_symlinks: bool = False,
+        self,
+        name: AnyPath = "",
+        passwd: Passwd | None = None,
+        mode: int | str | None = None,
+        effective_ids: bool = False,
+        follow_symlinks: bool = False,
     ) -> Path:
         """Add file, touch and return post_init Path. Parent paths are created.
 
@@ -3324,9 +3325,9 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         path = self / str(name)
         path = path.resolve() if follow_symlinks else path.absolute()
         if (
-                not path.is_file()
-                and not path.is_dir()
-                and path.parent.file_in_parents(follow_symlinks=follow_symlinks) is None
+            not path.is_file()
+            and not path.is_dir()
+            and path.parent.file_in_parents(follow_symlinks=follow_symlinks) is None
         ):
             if not (d := path.parent).exists():
                 d.mkdir(
@@ -3390,9 +3391,9 @@ class PipMetaPathFinder(importlib.abc.MetaPathFinder):
 
     # noinspection PyMethodOverriding,PyMethodParameters
     def find_spec(
-            fullname: str,
-            path: Sequence[str | bytes] | None,
-            target: types.ModuleType | None = None,
+        fullname: str,
+        path: Sequence[str | bytes] | None,
+        target: types.ModuleType | None = None,
     ) -> importlib._bootstrap.ModuleSpec | None:
         """Try to find a module spec for the specified module."""
         if path is None and fullname is not None:
@@ -3419,6 +3420,7 @@ class ProjectRepos(str, enum.Enum):
 @dataclasses.dataclass
 class Project:
     """Project Class."""
+
     data: Path | str | types.ModuleType = None
     """File, directory or name (str or path with one word) of project (default: current working directory)"""
     brewfile: Path | None = dataclasses.field(default=None, init=False)
@@ -3544,15 +3546,20 @@ class Project:
             return rv
         return 0
 
-    def browser(self) -> int:
-        """Build and serve the documentation with live reloading on file changes."""
+    def browser(self, quiet: bool = True) -> int:
+        """Build and serve the documentation with live reloading on file changes.
+
+        Arguments:
+            quiet: quiet mode (default: True)
+        """
         if not self.docsdir:
             return 0
         build_dir = self.docsdir / "_build"
+        q = "-Q" if quiet else ""
         if build_dir.exists():
             shutil.rmtree(build_dir)
 
-        if subprocess.check_call(f"{self.bin('sphinx-autobuild')} -Q {self.docsdir} {build_dir}", shell=True) == 0:
+        if subprocess.check_call(f"{self.bin('sphinx-autobuild')} {q} {self.docsdir} {build_dir}", shell=True) == 0:
             self.info(self.docs.__name__)
         return 0
 
@@ -3664,17 +3671,22 @@ class Project:
         """Diverge."""
         return (self.dirty() or self.needpush()) and self.needpull()
 
-    def docs(self) -> int:
-        """Build the documentation."""
+    def docs(self, quiet: bool = True) -> int:
+        """Build the documentation.
+
+        Arguments:
+            quiet: quiet mode (default: True)
+        """
         if not self.docsdir:
             return 0
         build_dir = self.docsdir / "_build"
+        q = "-Q" if quiet else ""
         if build_dir.exists():
             shutil.rmtree(build_dir)
 
         if (
             subprocess.check_call(
-                f"{self.bin('sphinx-build')} -Q --color {self.docsdir} {build_dir}",
+                f"{self.bin('sphinx-build')} {q} - -color{self.docsdir} {build_dir}",
                 shell=True,
             )
             == 0
@@ -3694,7 +3706,7 @@ class Project:
                 key = item.split("; extra == ")[1].replace("'", "").replace('"', "").removesuffix(" ")
                 if key not in e:
                     e[key] = []
-                e[key].append(item.split("; extra == ")[0].replace('"', "").removesuffix(" "))
+                e[key].append(item.sqplit("; extra == ")[0].replace('"', "").removesuffix(" "))
         return e
 
     def extras(self, as_list: bool = False) -> dict[str, list[str]] | list[str]:
@@ -4280,8 +4292,7 @@ class TempDir(tempfile.TemporaryDirectory):
         return Path(self.name)
 
 
-def _copy_pths(self: PTHBuildPy | PTHDevelop | PTHEasyInstall | PTHInstallLib,
-               directory: str) -> list[str]:
+def _copy_pths(self: PTHBuildPy | PTHDevelop | PTHEasyInstall | PTHInstallLib, directory: str) -> list[str]:
     log = ColorLogger.logger()
     outputs = []
     data = self.get_outputs() if isinstance(self, (PTHBuildPy | PTHInstallLib)) else self.outputs
@@ -4313,18 +4324,17 @@ def _pip_base_command(self: Command, args: list[str]) -> int:
 
 
 def _pip_install_wheel(
-        name: str,
-        wheel_path: str,
-        scheme: pip._internal.models.scheme.Scheme,
-        req_description: str,
-        pycompile: bool = True,
-        warn_script_location: bool = True,
-        direct_url: pip._internal.models.direct_url.DirectUrl | None = None,
-        requested: bool = False,
+    name: str,
+    wheel_path: str,
+    scheme: pip._internal.models.scheme.Scheme,
+    req_description: str,
+    pycompile: bool = True,
+    warn_script_location: bool = True,
+    direct_url: pip._internal.models.direct_url.DirectUrl | None = None,
+    requested: bool = False,
 ):
     """Pip install wheel patch to post install."""
-    with (zipfile.ZipFile(wheel_path) as z,
-          pip._internal.operations.install.wheel.req_error_context(req_description)):
+    with zipfile.ZipFile(wheel_path) as z, pip._internal.operations.install.wheel.req_error_context(req_description):
         pip._internal.operations.install.wheel._install_wheel(
             name=name,
             wheel_zip=z,
@@ -4340,10 +4350,10 @@ def _pip_install_wheel(
 
 
 async def aioclone(
-        owner: str | None = None,
-        repository: str = NODEPS_PROJECT_NAME,
-        scheme: GitSchemeLiteral = GIT_DEFAULT_SCHEME,
-        path: Path | str | None = None,
+    owner: str | None = None,
+    repository: str = NODEPS_PROJECT_NAME,
+    scheme: GitSchemeLiteral = GIT_DEFAULT_SCHEME,
+    path: Path | str | None = None,
 ) -> Path:
     """Async Clone Repository.
 
@@ -4416,7 +4426,7 @@ async def aiocmd(*args, **kwargs) -> subprocess.CompletedProcess:
 
 
 async def aiocommand(
-        data: str | list, decode: bool = True, utf8: bool = False, lines: bool = False
+    data: str | list, decode: bool = True, utf8: bool = False, lines: bool = False
 ) -> subprocess.CompletedProcess:
     """Asyncio run cmd.
 
@@ -4667,10 +4677,10 @@ def chdir(data: StrOrBytesPath | bool = True) -> Iterable[tuple[Path, Path]]:
 
 
 def clone(
-        owner: str | None = None,
-        repository: str = NODEPS_PROJECT_NAME,
-        scheme: GitSchemeLiteral = GIT_DEFAULT_SCHEME,
-        path: Path | str = None
+    owner: str | None = None,
+    repository: str = NODEPS_PROJECT_NAME,
+    scheme: GitSchemeLiteral = GIT_DEFAULT_SCHEME,
+    path: Path | str = None,
 ) -> Path:
     """Clone Repository.
 
@@ -4731,7 +4741,7 @@ def cmd(*args, **kwargs) -> subprocess.CompletedProcess:
 
 
 def cmdrun(
-        data: Iterable, exc: bool = False, lines: bool = True, shell: bool = True, py: bool = False, pysite: bool = True
+    data: Iterable, exc: bool = False, lines: bool = True, shell: bool = True, py: bool = False, pysite: bool = True
 ) -> subprocess.CompletedProcess | int | list | str:
     r"""Runs a cmd.
 
@@ -4891,7 +4901,7 @@ def current_task_name() -> str:
 
 
 def dict_sort(
-        data: dict[_KT, _VT], ordered: bool = False, reverse: bool = False
+    data: dict[_KT, _VT], ordered: bool = False, reverse: bool = False
 ) -> dict[_KT, _VT] | collections.OrderedDict[_KT, _VT]:
     """Order a dict based on keys.
 
@@ -5020,7 +5030,7 @@ def exec_module_from_file(file: Path | str, name: str | None = None) -> types.Mo
 
 
 def filterm(
-        d: MutableMapping[_KT, _VT], k: Callable[..., bool] = lambda x: True, v: Callable[..., bool] = lambda x: True
+    d: MutableMapping[_KT, _VT], k: Callable[..., bool] = lambda x: True, v: Callable[..., bool] = lambda x: True
 ) -> MutableMapping[_KT, _VT]:
     """Filter Mutable Mapping.
 
@@ -5066,10 +5076,10 @@ def findfile(pattern, path: StrOrBytesPath = None) -> list[Path]:
 
 
 def findup(
-        path: StrOrBytesPath = None,
-        kind: Literal["exists", "is_dir", "is_file"] = "is_file",
-        name: str | Path = ".env",
-        uppermost: bool = False,
+    path: StrOrBytesPath = None,
+    kind: Literal["exists", "is_dir", "is_file"] = "is_file",
+    name: str | Path = ".env",
+    uppermost: bool = False,
 ) -> Path | None:
     """Find up if name exists or is file or directory.
 
@@ -5145,10 +5155,10 @@ def firstfound(data: Iterable, apply: Callable) -> Any:
 
 
 def flatten(
-        data: tuple | list | set,
-        recurse: bool = False,
-        unique: bool = False,
-        sort: bool = True,
+    data: tuple | list | set,
+    recurse: bool = False,
+    unique: bool = False,
+    sort: bool = True,
 ) -> tuple | list | set:
     """Flattens an Iterable.
 
@@ -5368,17 +5378,17 @@ def group_user(name: int | str = USER) -> GroupUser:
         struct = (
             struct
             if name  # noqa: PLR1714
-               == (struct := PW_USER).pw_name
-               or name == (struct := PW_ROOT).pw_name
+            == (struct := PW_USER).pw_name
+            or name == (struct := PW_ROOT).pw_name
             else pwd.getpwnam(name)
         )
         return GroupUser(group=struct.pw_gid, user=struct.pw_uid)
     struct = (
         struct
         if (
-                name  # noqa: PLR1714
-                == (struct := PW_USER).pw_uid
-                or name == (struct := PW_ROOT).pw_uid
+            name  # noqa: PLR1714
+            == (struct := PW_USER).pw_uid
+            or name == (struct := PW_ROOT).pw_uid
         )
         else pwd.getpwuid(name)
     )
@@ -5426,7 +5436,7 @@ def in_tox() -> bool:
 
 
 def noexc(
-        func: Callable[..., _T], *args: Any, default_: Any = None, exc_: ExcType = Exception, **kwargs: Any
+    func: Callable[..., _T], *args: Any, default_: Any = None, exc_: ExcType = Exception, **kwargs: Any
 ) -> _T | Any:
     """Execute function suppressing exceptions.
 
@@ -5475,7 +5485,7 @@ def parent(path: StrOrBytesPath = __file__, none: bool = True) -> Path | None:
 
 
 def parse_str(  # noqa: PLR0911
-        data: Any | None = None,
+    data: Any | None = None,
 ) -> bool | Path | ParseResult | IPv4Address | IPv6Address | int | str | None:
     """Parses str or data.__str__().
 
@@ -5533,10 +5543,10 @@ def parse_str(  # noqa: PLR0911
         if "://" in data or "@" in data:
             return urllib.parse.urlparse(data)
         if (
-                (
-                        data[0] in ["/", "~"] or (len(data) >= 2 and f"{data[0]}{data[1]}" == "./")  # noqa: PLR2004
-                )
-                and ":" not in data
+            (
+                data[0] in ["/", "~"] or (len(data) >= 2 and f"{data[0]}{data[1]}" == "./")  # noqa: PLR2004
+            )
+            and ":" not in data
         ) or data == ".":
             return Path(data)
         try:
@@ -5562,6 +5572,7 @@ def pipmetapathfinder():
         yield
     finally:
         sys.meta_path.pop()
+
 
 def returncode(c: str | list[str], shell: bool = True) -> int:
     """Runs command in shell and returns returncode showing stdout and stderr.
@@ -5701,10 +5712,10 @@ def stdquiet() -> tuple[TextIO, TextIO]:
 
 
 def suppress(
-        func: Callable[P, T],
-        *args: P.args,
-        exception: ExcType | None = Exception,
-        **kwargs: P.kwargs,
+    func: Callable[P, T],
+    *args: P.args,
+    exception: ExcType | None = Exception,
+    **kwargs: P.kwargs,
 ) -> T:
     """Try and supress exception.
 
@@ -5885,7 +5896,7 @@ def tomodules(obj: Any, suffix: bool = True) -> str:
 
 
 def urljson(
-        data: str,
+    data: str,
 ) -> dict:
     """Url open json.
 
@@ -5949,9 +5960,9 @@ def which(data="sudo", raises: bool = False) -> str:
         Cmd path or ""
     """
     rv = (
-            shutil.which(data, mode=os.X_OK)
-            or subprocess.run(f"command -v {data}", shell=True, text=True, capture_output=True).stdout.rstrip("\n")
-            or ""
+        shutil.which(data, mode=os.X_OK)
+        or subprocess.run(f"command -v {data}", shell=True, text=True, capture_output=True).stdout.rstrip("\n")
+        or ""
     )
 
     if raises and not rv:
