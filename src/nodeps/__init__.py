@@ -3690,7 +3690,7 @@ class Project:
 
         if (
             subprocess.check_call(
-                f"{self.bin('sphinx-build')} {q} -color{self.docsdir} {build_dir}",
+                f"{self.bin('sphinx-build')} {q} --color {self.docsdir} {build_dir}",
                 shell=True,
             )
             == 0
@@ -3925,7 +3925,6 @@ class Project:
             py: return only python projects instances
             sync: push or pull all repos
             archive: look for repos under ~/Archive
-
         """
         if py or sync:
             ret = ProjectRepos.INSTANCES
