@@ -35,6 +35,7 @@ __all__ = (
     "_venvs",
 )
 
+import copy
 import sys
 from pathlib import Path
 from typing import Annotated
@@ -1004,13 +1005,14 @@ if "sphinx" in sys.modules and __name__ != "__main__":
         # TODO: escribir el pyproject.toml poner global para el nombre del programa
         with Path.open(pyproject_toml, "rb") as f:
             toml = tomlkit.load(f)
-            new = toml.copy()
-            new["project"]["scripts"] = []
+
+            new = copy.deepcopy(toml)
+            new["project"]["scripts"] = {}
         for key, value in globals().copy().items():
             if isinstance(value, typer.Typer):
                 program = "proj" if key == "app" else key.replace("_", "")
                 cls = f"{NODEPS_PROJECT_NAME}.__main__:{key}"
-                new["project"]["scripts"].append({program: cls})
+                new["project"]["scripts"][program] = cls
                 text += f".. click:: {cls}_click\n"
                 text += f"    :prog: {program}\n"
                 text += "    :nested: full\n\n"

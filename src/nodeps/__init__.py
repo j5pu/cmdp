@@ -122,6 +122,7 @@ import abc
 import asyncio
 import collections
 import contextlib
+import copy
 import dataclasses
 import datetime
 import enum
@@ -4205,7 +4206,7 @@ class Project:
     def write(self):
         """Updates pyproject.toml and docs conf.py."""
         if self.pyproject_toml.file:
-            original_project = self.pyproject_toml.config.get("project", {}).copy()
+            original_project = copy.deepcopy(self.pyproject_toml.config.get("project", {}))
             github = self.github()
             project = {
                 "name": github["name"],

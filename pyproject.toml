@@ -1,9 +1,17 @@
 [project]
-name = "nodeps"
 description = "Python helpers and utilities with no dependencies"
 dynamic = ["version"]
+name = "nodeps"
 readme = "README.md"
 requires-python = ">=3.11"
+[[project.authors]]
+name = "José Antonio Puértolas Montañés"
+email = "63794670+j5pu@users.noreply.github.com"
+
+
+
+[project.license]
+text = "MIT"
 
 [project.optional-dependencies]
 ansi = [
@@ -94,21 +102,12 @@ all = [
     "nodeps[requests]",
 ]
 
-[[project.authors]]
-name = "José Antonio Puértolas Montañés"
-email = "63794670+j5pu@users.noreply.github.com"
-
-[project.urls]
-Homepage = "https://github.com/j5pu/nodeps"
-
-[project.license]
-text = "MIT"
-
 [project.scripts]
 proj = "nodeps.__main__:app"
 browser = "nodeps.__main__:_browser"
 build = "nodeps.__main__:_build"
-buildrequires = "nodeps.__main__:_build_requires"
+builds = "nodeps.__main__:_builds"
+buildrequires = "nodeps.__main__:_buildrequires"
 clean = "nodeps.__main__:_clean"
 commit = "nodeps.__main__:_commit"
 completions = "nodeps.__main__:_completions"
@@ -119,23 +118,30 @@ diverge = "nodeps.__main__:_diverge"
 docs = "nodeps.__main__:_docs"
 extras = "nodeps.__main__:_extras"
 latest = "nodeps.__main__:_latest"
-needpull = "nodeps.__main__:_need_pull"
-needpush = "nodeps.__main__:_need_push"
+needpull = "nodeps.__main__:_needpull"
+needpush = "nodeps.__main__:_needpush"
 next = "nodeps.__main__:_next"
 publish = "nodeps.__main__:_publish"
 pull = "nodeps.__main__:_pull"
 push = "nodeps.__main__:_push"
 pypi = "nodeps.__main__:_pypi"
+pytests = "nodeps.__main__:_pytests"
 repos = "nodeps.__main__:_repos"
+requirement = "nodeps.__main__:_requirement"
 requirements = "nodeps.__main__:_requirements"
 secrets = "nodeps.__main__:_secrets"
 sha = "nodeps.__main__:_sha"
 superproject = "nodeps.__main__:_superproject"
-sync = "nodeps.__main__:_sync"
+test = "nodeps.__main__:_test"
 tests = "nodeps.__main__:_tests"
-top = "nodeps.__main__:_top"
 version = "nodeps.__main__:_version"
 venv = "nodeps.__main__:_venv"
+venvs = "nodeps.__main__:_venvs"
+
+[project.urls]
+Homepage = "https://github.com/j5pu/nodeps"
+
+
 
 [build-system]
 requires = [
