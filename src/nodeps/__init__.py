@@ -200,9 +200,12 @@ try:
             # Must be imported after setuptools
             # noinspection PyCompatibility
             import pip._internal.cli.base_command
+            import pip._internal.metadata
             import pip._internal.models.direct_url
             import pip._internal.models.scheme
             import pip._internal.operations.install.wheel
+            import pip._internal.req.req_install
+            import pip._internal.req.req_uninstall
 except ModuleNotFoundError:
     pip = object
 
@@ -248,7 +251,7 @@ NODEPS_PIP_POST_INSTALL_FILENAME = "_post_install.py"
 NODEPS_PROJECT_NAME = "nodeps"
 """NoDeps Project Name"""
 PYTHON_VERSIONS = (
-    "3.11",
+    os.environ.get("PYTHON_DEFAULT_VERSION", "3.11"),
     "3.12",
 )
 """Python versions for venv, etc."""
@@ -3409,7 +3412,7 @@ class PipMetaPathFinder(importlib.abc.MetaPathFinder):
         packages = {
             "linkify_it": "linkify-it-py",
         }
-        exclude = ["cPickle", "ctags"]
+        exclude = ["cPickle", "ctags", "PIL"]
         if path is None and fullname is not None and fullname not in exclude:
 
             package = packages.get(fullname) or fullname.split(".")[0].replace("_", "-")
@@ -3663,7 +3666,7 @@ class Project:
             subprocess.check_call(f"{self.git} commit -a --quiet -m '{msg}'", shell=True)
             self.info(self.commit.__name__)
 
-    def completions(self):
+    def completions(self, uninstall: bool = False):
         """Generate completions to /usr/local/etc/bash_completion.d."""
         value = []
 
@@ -3673,7 +3676,7 @@ class Project:
             value = [item.name for item in d.entry_points]
         if value:
             for item in value:
-                if file := completions(item):
+                if file := completions(item, uninstall=uninstall):
                     self.info(f"{self.completions.__name__}: {item} -> {file}")
 
     def coverage(self) -> int:
@@ -3880,8 +3883,7 @@ class Project:
             tox: run tox
             quiet: quiet mode (default: True)
         """
-        # FIXME: change to tests when aiohttp can be install in 3.12
-        self.test(ruff=ruff, tox=tox, quiet=quiet)
+        self.tests(ruff=ruff, tox=tox, quiet=quiet)
         self.commit()
         if (n := self.next(part=part, force=force)) != (l := self.latest()):
             self.tag(n)
@@ -4408,8 +4410,6 @@ def _pip_base_command(self: Command, args: list[str]) -> int:
     try:
         log = ColorLogger.logger()
         with self.main_context():
-            if self.__class__.__name__ == "UninstallCommand":
-                
             rv = self._main(args)
             if rv == 0 and self.__class__.__name__ == "InstallCommand":
                 for key, value in _NODEPS_PIP_POST_INSTALL.items():
@@ -4448,6 +4448,24 @@ def _pip_install_wheel(
         )
         global _NODEPS_PIP_POST_INSTALL  # noqa: PLW0602
         _NODEPS_PIP_POST_INSTALL[name] = Path(scheme.purelib, name)
+
+
+def _pip_uninstall_req(
+        self, auto_confirm: bool = False, verbose: bool = False
+):
+    """Pip uninstall patch to post install."""
+    assert self.req  # noqa: S101
+    p = Project(self.req.name)
+    p.completions(uninstall=True)
+
+    dist = pip._internal.metadata.get_default_environment().get_distribution(self.req.name)
+    if not dist:
+        pip._internal.req.req_install.logger.warning("Skipping %s as it is not installed.", self.name)
+        return None
+    pip._internal.req.req_install.logger.info("Found existing installation: %s", dist)
+    uninstalled_pathset = pip._internal.req.req_uninstall.UninstallPathSet.from_dist(dist)
+    uninstalled_pathset.remove(auto_confirm, verbose)
+    return uninstalled_pathset
 
 
 async def aioclone(
@@ -4949,12 +4967,13 @@ def command(*args, **kwargs) -> subprocess.CompletedProcess:
     return completed
 
 
-def completions(name: str, install: bool = True) -> str | None:
+def completions(name: str, install: bool = True, uninstall: bool = False) -> str | None:
     """Generate completions for command.
 
     Args:
         name: command name
         install: install completions to /usr/local/etc/bash_completion.d/ or /etc/bash_completion.d
+        uninstall: uninstall completions
 
     Returns:
         Path to file if installed or prints if not installed
@@ -4987,8 +5006,11 @@ _{name}_completion() {{
 complete -o default -F _{name}_completion {name}
 """
     path = Path("/usr/local/etc/bash_completion.d" if MACOS else "/etc/bash_completion.d").mkdir()
+    file = Path(path, f"{NODEPS_PROJECT_NAME}:{name}.bash")
+    if uninstall:
+        file.unlink(missing_ok=True)
+        return None
     if install:
-        file = Path(path, f"{NODEPS_PROJECT_NAME}:{name}.bash")
         if not file.is_file() or (file.read_text() != completion):
             file.write_text(completion)
             return str(file)
@@ -6076,8 +6098,6 @@ EXECUTABLE_SITE = Path(EXECUTABLE).resolve()
 
 subprocess.CalledProcessError = CalledProcessError
 
-
-os.environ["PIP_ONLY_BINARY"] = ":all:"
 os.environ["PIP_ROOT_USER_ACTION"] = "ignore"
 os.environ["PYTHONDONTWRITEBYTECODE"] = ""
 os.environ["PY_IGNORE_IMPORTMISMATCH"] = "1"
@@ -6085,6 +6105,7 @@ os.environ["PY_IGNORE_IMPORTMISMATCH"] = "1"
 if "pip._internal.operations.install.wheel" in sys.modules:
     pip._internal.operations.install.wheel.install_wheel = _pip_install_wheel
     pip._internal.cli.base_command.Command.main = _pip_base_command
+    pip._internal.req.req_install.InstallRequirement.uninstall = _pip_uninstall_req
 
 venv.CORE_VENV_DEPS = ["build", "ipython", "pip", "setuptools", "wheel"]
 venv.EnvBuilder = EnvBuilder

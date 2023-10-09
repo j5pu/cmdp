@@ -46,7 +46,7 @@
     </option>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../shrc" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GitToolBoxStore">
     <option name="projectConfigVersion" value="5" />
@@ -116,7 +116,7 @@
     </option>
   </component>
   <component name="QodanaCloudProjectLink">
-    <option name="lastReportId" value="qmPjj" />
+    <option name="lastReportId" value="BXdm7" />
     <option name="linkedProjectId" value="p0KVQ" />
     <option name="linkedProjectName" value="nodeps" />
     <option name="organizationId" value="ANQgy" />
@@ -137,7 +137,7 @@
       <recent name="$PROJECT_DIR$/src/nodeps" />
     </key>
   </component>
-  <component name="RunManager" selected="Docker.Docker Image">
+  <component name="RunManager" selected="Makefile Target.venvs">
     <configuration name="browser" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
       <makefile filename="$PROJECT_DIR$/Makefile" target="browser" workingDirectory="" arguments="">
         <envs />
@@ -177,8 +177,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Docker.Docker Image" />
         <item itemvalue="Makefile Target.venvs" />
+        <item itemvalue="Docker.Docker Image" />
         <item itemvalue="Makefile Target.publish" />
         <item itemvalue="Makefile Target.docs" />
         <item itemvalue="Makefile Target.browser" />

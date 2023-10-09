@@ -8,10 +8,6 @@ requires-python = ">=3.11"
 name = "José Antonio Puértolas Montañés"
 email = "63794670+j5pu@users.noreply.github.com"
 
-
-
-
-
 [project.license]
 text = "MIT"
 
@@ -24,7 +20,7 @@ cli = [
     "typer[all] >= 0.9, <1",
 ]
 dev = [
-    "black[d] >=23.9.1, <24", # pipx
+    "black[d] >=23.9.1, <24; python_version < '3.12'", # pipx
     "build >=1.0.3, <2",
     "hunter >= 3.6.1, <4",
     "icecream >=2.1.3, <3",
@@ -44,7 +40,7 @@ dev = [
     "sphinx-autobuild >=2021.3.14, <2022",
     "sphinx-click >=5.0.1, <6",
     "sphinxcontrib-napoleon >=0.7, <1",
-    "coverage[toml] >=6, <7", # pipx
+    "coverage[toml] >=7.3.2, <8", # pipx
     "darglint >=1.8.1, <2", # pipx
     "environs >=9.5.0, <10",
     "pycodestyle >= 2.11.0, <3", # pipx
@@ -141,10 +137,6 @@ venvs = "nodeps.__main__:_venvs"
 
 [project.urls]
 Homepage = "https://github.com/j5pu/nodeps"
-
-
-
-
 
 [build-system]
 requires = [

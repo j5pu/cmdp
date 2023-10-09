@@ -57,7 +57,7 @@ def python_latest(start: str | int | None = None) -> str:
 
 
 def python_version() -> str:
-    """Major and Minor Python Version from ``$PYTHON_VERSION``, or  ``$PYTHON_REQUIRES`` or :obj:`sys.version`.
+    """Major Minor Version ``$PYTHON_VERSION``, ``$PYTHON_REQUIRES``, ``PYTHON_DEFAULT_VERSION`` or :obj:`sys.version`.
 
     Examples:
         >>> import os
@@ -81,7 +81,8 @@ def python_version() -> str:
         str
     """
     p = platform.python_version()
-    ver = os.environ.get("PYTHON_VERSION", p) or os.environ.get("PYTHON_REQUIRES", p)
+    ver = (os.environ.get("PYTHON_VERSION", p) or os.environ.get("PYTHON_REQUIRES", p)
+           or os.environ.get("PYTHON_DEFAULT_VERSION", p))
     if len(ver.split(".")) == 3:  # noqa: PLR2004
         return ver.rpartition(".")[0]
     return ver

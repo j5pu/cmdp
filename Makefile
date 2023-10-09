@@ -80,4 +80,7 @@ venv:  # runs `write` and `requirements`
 venvs:  # runs `write` and `requirements`
 	@python3 -m $(PACKAGE) $@
 
+write:
+	@python3 -m $(PACKAGE) $@
+
 .DEFAULT_GOAL := publish
