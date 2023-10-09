@@ -5,12 +5,8 @@
     <mapping directory="$PROJECT_DIR$/../huti" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../mongodata" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../pdf" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../ppip" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../pproj" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../puntos" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../sbit" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../secrets" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../shrc" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../sitec" vcs="Git" />
   </component>
 </project>

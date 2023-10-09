@@ -6,23 +6,27 @@
   <component name="BlackConnectSettings" lineLength="120" previewMode="true" triggerOnReformat="true" showSyntaxErrorMsgs="true" />
   <component name="ChangeListManager">
     <list default="true" id="bf31d71b-78d7-4bdd-9f09-b7f6e0f14454" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../huti/bin/huti-test" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../huti/bin/huti-script" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../huti/bin/huti-script-1" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../huti/src/huti/__main__.py" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../huti/src/huti/_post_install.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../huti/src/huti/conftest.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../huti/src/huti/data/Brewfile" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../huti/src/huti/huti.pth" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backup/.github/workflows/build_release.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/data/Brewfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../huti/src/huti/main.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../huti/tests/test_install.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../huti/.idea/huti.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../huti/.idea/huti.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../huti/docs/conf.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../huti/docs/reference.md" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../huti/docs/requirements.txt" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../huti/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../huti/pyproject.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../huti/setup.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/../huti/setup.cfg" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../huti/src/huti/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/../huti/src/huti/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/pyproject.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/setup.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/setup.cfg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/nodeps.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/nodeps.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ruff.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/nodeps/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/nodeps/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nodeps/extras/_log/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/nodeps/extras/_log/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ppip/.idea/ppip.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../ppip/.idea/ppip.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../ppip/src/ppip/post.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ppip/src/ppip/post.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../ppip/src/ppip/pth.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ppip/src/ppip/pth.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../ppip/src/ppip/utils/constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ppip/src/ppip/utils/constants.py" afterDir="false" />
@@ -31,6 +35,8 @@
       <change beforePath="$PROJECT_DIR$/../pproj/src/pproj/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pproj/src/pproj/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pproj/src/pproj/alias.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../pproj/src/pproj/project.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pproj/src/pproj/project.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../shrc/.idea/shrc.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../shrc/.idea/shrc.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../sitec/.idea/sitec.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../sitec/.idea/sitec.iml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -82,25 +88,28 @@
     <option name="showModules" value="false" />
     <option name="showVisibilityIcons" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/j5pu/nodeps&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyDependenciesConfigurable&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "/Users/j5pu/nodeps/tests",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "AtomSelectConfig"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;GitStage.ChangesTree.GroupingKeys&quot;: [
-      &quot;directory&quot;,
-      &quot;module&quot;,
-      &quot;repository&quot;
+  "keyToStringList": {
+    "GitStage.ChangesTree.GroupingKeys": [
+      "directory",
+      "module",
+      "repository"
+    ],
+    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
+      "Python"
     ]
   }
-}</component>
+}]]></component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
       <console-settings custom-start-script="import sys; print('Python %s on %s' % (sys.version, sys.platform))&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from nodeps import *" module-name="nodeps" is-module-sdk="true">
@@ -111,140 +120,65 @@
     </option>
   </component>
   <component name="QodanaCloudProjectLink">
-    <option name="lastReportId" value="joBrX" />
+    <option name="lastReportId" value="eldZ4" />
     <option name="linkedProjectId" value="p0KVQ" />
     <option name="linkedProjectName" value="nodeps" />
     <option name="organizationId" value="ANQgy" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/tests" />
+      <recent name="$PROJECT_DIR$/scratch" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/docs" />
-      <recent name="$PROJECT_DIR$/tests" />
       <recent name="$PROJECT_DIR$/src/nodeps" />
-      <recent name="$PROJECT_DIR$/../huti/bin" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/src/nodeps" />
-      <recent name="$PROJECT_DIR$/../huti/src/huti" />
-      <recent name="$PROJECT_DIR$/backup/.github/workflows" />
-      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/bin" />
+      <recent name="$PROJECT_DIR$/../Desktop/JetBrains/scratch/scratches" />
+      <recent name="$PROJECT_DIR$/scratch" />
       <recent name="$PROJECT_DIR$/src" />
+      <recent name="$PROJECT_DIR$/src/nodeps" />
     </key>
   </component>
-  <component name="RunManager" selected="Python tests.pytest in test_cli_project.py">
-    <configuration name="Doctest ColorLogger.logger" type="tests" factoryName="Doctests" temporary="true" nameIsGenerated="true">
-      <module name="nodeps" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/nodeps" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/nodeps/__init__.py" />
-      <option name="CLASS_NAME" value="ColorLogger" />
-      <option name="METHOD_NAME" value="logger" />
-      <option name="FOLDER_NAME" value="" />
-      <option name="TEST_TYPE" value="TEST_METHOD" />
-      <option name="PATTERN" value="" />
-      <option name="USE_PATTERN" value="false" />
+  <component name="RunManager" selected="Makefile Target.publish">
+    <configuration name="browser" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
+      <makefile filename="$PROJECT_DIR$/Makefile" target="browser" workingDirectory="" arguments="">
+        <envs />
+      </makefile>
       <method v="2" />
     </configuration>
-    <configuration name="Doctest python_latest" type="tests" factoryName="Doctests" temporary="true" nameIsGenerated="true">
-      <module name="nodeps" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/nodeps" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/nodeps/__init__.py" />
-      <option name="CLASS_NAME" value="" />
-      <option name="METHOD_NAME" value="python_latest" />
-      <option name="FOLDER_NAME" value="" />
-      <option name="TEST_TYPE" value="TEST_FUNCTION" />
-      <option name="PATTERN" value="" />
-      <option name="USE_PATTERN" value="false" />
+    <configuration name="docs" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
+      <makefile filename="$PROJECT_DIR$/Makefile" target="docs" workingDirectory="" arguments="">
+        <envs />
+      </makefile>
       <method v="2" />
     </configuration>
-    <configuration name="pytest for test_cli_app.test_build" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
-      <module name="nodeps" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="_new_keywords" value="&quot;&quot;" />
-      <option name="_new_parameters" value="&quot;&quot;" />
-      <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_cli_app.test_build&quot;" />
-      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+    <configuration name="publish" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
+      <makefile filename="$PROJECT_DIR$/Makefile" target="publish" workingDirectory="" arguments="">
+        <envs />
+      </makefile>
       <method v="2" />
     </configuration>
-    <configuration name="pytest in test_cli_app.py" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
-      <module name="nodeps" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="_new_keywords" value="&quot;&quot;" />
-      <option name="_new_parameters" value="&quot;&quot;" />
-      <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;$PROJECT_DIR$/tests/test_cli_app.py&quot;" />
-      <option name="_new_targetType" value="&quot;PATH&quot;" />
+    <configuration name="pytest" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
+      <makefile filename="$PROJECT_DIR$/Makefile" target="pytest" workingDirectory="" arguments="">
+        <envs />
+      </makefile>
       <method v="2" />
     </configuration>
-    <configuration name="pytest in test_cli_project.py" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
-      <module name="nodeps" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="_new_keywords" value="&quot;&quot;" />
-      <option name="_new_parameters" value="&quot;&quot;" />
-      <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;$PROJECT_DIR$/tests/test_cli_project.py&quot;" />
-      <option name="_new_targetType" value="&quot;PATH&quot;" />
-      <method v="2" />
-    </configuration>
-    <configuration name="pytest in test_install.py" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
-      <module name="nodeps" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="_new_keywords" value="&quot;&quot;" />
-      <option name="_new_parameters" value="&quot;&quot;" />
-      <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;$PROJECT_DIR$/tests/test_install.py&quot;" />
-      <option name="_new_targetType" value="&quot;PATH&quot;" />
+    <configuration name="test" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
+      <makefile filename="$PROJECT_DIR$/Makefile" target="test" workingDirectory="" arguments="">
+        <envs />
+      </makefile>
       <method v="2" />
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python tests.pytest in test_cli_project.py" />
-        <item itemvalue="Python tests.pytest in test_cli_app.py" />
-        <item itemvalue="Python tests.pytest for test_cli_app.test_build" />
-        <item itemvalue="Python tests.Doctest ColorLogger.logger" />
+        <item itemvalue="Makefile Target.publish" />
+        <item itemvalue="Makefile Target.docs" />
+        <item itemvalue="Makefile Target.browser" />
+        <item itemvalue="Makefile Target.test" />
+        <item itemvalue="Makefile Target.pytest" />
       </list>
     </recent_temporary>
   </component>
@@ -257,6 +191,17 @@
     <MESSAGE value="Delete redundant Huti module files&#10;&#10;This commit removes module files from Huti project which are no longer required. Files such as `classes.py`, `classes.pyi`, `enums.py`, `meta.py`, `meta.pyi`, `project.py`, etc., were deleted as part of code cleanup and refactoring. The removal of these files would simplify the module structure and could make way for new features or improvements." />
     <option name="LAST_COMMIT_MESSAGE" value="Delete redundant Huti module files&#10;&#10;This commit removes module files from Huti project which are no longer required. Files such as `classes.py`, `classes.pyi`, `enums.py`, `meta.py`, `meta.pyi`, `project.py`, etc., were deleted as part of code cleanup and refactoring. The removal of these files would simplify the module structure and could make way for new features or improvements." />
   </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/../Desktop/JetBrains/scratch/scratches/scratch_18.py</url>
+          <line>3</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/nodeps$Doctest_tardir.coverage" NAME="Doctest tardir Coverage Results" MODIFIED="1696496097810" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_python_latest__1_.coverage" NAME="Doctest python_latest (1) Coverage Results" MODIFIED="1696598910332" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps/extras/url" />
@@ -264,11 +209,14 @@
     <SUITE FILE_PATH="coverage/nodeps$pytest_in_test_cli_project_py.coverage" NAME="pytest in test_cli_project.py Coverage Results" MODIFIED="1696702504124" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_sourcepath.coverage" NAME="Doctest sourcepath Coverage Results" MODIFIED="1696496079446" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_Env_parse_as_bool.coverage" NAME="Doctest Env.parse_as_bool Coverage Results" MODIFIED="1696499261417" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
+    <SUITE FILE_PATH="coverage/nodeps$scratch_19.coverage" NAME="scratch_19 Coverage Results" MODIFIED="1696751114727" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../Desktop/JetBrains/scratch/scratches" />
     <SUITE FILE_PATH="coverage/nodeps$pytest_in_test_import_py.coverage" NAME="pytest in test_import.py Coverage Results" MODIFIED="1696596105341" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_parse_str.coverage" NAME="Doctest parse_str Coverage Results" MODIFIED="1696484994454" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_doctest_fixtures.coverage" NAME="Doctest doctest_fixtures Coverage Results" MODIFIED="1696672744245" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../huti/src/huti" />
+    <SUITE FILE_PATH="coverage/nodeps$Doctest_ColorLogger_logger__1_.coverage" NAME="Doctest ColorLogger.logger (1) Coverage Results" MODIFIED="1696755430896" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
+    <SUITE FILE_PATH="coverage/nodeps$__init__.coverage" NAME="__init__ Coverage Results" MODIFIED="1696759125300" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/pt" />
     <SUITE FILE_PATH="coverage/nodeps$Doctests_in_Chain.coverage" NAME="Doctests in Chain Coverage Results" MODIFIED="1696495615414" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
-    <SUITE FILE_PATH="coverage/nodeps$Doctest_ColorLogger_logger.coverage" NAME="Doctest ColorLogger.logger Coverage Results" MODIFIED="1696685888417" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
+    <SUITE FILE_PATH="coverage/nodeps$Doctest_ColorLogger_logger.coverage" NAME="Doctest ColorLogger.logger Coverage Results" MODIFIED="1696754957206" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_cache.coverage" NAME="Doctest cache Coverage Results" MODIFIED="1696583228950" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_Env_parse_as_int.coverage" NAME="Doctest Env.parse_as_int Coverage Results" MODIFIED="1696498355061" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_to_latin9.coverage" NAME="Doctest to_latin9 Coverage Results" MODIFIED="1696495836340" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
@@ -276,7 +224,9 @@
     <SUITE FILE_PATH="coverage/nodeps$pytest_in_test_install_py__1_.coverage" NAME="pytest in test_install.py (1) Coverage Results" MODIFIED="1696687608370" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/nodeps$pytest_in_test_cli_app_py.coverage" NAME="pytest in test_cli_app.py Coverage Results" MODIFIED="1696692211346" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_Repo___post_init__.coverage" NAME="Doctest Repo.__post_init__ Coverage Results" MODIFIED="1696511303080" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
+    <SUITE FILE_PATH="coverage/nodeps$scratch_18.coverage" NAME="scratch_18 Coverage Results" MODIFIED="1696753349862" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../Desktop/JetBrains/scratch/scratches" />
     <SUITE FILE_PATH="coverage/nodeps$pytest_for_test_install_test_install__1_.coverage" NAME="pytest for test_install.test_install Coverage Results" MODIFIED="1696674775306" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
+    <SUITE FILE_PATH="coverage/nodeps$pytest_in_test_pipmetapathfinder_py.coverage" NAME="pytest in test_pipmetapathfinder.py Coverage Results" MODIFIED="1696765873926" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/nodeps$Doctests_in_OwnerRepo.coverage" NAME="Doctests in OwnerRepo Coverage Results" MODIFIED="1696507291032" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_exec_module_from_file.coverage" NAME="Doctest exec_module_from_file Coverage Results" MODIFIED="1696482697936" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_framesimple.coverage" NAME="Doctest framesimple Coverage Results" MODIFIED="1696496665279" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
@@ -286,12 +236,13 @@
     <SUITE FILE_PATH="coverage/nodeps$Doctest_allin.coverage" NAME="Doctest allin Coverage Results" MODIFIED="1696495498855" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_Repo_git_config.coverage" NAME="Doctest Repo.git_config Coverage Results" MODIFIED="1696511148261" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_logger.coverage" NAME="Doctest logger Coverage Results" MODIFIED="1696664885597" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps/extras/_log" />
-    <SUITE FILE_PATH="coverage/nodeps$pytest_in_test_install_py.coverage" NAME="pytest in test_install.py Coverage Results" MODIFIED="1696684934917" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../huti/tests" />
+    <SUITE FILE_PATH="coverage/nodeps$pytest_in_test_install_py.coverage" NAME="pytest in test_install.py Coverage Results" MODIFIED="1696764827174" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_aiogz.coverage" NAME="Doctest aiogz Coverage Results" MODIFIED="1696495962159" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_chdir.coverage" NAME="Doctest chdir Coverage Results" MODIFIED="1696435537929" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_clone.coverage" NAME="Doctest clone Coverage Results" MODIFIED="1696508009559" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_gz.coverage" NAME="Doctest gz Coverage Results" MODIFIED="1696495984707" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_Repo_origin_url.coverage" NAME="Doctest Repo.origin_url Coverage Results" MODIFIED="1696511222594" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
+    <SUITE FILE_PATH="coverage/nodeps$pytest_in_test_pipmetapathfinderl_py.coverage" NAME="pytest in test_pipmetapathfinderl.py Coverage Results" MODIFIED="1696751174826" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/nodeps$pytest_for_test_cli_app_test_build.coverage" NAME="pytest for test_cli_app.test_build Coverage Results" MODIFIED="1696692183956" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
   </component>
 </project>
