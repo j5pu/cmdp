@@ -946,11 +946,11 @@ def venv(
     ] = _cwd,
     version: Annotated[str, typer.Option(help="python major and minor version",
                                          autocompletion=_versions_completions)] = PYTHON_DEFAULT_VERSION,
-    force: Annotated[bool, typer.Option(help="force removal of venv before")] = False,
+    clear: Annotated[bool, typer.Option(help="force removal of venv before")] = False,
     upgrade: Annotated[bool, typer.Option(help="upgrade all dependencies")] = False,
 ):
     """Creates venv, runs: `write` and `requirements`."""
-    Project(data).venv(version=version, force=force, upgrade=upgrade)
+    Project(data).venv(version=version, clear=clear, upgrade=upgrade)
 
 
 @app.command()
@@ -963,11 +963,10 @@ def venvs(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
-    force: Annotated[bool, typer.Option(help="force removal of venv before")] = False,
     upgrade: Annotated[bool, typer.Option(help="upgrade all dependencies")] = False,
 ):
     """Creates venv, runs: `write` and `requirements`."""
-    Project(data).venvs(force=force, upgrade=upgrade)
+    Project(data).venvs(upgrade=upgrade)
 
 
 @app.command()

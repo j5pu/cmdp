@@ -8,6 +8,7 @@ copyright = "2023, José Antonio Puértolas Montañés"
 extensions = [
     "myst_parser",
     "sphinx.ext.autodoc",
+    "sphinx.ext.autosectionlabel",
     "sphinx.ext.extlinks",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
@@ -18,6 +19,7 @@ autoclass_content = "both"
 autodoc_default_options = {"members": True, "member-order": "bysource",
                            "undoc-members": True, "show-inheritance": True}
 autodoc_typehints = "description"
+autosectionlabel_prefix_document = True
 html_theme = "furo"
 html_title, html_last_updated_fmt = "nodeps docs", "%Y-%m-%dT%H:%M:%S"
 inheritance_alias = {}

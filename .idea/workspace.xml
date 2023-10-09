@@ -46,10 +46,13 @@
     </option>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../shrc" />
   </component>
   <component name="GitToolBoxStore">
     <option name="projectConfigVersion" value="5" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$APPLICATION_HOME_DIR$/plugins/python/helpers/typeshed/stdlib/logging/__init__.pyi" root0="SKIP_INSPECTION" />
   </component>
   <component name="LogFilters">
     <option name="FILTER_ERRORS" value="false" />
@@ -90,7 +93,7 @@
     "git-widget-placeholder": "main",
     "last_opened_file_path": "/Users/j5pu/huti/docs",
     "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "AtomSelectConfig"
+    "settings.editor.selected.configurable": "reference.settingsdialog.IDE.editor.colors.BashSupport Pro"
   },
   "keyToStringList": {
     "GitStage.ChangesTree.GroupingKeys": [
@@ -113,7 +116,7 @@
     </option>
   </component>
   <component name="QodanaCloudProjectLink">
-    <option name="lastReportId" value="6dQ5M" />
+    <option name="lastReportId" value="qmPjj" />
     <option name="linkedProjectId" value="p0KVQ" />
     <option name="linkedProjectName" value="nodeps" />
     <option name="organizationId" value="ANQgy" />

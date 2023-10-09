@@ -1304,10 +1304,11 @@ class Env:
 
 @dataclasses.dataclass
 class EnvBuilder(venv.EnvBuilder):
-    # noinspection PyUnresolvedReferences
     """Wrapper for :class:`venv.EnvBuilder`.
 
     Changed defaults for: `prompt`` `symlinks` and `with_pip`, adds `env_dir` to `__init__` arguments.
+
+    Post install in :py:meth:`.post_setup`.
 
     This class exists to allow virtual environment creation to be
     customized. The constructor parameters determine the builder's
@@ -1319,7 +1320,7 @@ class EnvBuilder(venv.EnvBuilder):
     on Windows platforms but symlinks elsewhere. If instantiated some
     other way, the default is to *not* use symlinks (changed with the wrapper to use symlinks always).
 
-    Args:
+    Attributes:
         system_site_packages: bool
             If True, the system (global) site-packages dir is available to created environments.
         clear: bool
@@ -1343,11 +1344,14 @@ class EnvBuilder(venv.EnvBuilder):
     system_site_packages: bool = False
     clear: bool = False
     symlinks: bool = True
-    upgrade: bool = False
+    upgrade: bool = True
+    """Upgrades scripts and run :class:`venv.EnvBuilder.post_setup`."""
     with_pip: bool = True
     prompt: str | None = "."
-    upgrade_deps: bool = False
-    env_dir: Path | str | None = None
+    """To use basename use '.'."""
+    upgrade_deps: bool = True
+    """upgrades :data:`venv.CORE_VENV_DEPS`."""
+    env_dir: Path | str | None = "venv"
     context: types.SimpleNamespace | None = dataclasses.field(default=None, init=False)
 
     def __post_init__(self):
@@ -1362,7 +1366,7 @@ class EnvBuilder(venv.EnvBuilder):
             **({"upgrade_deps": self.upgrade_deps} if sys.version_info >= (3, 9) else {}),
         )
         if self.env_dir:
-            self.env_dir = Path(self.env_dir)
+            self.env_dir = Path(self.env_dir).absolute()
             if self.env_dir.exists():
                 self.ensure_directories()
             else:
@@ -1374,8 +1378,7 @@ class EnvBuilder(venv.EnvBuilder):
         Args:
             env_dir: The target directory to create an environment in.
         """
-        if env_dir and self.env_dir is None:
-            self.env_dir = env_dir
+        self.env_dir = env_dir or self.env_dir
         super().create(self.env_dir)
 
     def ensure_directories(self, env_dir: Path | str | None = None) -> types.SimpleNamespace:
@@ -4178,9 +4181,9 @@ class Project:
     def venv(
         self,
         version: str = PYTHON_DEFAULT_VERSION,
-        force: bool = False,
+        clear: bool = False,
         upgrade: bool = False,
-    ):
+    ) -> None:
         """Creates venv, runs: `write` and `requirements`."""
         version = "" if self.ci else version
         if not self.pyproject_toml.file:
@@ -4191,36 +4194,23 @@ class Project:
         self.write()
         if not self.ci:
             v = self.root / "venv"
-            if force:
-                shutil.rmtree(v, ignore_errors=True)
             python = f"python{version}"
-            if not v.is_dir() or not self.bin(python).is_file():
-                subprocess.check_call(f"{python} -m venv {v}", shell=True)
-                self.info(f"{self.venv.__name__}: {version}")
-            subprocess.check_call(
-                [
-                    self.executable(),
-                    "-m",
-                    "pip",
-                    "install",
-                    "--upgrade",
-                    "-q",
-                    *venv.CORE_VENV_DEPS,
-                ]
-            )
+            clear = "--clean" if clear else ""
+            subprocess.check_call(f"{python} -m venv {v} --prompt '.' {clear} --upgrade-deps --upgrade",
+                                  shell=True)
+            self.info(f"{self.venv.__name__}: {version}")
         self.requirement(version=version, install=True, upgrade=upgrade)
 
     def venvs(
         self,
-        force: bool = False,
         upgrade: bool = False,
     ):
         """Installs venv for all python versions in :data:`PYTHON_VERSIONS`."""
         if self.ci:
-            self.venv(force=force, upgrade=upgrade)
+            self.venv(upgrade=upgrade)
         else:
             for version in PYTHON_VERSIONS:
-                self.venv(version=version, force=force, upgrade=upgrade)
+                self.venv(version=version, upgrade=upgrade)
 
     def write(self):
         """Updates pyproject.toml and docs conf.py."""
@@ -4263,6 +4253,7 @@ copyright = "{datetime.datetime.now().year}, {AUTHOR}"
 extensions = [
     "myst_parser",
     "sphinx.ext.autodoc",
+    "sphinx.ext.autosectionlabel",
     "sphinx.ext.extlinks",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
@@ -4273,6 +4264,7 @@ autoclass_content = "both"
 autodoc_default_options = {{"members": True, "member-order": "bysource",
                            "undoc-members": True, "show-inheritance": True}}
 autodoc_typehints = "description"
+autosectionlabel_prefix_document = True
 html_theme = "furo"
 html_title, html_last_updated_fmt = "{self.name} docs", "%Y-%m-%dT%H:%M:%S"
 inheritance_alias = {{}}
@@ -6063,7 +6055,6 @@ def which(data="sudo", raises: bool = False) -> str:
     Raises:
         CommandNotFound:
 
-
     Returns:
         Cmd path or ""
     """
@@ -6094,3 +6085,4 @@ if "pip._internal.operations.install.wheel" in sys.modules:
     pip._internal.cli.base_command.Command.main = _pip_base_command
 
 venv.CORE_VENV_DEPS = ["build", "ipython", "pip", "setuptools", "wheel"]
+venv.EnvBuilder = EnvBuilder
