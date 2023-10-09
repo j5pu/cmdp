@@ -984,7 +984,8 @@ def write(
 
 
 if "sphinx" in sys.modules and __name__ != "__main__":
-    import tomlkit
+    with pipmetapathfinder():
+        import tomlkit
 
     text = """# Usage
 

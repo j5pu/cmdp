@@ -23,45 +23,43 @@
 
 ## Features
 
-### proj
-
-#### Automatic installation of packages
+### Automatic installation of packages
 
 `PipMetaPathFinder` is a `sys.meta_path` finder that automatically installs packages when they are imported.
 
-#### Task dependencies
+### Task dependencies
 - `venv` runs `write` and `requirements`
 - `build` runs  `venv`, `completions`, `docs` and `clean`.
 - `tests` runs `build`, `ruff`, `pytest` and `tox`
 - `publish` runs `tests`, `commit`, `tag`, `push`, `twine` and `clean`
 
-#### Completions
+### Completions
 
 To install completions after a package is installed:
 `proj completions [name]` or `completions [name]`
 
-#### Repos
+### Repos
 
 To synchronize (push or pull) all repos under `~/Archive` and `$HOME` run: `repos --sync` or `proj repos --sync`
 
-#### pyproject.toml
+### pyproject.toml
 
-##### Project
+#### Project
 
 Project section information in `pyproject.toml` is automatically updated when `Project.write()` is called, is key is not in project. 
 An empty `pyproject.toml` is needed.
 
-##### Extras
+#### Extras
 To use all extras from nodeps to your project, add the following to your `pyproject.toml`:
 
 ```toml
 [project.optional-dependencies]
 dev = [
-    "nodeps[all]",
+    "nodeps[dev]",
 ]
 ```
 
-#### docs conf.py and requirements.txt
+### docs conf.py and requirements.txt
 
 doc `conf.py`,  `reference.md` and `requirements.txt` are automatically updated when `Project.write()` is called.
 
@@ -77,7 +75,7 @@ doc `conf.py`,  `reference.md` and `requirements.txt` are automatically updated 
     :nested: full
 ```
 
-#### Makefile
+### Makefile
 
 ```makefile
 browser:
@@ -165,7 +163,7 @@ venvs:  # runs: requirements
 
 ### Extras:
 - `ansi`: for `getstdout` and `strip` function using `strip-ansi` library
-- `cli`: for `typer` to have CLI for `proj` command
+- `cli`: for `typer` to have CLI for `p` command
 - `echo`: for `echo` package using `click` library
 - `log`: for `logger` function using `loguru` library
 - `pickle`: for `cache` function using `jsonpickle` and `structlog` libraries
@@ -225,7 +223,7 @@ You can install _nodeps_ with extras [pip] from [PyPI]:
 $ pip install nodeps[repo]
 ```
 
-To install all extras (not including development extras):
+To install all extras but [dev] (not including development extras):
 
 ```console
 $ pip install nodeps[all]

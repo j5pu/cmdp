@@ -241,7 +241,7 @@ LINUX = sys.platform == "linux"
 """Is Linux? sys.platform == 'linux'"""
 MACOS = sys.platform == "darwin"
 """Is macOS? sys.platform == 'darwin'"""
-NODEPS_EXECUTABLE = "proj"
+NODEPS_EXECUTABLE = "p"
 """NoDeps Executable Name"""
 NODEPS_PIP_POST_INSTALL_FILENAME = "_post_install.py"
 """Filename that will be searched after pip installs a package."""
@@ -3612,8 +3612,11 @@ class Project:
         Arguments:
             quiet: quiet mode (default: True)
         """
-        for version in PYTHON_VERSIONS:
-            self.build(version=version, quiet=quiet)
+        if self.ci:
+            self.build(quiet=quiet)
+        else:
+            for version in PYTHON_VERSIONS:
+                self.build(version=version, quiet=quiet)
 
     def buildrequires(self) -> list[str]:
         """pyproject.toml build-system requires."""
@@ -3939,10 +3942,13 @@ class Project:
     def pytests(self) -> int:
         """Runs pytest for all versions."""
         rc = 0
-        for version in PYTHON_VERSIONS:
-            rc = self.pytest(version=version)
-            if rc != 0:
-                sys.exit(rc)
+        if self.ci:
+            rc = self.pytest()
+        else:
+            for version in PYTHON_VERSIONS:
+                rc = self.pytest(version=version)
+                if rc != 0:
+                    sys.exit(rc)
         return rc
 
     @classmethod
@@ -3998,8 +4004,11 @@ class Project:
 
     def requirements(self, upgrade: bool = False) -> None:
         """Install dependencies and optional dependencies from pyproject.toml or distribution for python versions."""
-        for version in PYTHON_VERSIONS:
-            self.requirement(version=version, install=True, upgrade=upgrade)
+        if self.ci:
+            self.requirement(install=True, upgrade=upgrade)
+        else:
+            for version in PYTHON_VERSIONS:
+                self.requirement(version=version, install=True, upgrade=upgrade)
 
     def ruff(self, version: str = PYTHON_DEFAULT_VERSION) -> int:
         """Runs ruff."""
@@ -4102,10 +4111,13 @@ class Project:
             quiet: quiet mode (default: True)
         """
         rc = 0
-        for version in PYTHON_VERSIONS:
-            rc = self.test(version=version, ruff=ruff, tox=tox, quiet=quiet)
-            if rc != 0:
-                sys.exit(rc)
+        if self.ci:
+            rc = self.test(ruff=ruff, tox=tox, quiet=quiet)
+        else:
+            for version in PYTHON_VERSIONS:
+                rc = self.test(version=version, ruff=ruff, tox=tox, quiet=quiet)
+                if rc != 0:
+                    sys.exit(rc)
         return rc
 
     def top(self) -> Path | None:
@@ -4200,8 +4212,11 @@ class Project:
         upgrade: bool = False,
     ):
         """Installs venv for all python versions in :data:`PYTHON_DEFAULT_VERSION`."""
-        for version in PYTHON_VERSIONS:
-            self.venv(version=version, force=force, upgrade=upgrade)
+        if self.ci:
+            self.venv(force=force, upgrade=upgrade)
+        else:
+            for version in PYTHON_VERSIONS:
+                self.venv(version=version, force=force, upgrade=upgrade)
 
     def write(self):
         """Updates pyproject.toml and docs conf.py."""
