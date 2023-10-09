@@ -40,6 +40,7 @@ from pathlib import Path
 from typing import Annotated
 
 from . import (
+    NODEPS_EXECUTABLE,
     NODEPS_PROJECT_NAME,
     PYTHON_DEFAULT_VERSION,
     PYTHON_VERSIONS,
@@ -1004,7 +1005,7 @@ if "sphinx" in sys.modules and __name__ != "__main__":
             new["project"]["scripts"] = {}
         for key, value in globals().copy().items():
             if isinstance(value, typer.Typer):
-                program = "proj" if key == "app" else key.replace("_", "")
+                program = NODEPS_EXECUTABLE if key == "app" else key.replace("_", "")
                 cls = f"{NODEPS_PROJECT_NAME}.__main__:{key}"
                 new["project"]["scripts"][program] = cls
                 text += f".. click:: {cls}_click\n"

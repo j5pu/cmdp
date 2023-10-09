@@ -2,7 +2,7 @@
 
 ```{eval-rst}
 .. click:: nodeps.__main__:app_click
-    :prog: proj
+    :prog: p
     :nested: full
 
 .. click:: nodeps.__main__:_browser_click

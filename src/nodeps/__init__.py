@@ -3406,7 +3406,8 @@ class PipMetaPathFinder(importlib.abc.MetaPathFinder):
         packages = {
             "linkify_it": "linkify-it-py",
         }
-        if path is None and fullname is not None and fullname not in ["cPickle"]:
+        exclude = ["cPickle", "ctags"]
+        if path is None and fullname is not None and fullname not in exclude:
 
             package = packages.get(fullname) or fullname.split(".")[0].replace("_", "-")
             try:

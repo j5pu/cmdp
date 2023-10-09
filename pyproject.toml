@@ -11,6 +11,7 @@ email = "63794670+j5pu@users.noreply.github.com"
 
 
 
+
 [project.license]
 text = "MIT"
 
@@ -104,7 +105,7 @@ all = [
 ]
 
 [project.scripts]
-proj = "nodeps.__main__:app"
+p = "nodeps.__main__:app"
 browser = "nodeps.__main__:_browser"
 build = "nodeps.__main__:_build"
 builds = "nodeps.__main__:_builds"
@@ -140,6 +141,7 @@ venvs = "nodeps.__main__:_venvs"
 
 [project.urls]
 Homepage = "https://github.com/j5pu/nodeps"
+
 
 
 
