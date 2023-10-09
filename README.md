@@ -36,11 +36,11 @@
 ### Completions
 
 To install completions after a package is installed:
-`proj completions [name]` or `completions [name]`
+`p completions [name]` or `completions [name]`
 
 ### Repos
 
-To synchronize (push or pull) all repos under `~/Archive` and `$HOME` run: `repos --sync` or `proj repos --sync`
+To synchronize (push or pull) all repos under `~/Archive` and `$HOME` run: `repos --sync` or `p repos --sync`
 
 ### pyproject.toml
 
@@ -98,7 +98,7 @@ completions:
 	@$@
 
 coverage:
-	@proj $@
+	@p $@
 
 .PHONY: docs
 docs:
@@ -121,7 +121,7 @@ pyenv:
 	@pyenv install 3.12-dev
 
 pytest:
-	@proj $@
+	@p $@
 
 pytests:
 	@$@
@@ -133,23 +133,23 @@ requirements:
 	@$@
 
 ruff:
-	@proj $@
+	@p $@
 
 secrets:
 	@$@
 
 test:
-	@proj $@
+	@p $@
 
 .PHONY: tests
 tests:  # runs: build (clean, venv (requirements)), pytest, ruff and tox
 	@$@
 
 tox:
-	@proj $@
+	@p $@
 
 twine:
-	@proj $@
+	@p $@
 
 .PHONY: venv
 venv:  # runs: requirements
