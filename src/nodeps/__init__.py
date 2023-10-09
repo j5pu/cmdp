@@ -4992,9 +4992,9 @@ _{name}_completion() {{
 
 complete -o default -F _{name}_completion {name}
 """
-    p if (p := Path("/usr/local/etc/bash_completion.d")).is_dir() else Path("/etc/bash_completion.d")
+    path = Path("/usr/local/etc/bash_completion.d" if MACOS else "/etc/bash_completion.d").mkdir()
     if install:
-        file = Path("/usr/local/etc/bash_completion.d", f"{NODEPS_PROJECT_NAME}:{name}.bash")
+        file = Path(path, f"{NODEPS_PROJECT_NAME}:{name}.bash")
         if not file.is_file() or (file.read_text() != completion):
             file.write_text(completion)
             return str(file)
