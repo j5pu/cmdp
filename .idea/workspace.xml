@@ -137,21 +137,21 @@
       <recent name="$PROJECT_DIR$/src/nodeps" />
     </key>
   </component>
-  <component name="RunManager" selected="Makefile Target.venvs">
-    <configuration name="browser" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
-      <makefile filename="$PROJECT_DIR$/Makefile" target="browser" workingDirectory="" arguments="">
-        <envs />
-      </makefile>
-      <method v="2" />
-    </configuration>
-    <configuration name="docs" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
-      <makefile filename="$PROJECT_DIR$/Makefile" target="docs" workingDirectory="" arguments="">
+  <component name="RunManager" selected="Makefile Target.pytests">
+    <configuration name="builds" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
+      <makefile filename="$PROJECT_DIR$/Makefile" target="builds" workingDirectory="" arguments="">
         <envs />
       </makefile>
       <method v="2" />
     </configuration>
     <configuration name="publish" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
       <makefile filename="$PROJECT_DIR$/Makefile" target="publish" workingDirectory="" arguments="">
+        <envs />
+      </makefile>
+      <method v="2" />
+    </configuration>
+    <configuration name="pytests" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
+      <makefile filename="$PROJECT_DIR$/Makefile" target="pytests" workingDirectory="" arguments="">
         <envs />
       </makefile>
       <method v="2" />
@@ -177,11 +177,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Makefile Target.pytests" />
+        <item itemvalue="Makefile Target.builds" />
         <item itemvalue="Makefile Target.venvs" />
         <item itemvalue="Docker.Docker Image" />
         <item itemvalue="Makefile Target.publish" />
-        <item itemvalue="Makefile Target.docs" />
-        <item itemvalue="Makefile Target.browser" />
       </list>
     </recent_temporary>
   </component>
