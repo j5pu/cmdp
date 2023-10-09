@@ -4408,6 +4408,8 @@ def _pip_base_command(self: Command, args: list[str]) -> int:
     try:
         log = ColorLogger.logger()
         with self.main_context():
+            if self.__class__.__name__ == "UninstallCommand":
+                
             rv = self._main(args)
             if rv == 0 and self.__class__.__name__ == "InstallCommand":
                 for key, value in _NODEPS_PIP_POST_INSTALL.items():
