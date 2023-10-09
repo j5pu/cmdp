@@ -113,7 +113,7 @@
     </option>
   </component>
   <component name="QodanaCloudProjectLink">
-    <option name="lastReportId" value="rOw5v" />
+    <option name="lastReportId" value="2KPog" />
     <option name="linkedProjectId" value="p0KVQ" />
     <option name="linkedProjectName" value="nodeps" />
     <option name="organizationId" value="ANQgy" />
@@ -134,7 +134,7 @@
       <recent name="$PROJECT_DIR$/src/nodeps" />
     </key>
   </component>
-  <component name="RunManager" selected="Makefile Target.publish">
+  <component name="RunManager" selected="Docker.Docker Image">
     <configuration name="browser" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
       <makefile filename="$PROJECT_DIR$/Makefile" target="browser" workingDirectory="" arguments="">
         <envs />
@@ -153,25 +153,32 @@
       </makefile>
       <method v="2" />
     </configuration>
-    <configuration name="pytest" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
-      <makefile filename="$PROJECT_DIR$/Makefile" target="pytest" workingDirectory="" arguments="">
+    <configuration name="venvs" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
+      <makefile filename="$PROJECT_DIR$/Makefile" target="venvs" workingDirectory="" arguments="">
         <envs />
       </makefile>
       <method v="2" />
     </configuration>
-    <configuration name="test" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
-      <makefile filename="$PROJECT_DIR$/Makefile" target="test" workingDirectory="" arguments="">
-        <envs />
-      </makefile>
+    <configuration name="Docker Image" type="docker-deploy" factoryName="docker-image" temporary="true" server-name="Docker">
+      <deployment type="docker-image">
+        <settings>
+          <option name="imageTag" value="docker.io/library/python:3.12" />
+          <option name="containerName" value="" />
+        </settings>
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="docker-deploy" factoryName="docker-image" temporary="true">
+      <deployment type="docker-image" />
       <method v="2" />
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Docker.Docker Image" />
+        <item itemvalue="Makefile Target.venvs" />
         <item itemvalue="Makefile Target.publish" />
         <item itemvalue="Makefile Target.docs" />
         <item itemvalue="Makefile Target.browser" />
-        <item itemvalue="Makefile Target.test" />
-        <item itemvalue="Makefile Target.pytest" />
       </list>
     </recent_temporary>
   </component>

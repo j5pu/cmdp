@@ -78,10 +78,13 @@ doc `conf.py`,  `reference.md` and `requirements.txt` are automatically updated 
 ### Makefile
 
 ```makefile
+brew:
+	@p $@
+
 browser:
 	@$@
 
-.PHONY: build 
+.PHONY: build
 build:  # run: write, docs, clean and venv (requirements)
 	@$@
 
@@ -157,6 +160,9 @@ venv:  # runs: requirements
 
 venvs:  # runs: requirements
 	@$@
+
+write:
+	@p $@
 
 .DEFAULT_GOAL := publish
 ```

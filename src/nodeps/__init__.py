@@ -3403,8 +3403,12 @@ class PipMetaPathFinder(importlib.abc.MetaPathFinder):
         target: types.ModuleType | None = None,
     ) -> importlib._bootstrap.ModuleSpec | None:
         """Try to find a module spec for the specified module."""
+        packages = {
+            "linkify_it": "linkify-it-py",
+        }
         if path is None and fullname is not None and fullname not in ["cPickle"]:
-            package = fullname.split(".")[0].replace("_", "-")
+
+            package = packages.get(fullname) or fullname.split(".")[0].replace("_", "-")
             try:
                 importlib.metadata.Distribution.from_name(package)
             except importlib.metadata.PackageNotFoundError as e:
@@ -3529,13 +3533,14 @@ class Project:
         """Logger warning."""
         self.log.warning(msg, extra={"extra": self.name})
 
-    def bin(self, executable: str | None = None) -> Path:  # noqa: A003
+    def bin(self, executable: str | None = None, version: str = PYTHON_DEFAULT_VERSION) -> Path:  # noqa: A003
         """Bin directory.
 
         Args;
             executable: command to add to path
+            version: python version
         """
-        return Path(self.executable()).parent / executable if executable else ""
+        return Path(self.executable(version=version)).parent / executable if executable else ""
 
     def brew(self, c: str | None = None) -> int:
         """Runs brew bundle."""
@@ -4187,8 +4192,9 @@ class Project:
             v = self.root / "venv"
             if force:
                 shutil.rmtree(v, ignore_errors=True)
-            if not v.is_dir():
-                subprocess.check_call(f"python{version} -m venv {v}", shell=True)
+            python = f"python{version}"
+            if not v.is_dir() or not self.bin(python).is_file():
+                subprocess.check_call(f"{python} -m venv {v}", shell=True)
                 self.info(f"{self.venv.__name__}: {version}")
             subprocess.check_call(
                 [
@@ -4198,10 +4204,7 @@ class Project:
                     "install",
                     "--upgrade",
                     "-q",
-                    "pip",
-                    "wheel",
-                    "setuptools",
-                    "build",
+                    *venv.CORE_VENV_DEPS,
                 ]
             )
         self.requirement(version=version, install=True, upgrade=upgrade)
@@ -4211,7 +4214,7 @@ class Project:
         force: bool = False,
         upgrade: bool = False,
     ):
-        """Installs venv for all python versions in :data:`PYTHON_DEFAULT_VERSION`."""
+        """Installs venv for all python versions in :data:`PYTHON_VERSIONS`."""
         if self.ci:
             self.venv(force=force, upgrade=upgrade)
         else:
@@ -4956,7 +4959,7 @@ def completions(name: str, install: bool = True) -> str | None:
 
     Args:
         name: command name
-        install: install completions to /usr/local/etc/bash_completion.d/
+        install: install completions to /usr/local/etc/bash_completion.d/ or /etc/bash_completion.d
 
     Returns:
         Path to file if installed or prints if not installed
@@ -4988,8 +4991,9 @@ _{name}_completion() {{
 
 complete -o default -F _{name}_completion {name}
 """
+    p if (p := Path("/usr/local/etc/bash_completion.d")).is_dir() else Path("/etc/bash_completion.d")
     if install:
-        file = Path("/usr/local/etc/bash_completion.d", f"{Path(__file__).stem}_{name}.bash")
+        file = Path("/usr/local/etc/bash_completion.d", f"{NODEPS_PROJECT_NAME}:{name}.bash")
         if not file.is_file() or (file.read_text() != completion):
             file.write_text(completion)
             return str(file)
@@ -6085,4 +6089,4 @@ if "pip._internal.operations.install.wheel" in sys.modules:
     pip._internal.operations.install.wheel.install_wheel = _pip_install_wheel
     pip._internal.cli.base_command.Command.main = _pip_base_command
 
-venv.CORE_VENV_DEPS = ["ipython", "pip", "setuptools", "wheel"]
+venv.CORE_VENV_DEPS = ["build", "ipython", "pip", "setuptools", "wheel"]

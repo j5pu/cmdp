@@ -966,7 +966,7 @@ def venvs(
     upgrade: Annotated[bool, typer.Option(help="upgrade all dependencies")] = False,
 ):
     """Creates venv, runs: `write` and `requirements`."""
-    Project(data).venv(force=force, upgrade=upgrade)
+    Project(data).venvs(force=force, upgrade=upgrade)
 
 
 @app.command()
