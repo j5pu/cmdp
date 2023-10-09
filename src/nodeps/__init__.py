@@ -6083,6 +6083,9 @@ EXECUTABLE_SITE = Path(EXECUTABLE).resolve()
 
 subprocess.CalledProcessError = CalledProcessError
 
+
+os.environ["PIP_ONLY_BINARY"] = ":all:"
+os.environ["PIP_ROOT_USER_ACTION"] = "ignore"
 os.environ["PYTHONDONTWRITEBYTECODE"] = ""
 os.environ["PY_IGNORE_IMPORTMISMATCH"] = "1"
 
