@@ -12,6 +12,7 @@
     </content>
     <orderEntry type="jdk" jdkName="Python 3.11 (nodeps)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="kitpdf" />
   </component>
   <component name="PackageRequirementsSettings">
     <option name="requirementsPath" value="$MODULE_DIR$/pyproject.toml" />

@@ -65,18 +65,29 @@ dev = [
 
 doc `conf.py`,  `reference.md` and `requirements.txt` are automatically updated when `Project.write()` is called.
 
+`usage.md` requires a click instance in `__main__.py`:
+`<app_name>_click = typer.main.get_command(<Typer instance>)`
+
+```md
+# Usage
+
+```{eval-rst}
+.. click:: pdf.__main__:<app_name>_click
+    :prog: reembolsos
+    :nested: full
+```
+
 #### Makefile
 
 ```makefile
-.PHONY: docs tests venv
-
-brew:
-	@proj $@ --command gh
-
 browser:
 	@$@
 
-build:  # Build a project `venv`, `completions`, `docs` and `clean`.
+.PHONY: build 
+build:  # run: write, docs, clean and venv (requirements)
+	@$@
+
+builds:  # run: write, docs, clean and venv (requirements)
 	@$@
 
 clean:
@@ -91,6 +102,7 @@ completions:
 coverage:
 	@proj $@
 
+.PHONY: docs
 docs:
 	@$@
 
@@ -101,9 +113,9 @@ next:
 	@$@
 
 nodeps:
-	@python3 -m pip install -q $@
-    
-publish:  # runs `tests`, `commit`, `tag`, `push`, `twine` and `clean`
+	@python3 -m pip install --upgrade -q $@[all,dev]
+
+publish:  # runs: docs, tests (build (clean, venv (requirements)), pytest, ruff & tox), commit, tag, push, twine & clean
 	@$@
 
 pyenv:
@@ -113,8 +125,14 @@ pyenv:
 pytest:
 	@proj $@
 
-requirements:
+pytests:
+	@$@
+
+requirement:
 	@$@ --install
+
+requirements:
+	@$@
 
 ruff:
 	@proj $@
@@ -122,7 +140,11 @@ ruff:
 secrets:
 	@$@
 
-tests:  # runs `build`, `ruff`, `pytest` and `tox`
+test:
+	@proj $@
+
+.PHONY: tests
+tests:  # runs: build (clean, venv (requirements)), pytest, ruff and tox
 	@$@
 
 tox:
@@ -131,7 +153,11 @@ tox:
 twine:
 	@proj $@
 
-venv:  # runs `write` and `requirements`
+.PHONY: venv
+venv:  # runs: requirements
+	@$@
+
+venvs:  # runs: requirements
 	@$@
 
 .DEFAULT_GOAL := publish

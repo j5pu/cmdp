@@ -2,7 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../huti" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../kitpdf" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../mongodata" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../pdf" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../puntos" vcs="Git" />

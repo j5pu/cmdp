@@ -4279,6 +4279,7 @@ intersphinx_mapping = {{
                     self.info(f"{self.write.__name__}: {file}")
 
                 requirements = """furo >=2023.9.10, <2024
+linkify-it-py >=2.0.2, <3
 myst-parser >=2.0.0, <3
 sphinx >=7.2.6, <8
 sphinx-autobuild >=2021.3.14, <2022

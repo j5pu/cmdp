@@ -22,21 +22,15 @@
       <change beforePath="$PROJECT_DIR$/../huti/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../huti/pyproject.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../huti/setup.cfg" beforeDir="false" afterPath="$PROJECT_DIR$/../huti/setup.cfg" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../huti/src/huti/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/../huti/src/huti/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/nodeps.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/nodeps.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ruff.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nodeps/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/nodeps/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../ppip/.idea/ppip.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../ppip/.idea/ppip.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../ppip/src/ppip/post.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ppip/src/ppip/post.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../ppip/src/ppip/pth.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ppip/src/ppip/pth.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../ppip/src/ppip/utils/constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ppip/src/ppip/utils/constants.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pproj/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../pproj/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pproj/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../pproj/pyproject.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pproj/src/pproj/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pproj/src/pproj/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pproj/src/pproj/alias.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pproj/src/pproj/project.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pproj/src/pproj/project.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../puntos/.idea/puntos.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../puntos/.idea/puntos.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../puntos/tests/cli/cli.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../puntos/tests/mreleaser/test_cli.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../puntos/tests/startup/test_startup.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../shrc/.idea/shrc.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../shrc/.idea/shrc.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../sitec/.idea/sitec.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../sitec/.idea/sitec.iml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -82,7 +76,6 @@
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
-    <option name="showExcludedFiles" value="false" />
     <option name="showLibraryContents" value="true" />
     <option name="showMembers" value="true" />
     <option name="showModules" value="false" />
@@ -95,7 +88,7 @@
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "WebServerToolWindowFactoryState": "false",
     "git-widget-placeholder": "main",
-    "last_opened_file_path": "/Users/j5pu/nodeps/tests",
+    "last_opened_file_path": "/Users/j5pu/huti/docs",
     "run.code.analysis.last.selected.profile": "pProject Default",
     "settings.editor.selected.configurable": "AtomSelectConfig"
   },
@@ -120,18 +113,18 @@
     </option>
   </component>
   <component name="QodanaCloudProjectLink">
-    <option name="lastReportId" value="eldZ4" />
+    <option name="lastReportId" value="rOw5v" />
     <option name="linkedProjectId" value="p0KVQ" />
     <option name="linkedProjectName" value="nodeps" />
     <option name="organizationId" value="ANQgy" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/../huti/docs" />
       <recent name="$PROJECT_DIR$/tests" />
       <recent name="$PROJECT_DIR$/scratch" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/docs" />
-      <recent name="$PROJECT_DIR$/src/nodeps" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/bin" />
