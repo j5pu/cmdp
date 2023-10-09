@@ -483,9 +483,11 @@ def executable(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    version: Annotated[str, typer.Option(help="python major and minor version",
+                                         autocompletion=_versions_completions)] = PYTHON_DEFAULT_VERSION,
 ):
     """Shows executable being used."""
-    print(Project(data).executable())
+    print(Project(data).executable(version=version))
 
 
 @app.command()
