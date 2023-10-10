@@ -4273,7 +4273,7 @@ class Project:
                     {"name": AUTHOR, "email": EMAIL},
                 ],
                 "description": github["description"],
-                "urls": {"Homepage": github["html_url"]},
+                "urls": {"Homepage": github["html_url"], "Documentation": f"https://{self.name}"},
                 "dynamic": ["version"],
                 "license": {"text": "MIT"},
                 "readme": "README.md",

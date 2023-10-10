@@ -137,6 +137,7 @@ venvs = "nodeps.__main__:_venvs"
 
 [project.urls]
 Homepage = "https://github.com/j5pu/nodeps"
+Documentation = "https://nodeps.readthedocs.io"
 
 [build-system]
 requires = [
