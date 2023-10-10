@@ -85,162 +85,130 @@ _cwd = Path.cwd()
 app = typer.Typer(no_args_is_help=True, context_settings={"help_option_names": ["-h", "--help"]})
 
 _browser = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="browser",
 )
 _build = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="build",
 )
 _builds = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="builds",
 )
 _buildrequires = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="buildrequires",
 )
 _clean = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="clean",
 )
 _commit = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="commit",
 )
 _completions = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="completions",
 )
 _dependencies = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="dependencies",
 )
 _dirty = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="dirty",
 )
 _distribution = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="distribution",
 )
 _diverge = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="diverge",
 )
 _docs = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="docs",
 )
 _extras = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="extras",
 )
 _latest = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="latest",
 )
 _needpull = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="needpull",
 )
 _needpush = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="needpush",
 )
 _next = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="next",
 )
 _publish = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="publish",
 )
 _pull = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="pull",
 )
 _push = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="push",
 )
 _pypi = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="pypi",
 )
 _pytests = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="pytests",
 )
 _repos = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="repos",
 )
 _requirement = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="requirement",
 )
 _requirements = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="requirements",
 )
 _secrets = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="secrets",
 )
 _sha = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="sha",
 )
 _superproject = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="superproject",
 )
 _tests = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="tests",
 )
 _version = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="version",
 )
 _venv = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="venv",
 )
 _venvs = typer.Typer(
-    add_completion=False,
     context_settings={"help_option_names": ["-h", "--help"]},
     name="venvs",
 )
