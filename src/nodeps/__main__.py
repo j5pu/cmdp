@@ -724,9 +724,10 @@ def requirement(
                                          autocompletion=_versions_completions)] = PYTHON_DEFAULT_VERSION,
     install: Annotated[bool, typer.Option(help="install requirements, dependencies and extras")] = False,
     upgrade: Annotated[bool, typer.Option(help="upgrade requirements, dependencies and extras")] = False,
+    quiet: bool = True,
 ):
     """Requirements for package."""
-    rv = Project(data).requirement(version=version, install=install, upgrade=upgrade)
+    rv = Project(data).requirement(version=version, install=install, upgrade=upgrade, quiet=quiet)
     if install or upgrade:
         return
     for item in rv:
@@ -744,9 +745,10 @@ def requirements(
         ),
     ] = _cwd,
     upgrade: Annotated[bool, typer.Option(help="upgrade requirements, dependencies and extras")] = False,
+    quiet: bool = True,
 ):
     """Install requirements for all python versions."""
-    Project(data).requirements(upgrade=upgrade)
+    Project(data).requirements(upgrade=upgrade, quiet=quiet)
 
 
 @app.command(name="ruff")
@@ -950,9 +952,10 @@ def venv(
                                          autocompletion=_versions_completions)] = PYTHON_DEFAULT_VERSION,
     clear: Annotated[bool, typer.Option(help="force removal of venv before")] = False,
     upgrade: Annotated[bool, typer.Option(help="upgrade all dependencies")] = False,
+    quiet: bool = True,
 ):
     """Creates venv, runs: `write` and `requirements`."""
-    Project(data).venv(version=version, clear=clear, upgrade=upgrade)
+    Project(data).venv(version=version, clear=clear, upgrade=upgrade, quiet=quiet)
 
 
 @app.command()
@@ -966,9 +969,10 @@ def venvs(
         ),
     ] = _cwd,
     upgrade: Annotated[bool, typer.Option(help="upgrade all dependencies")] = False,
+    quiet: bool = True,
 ):
     """Creates venv, runs: `write` and `requirements`."""
-    Project(data).venvs(upgrade=upgrade)
+    Project(data).venvs(upgrade=upgrade, quiet=quiet)
 
 
 @app.command()

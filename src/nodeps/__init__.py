@@ -3599,7 +3599,7 @@ class Project:
         # TODO: el pth sale si execute en terminal pero no en run
         if not self.pyproject_toml.file:
             return None
-        self.venv(version=version)
+        self.venv(version=version, quiet=quiet)
         self.completions()
         self.docs(quiet=quiet)
         self.clean()
@@ -4001,25 +4001,34 @@ class Project:
         return rv
 
     def requirement(
-        self, version: str = PYTHON_DEFAULT_VERSION, install: bool = False, upgrade: bool = False
+            self,
+            version: str = PYTHON_DEFAULT_VERSION,
+            install: bool = False,
+            upgrade: bool = False,
+            quiet: bool = True,
     ) -> list[str] | int:
         """Dependencies and optional dependencies from pyproject.toml or distribution."""
         req = sorted({*self.dependencies() + self.extras(as_list=True)})
         req = [item for item in req if not item.startswith(f"{self.name}[")]
         if (install or upgrade) and req:
             upgrade = ["--upgrade"] if upgrade else []
-            rv = subprocess.check_call([self.executable(version), "-m", "pip", "install", "-q", *upgrade, *req])
+            quiet = "-q" if quiet else ""
+            rv = subprocess.check_call([self.executable(version), "-m", "pip", "install", quiet, *upgrade, *req])
             self.info(f"{self.requirements.__name__}: {version}")
             return rv
         return req
 
-    def requirements(self, upgrade: bool = False) -> None:
+    def requirements(
+            self,
+            upgrade: bool = False,
+            quiet: bool = True,
+    ) -> None:
         """Install dependencies and optional dependencies from pyproject.toml or distribution for python versions."""
         if self.ci:
-            self.requirement(install=True, upgrade=upgrade)
+            self.requirement(install=True, upgrade=upgrade, quiet=quiet)
         else:
             for version in PYTHON_VERSIONS:
-                self.requirement(version=version, install=True, upgrade=upgrade)
+                self.requirement(version=version, install=True, upgrade=upgrade, quiet=quiet)
 
     def ruff(self, version: str = PYTHON_DEFAULT_VERSION) -> int:
         """Runs ruff."""
@@ -4185,6 +4194,7 @@ class Project:
         version: str = PYTHON_DEFAULT_VERSION,
         clear: bool = False,
         upgrade: bool = False,
+        quiet: bool = True,
     ) -> None:
         """Creates venv, runs: `write` and `requirements`."""
         version = "" if self.ci else version
@@ -4201,18 +4211,19 @@ class Project:
             subprocess.check_call(f"{python} -m venv {v} --prompt '.' {clear} --upgrade-deps --upgrade",
                                   shell=True)
             self.info(f"{self.venv.__name__}: {version}")
-        self.requirement(version=version, install=True, upgrade=upgrade)
+        self.requirement(version=version, install=True, upgrade=upgrade, quiet=quiet)
 
     def venvs(
         self,
         upgrade: bool = False,
+        quiet: bool = True,
     ):
         """Installs venv for all python versions in :data:`PYTHON_VERSIONS`."""
         if self.ci:
-            self.venv(upgrade=upgrade)
+            self.venv(upgrade=upgrade, quiet=quiet)
         else:
             for version in PYTHON_VERSIONS:
-                self.venv(version=version, upgrade=upgrade)
+                self.venv(version=version, upgrade=upgrade, quiet=quiet)
 
     def write(self):
         """Updates pyproject.toml and docs conf.py."""
