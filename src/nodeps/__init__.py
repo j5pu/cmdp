@@ -96,6 +96,7 @@ __all__ = (
     "group_user",
     "gz",
     "in_tox",
+    "mip",
     "noexc",
     "parent",
     "parse_str",
@@ -5617,6 +5618,18 @@ def gz(src: Path | str, dest: Path | str = ".") -> Path:
 def in_tox() -> bool:
     """Running in tox."""
     return ".tox" in sysconfig.get_paths()["purelib"]
+
+
+def mip() -> str | None:
+    """My Public IP.
+
+    Examples:
+        >>> from nodeps import mip
+        >>>
+        >>> mip()  # doctest: +ELLIPSIS
+        '...............'
+    """
+    return urllib.request.urlopen("https://checkip.amazonaws.com", timeout=2).read().strip().decode()  # noqa: S310
 
 
 def noexc(
