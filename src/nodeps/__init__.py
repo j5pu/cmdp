@@ -4272,8 +4272,11 @@ class Project:
                 "authors": [
                     {"name": AUTHOR, "email": EMAIL},
                 ],
-                "description": github["description"],
-                "urls": {"Homepage": github["html_url"], "Documentation": f"https://{self.name}"},
+                "description": github.get("description", ""),
+                "urls": {
+                    "Homepage": github["html_url"],
+                    "Documentation": f"https://{self.name}.readthedocs.io"
+                },
                 "dynamic": ["version"],
                 "license": {"text": "MIT"},
                 "readme": "README.md",
