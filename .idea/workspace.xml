@@ -6,21 +6,38 @@
   <component name="BlackConnectSettings" lineLength="120" previewMode="true" triggerOnReformat="true" showSyntaxErrorMsgs="true" />
   <component name="ChangeListManager">
     <list default="true" id="bf31d71b-78d7-4bdd-9f09-b7f6e0f14454" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../pdf/docs/conf.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../template/.devcontainer/devcontainer.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../pdf/assets/OPENBANK-no-conceptp.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../pdf/json-example.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../pdf/src/pdf/reembolso/jose/test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../kitpdf/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../kitpdf/.idea/ruff.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ruff.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../kitpdf/docs/conf.py" beforeDir="false" afterPath="$PROJECT_DIR$/../kitpdf/docs/conf.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../kitpdf/docs/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../kitpdf/docs/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../kitpdf/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../kitpdf/pyproject.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../kitpdf/src/kitpdf/data/tests/generated/scanned_5.2M.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/../kitpdf/src/kitpdf/data/tests/generated/scanned_5.2M.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../kitpdf/src/kitpdf/data/tests/generated/scanned_BBVA.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/../kitpdf/src/kitpdf/data/tests/generated/scanned_BBVA.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../kitpdf/src/kitpdf/data/tests/generated/scanned_ING.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/../kitpdf/src/kitpdf/data/tests/generated/scanned_ING.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../kitpdf/tox.ini" beforeDir="false" afterPath="$PROJECT_DIR$/../kitpdf/tox.ini" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pdf/.idea/dataSources/8c45e5b4-9e08-45aa-97e8-a4815ac7dcf2.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/.idea/dataSources/8c45e5b4-9e08-45aa-97e8-a4815ac7dcf2.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pdf/.editorconfig" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/.editorconfig" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pdf/.idea/pdf.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/.idea/pdf.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pdf/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/.idea/ruff.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pdf/docs/reference.md" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/docs/reference.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../pdf/docs/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/docs/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pdf/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pdf/PyMuPDF" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/PyMuPDF" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pdf/assets/Openbank-Concepto.pdf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pdf/assets/Openbank.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/assets/Openbank.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pdf/backup/generate/santander.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/backup/generate/santander.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pdf/bin/pdf-parser.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/bin/pdf-parser.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pdf/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/pyproject.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../template/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../template/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pdf/pytest.ini" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/pytest.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pdf/ruff.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/ruff.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pdf/scripts/numbers_csv_to_reembolso.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/scripts/numbers_csv_to_reembolso.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pdf/src/pdf/classes.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/src/pdf/classes.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pdf/src/pdf/constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/src/pdf/constants.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pdf/src/pdf/data/OPENBANK.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/src/pdf/data/OPENBANK.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pdf/src/pdf/data/csv/jose - dkv.csv" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/src/pdf/data/csv/jose - dkv.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pdf/src/pdf/reembolso/jose/dkv.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/src/pdf/reembolso/jose/dkv.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pdf/tests/conftest.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/tests/conftest.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../template/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../template/.idea/ruff.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../template/.idea/template.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../template/.idea/template.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../template/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../template/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../template/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/../template/Makefile" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,28 +91,28 @@
     <option name="showModules" value="false" />
     <option name="showVisibilityIcons" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/j5pu/huti/docs&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.IDE.editor.colors.BashSupport Pro&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "/Users/j5pu/nodeps",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "reference.settingsdialog.IDE.editor.colors.BashSupport Pro"
   },
-  &quot;keyToStringList&quot;: {
-    &quot;GitStage.ChangesTree.GroupingKeys&quot;: [
-      &quot;directory&quot;,
-      &quot;module&quot;,
-      &quot;repository&quot;
+  "keyToStringList": {
+    "GitStage.ChangesTree.GroupingKeys": [
+      "directory",
+      "module",
+      "repository"
     ],
-    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
-      &quot;Python&quot;
+    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
+      "Python"
     ]
   }
-}</component>
+}]]></component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
       <console-settings custom-start-script="import sys; print('Python %s on %s' % (sys.version, sys.platform))&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from nodeps import *" module-name="nodeps" is-module-sdk="true">
@@ -106,7 +123,7 @@
     </option>
   </component>
   <component name="QodanaCloudProjectLink">
-    <option name="lastReportId" value="d7Rnk" />
+    <option name="lastReportId" value="o7VLl" />
     <option name="linkedProjectId" value="p0KVQ" />
     <option name="linkedProjectName" value="nodeps" />
     <option name="organizationId" value="ANQgy" />

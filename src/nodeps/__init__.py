@@ -181,11 +181,13 @@ from urllib.parse import ParseResult
 
 try:
     # nodeps[pth] extras
+    import setuptools  # type: ignore[attr-defined]
     from setuptools.command.build_py import build_py  # type: ignore[attr-defined]
     from setuptools.command.develop import develop  # type: ignore[attr-defined]
     from setuptools.command.easy_install import easy_install  # type: ignore[attr-defined]
     from setuptools.command.install_lib import install_lib  # type: ignore[attr-defined]
 except ModuleNotFoundError:
+    setuptools = object
     build_py = object
     develop = object
     easy_install = object
@@ -250,6 +252,8 @@ NODEPS_PIP_POST_INSTALL_FILENAME = "_post_install.py"
 """Filename that will be searched after pip installs a package."""
 NODEPS_PROJECT_NAME = "nodeps"
 """NoDeps Project Name"""
+NODEPS_QUIET = True
+"""Global variable to supress warn in setuptools"""
 PYTHON_VERSIONS = (
     os.environ.get("PYTHON_DEFAULT_VERSION", "3.11"),
     "3.12",
@@ -3573,6 +3577,9 @@ class Project:
             version: python version
             quiet: quiet mode (default: True)
         """
+        global NODEPS_QUIET  # noqa: PLW0603
+        NODEPS_QUIET = quiet
+
         if not self.docsdir:
             return 0
         build_dir = self.docsdir / "_build"
@@ -3597,6 +3604,9 @@ class Project:
             quiet: quiet mode (default: True)
         """
         # TODO: el pth sale si execute en terminal pero no en run
+        global NODEPS_QUIET  # noqa: PLW0603
+        NODEPS_QUIET = quiet
+
         if not self.pyproject_toml.file:
             return None
         self.venv(version=version, quiet=quiet)
@@ -3624,6 +3634,9 @@ class Project:
         Arguments:
             quiet: quiet mode (default: True)
         """
+        global NODEPS_QUIET  # noqa: PLW0603
+        NODEPS_QUIET = quiet
+
         if self.ci:
             self.build(quiet=quiet)
         else:
@@ -3721,6 +3734,9 @@ class Project:
             version: python version
             quiet: quiet mode (default: True)
         """
+        global NODEPS_QUIET  # noqa: PLW0603
+        NODEPS_QUIET = quiet
+
         if not self.docsdir:
             return 0
         build_dir = self.docsdir / "_build"
@@ -3883,6 +3899,9 @@ class Project:
             tox: run tox
             quiet: quiet mode (default: True)
         """
+        global NODEPS_QUIET  # noqa: PLW0603
+        NODEPS_QUIET = quiet
+
         self.tests(ruff=ruff, tox=tox, quiet=quiet)
         self.commit()
         if (n := self.next(part=part, force=force)) != (l := self.latest()):
@@ -4008,6 +4027,9 @@ class Project:
             quiet: bool = True,
     ) -> list[str] | int:
         """Dependencies and optional dependencies from pyproject.toml or distribution."""
+        global NODEPS_QUIET  # noqa: PLW0603
+        NODEPS_QUIET = quiet
+
         req = sorted({*self.dependencies() + self.extras(as_list=True)})
         req = [item for item in req if not item.startswith(f"{self.name}[")]
         if (install or upgrade) and req:
@@ -4024,6 +4046,9 @@ class Project:
             quiet: bool = True,
     ) -> None:
         """Install dependencies and optional dependencies from pyproject.toml or distribution for python versions."""
+        global NODEPS_QUIET  # noqa: PLW0603
+        NODEPS_QUIET = quiet
+
         if self.ci:
             self.requirement(install=True, upgrade=upgrade, quiet=quiet)
         else:
@@ -4110,6 +4135,9 @@ class Project:
             tox: run tox (default: True)
             quiet: quiet mode (default: True)
         """
+        global NODEPS_QUIET  # noqa: PLW0603
+        NODEPS_QUIET = quiet
+
         self.build(version=version, quiet=quiet)
         if ruff and (rc := self.ruff(version=version) != 0):
             sys.exit(rc)
@@ -4130,6 +4158,9 @@ class Project:
             tox: runs tox
             quiet: quiet mode (default: True)
         """
+        global NODEPS_QUIET  # noqa: PLW0603
+        NODEPS_QUIET = quiet
+
         rc = 0
         if self.ci:
             rc = self.test(ruff=ruff, tox=tox, quiet=quiet)
@@ -4197,6 +4228,9 @@ class Project:
         quiet: bool = True,
     ) -> None:
         """Creates venv, runs: `write` and `requirements`."""
+        global NODEPS_QUIET  # noqa: PLW0603
+        NODEPS_QUIET = quiet
+
         version = "" if self.ci else version
         if not self.pyproject_toml.file:
             return
@@ -4219,6 +4253,9 @@ class Project:
         quiet: bool = True,
     ):
         """Installs venv for all python versions in :data:`PYTHON_VERSIONS`."""
+        global NODEPS_QUIET  # noqa: PLW0603
+        NODEPS_QUIET = quiet
+
         if self.ci:
             self.venv(upgrade=upgrade, quiet=quiet)
         else:
@@ -4477,6 +4514,15 @@ def _pip_uninstall_req(
     uninstalled_pathset = pip._internal.req.req_uninstall.UninstallPathSet.from_dist(dist)
     uninstalled_pathset.remove(auto_confirm, verbose)
     return uninstalled_pathset
+
+
+def _setuptools_build_quiet(self, importable) -> None:
+    """Setuptools build py patch to quiet build."""
+    if NODEPS_QUIET:
+        return
+    if importable not in self._already_warned:
+        self._Warning.emit(importable=importable)
+        self._already_warned.add(importable)
 
 
 async def aioclone(
@@ -6113,10 +6159,14 @@ os.environ["PIP_ROOT_USER_ACTION"] = "ignore"
 os.environ["PYTHONDONTWRITEBYTECODE"] = ""
 os.environ["PY_IGNORE_IMPORTMISMATCH"] = "1"
 
+
 if "pip._internal.operations.install.wheel" in sys.modules:
     pip._internal.operations.install.wheel.install_wheel = _pip_install_wheel
     pip._internal.cli.base_command.Command.main = _pip_base_command
     pip._internal.req.req_install.InstallRequirement.uninstall = _pip_uninstall_req
+
+if "setuptools.command.build_py" in sys.modules:
+    setuptools.command.build_py._IncludePackageDataAbuse.warn = _setuptools_build_quiet
 
 venv.CORE_VENV_DEPS = ["build", "ipython", "pip", "setuptools", "wheel"]
 venv.EnvBuilder = EnvBuilder
