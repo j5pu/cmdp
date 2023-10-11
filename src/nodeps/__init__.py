@@ -50,6 +50,7 @@ __all__ = (
     "InvalidArgumentError",
     "LetterCounter",
     "NamedtupleMeta",
+    "Noset",
     "OwnerRepo",
     "Passwd",
     "PathStat",
@@ -121,6 +122,7 @@ __all__ = (
     "which",
     "EXECUTABLE",
     "EXECUTABLE_SITE",
+    "NOSET",
 )
 
 import abc
@@ -1577,6 +1579,41 @@ class NamedtupleMeta(metaclass=abc.ABCMeta):
                 [issubclass(C, tuple), hasattr(C, "_fields"), hasattr(C, "_field_defaults")]
             )
         return NotImplemented
+
+
+class Noset:
+    """Marker object for globals not initialized or other objects.
+
+    Examples:
+        >>> from nodeps import NOSET
+        >>>
+        >>> name = Noset.__name__.lower()
+        >>> assert str(NOSET) == f'<{name}>'
+        >>> assert repr(NOSET) == f'<{name}>'
+        >>> assert repr(Noset("test")) == f'<test>'
+    """
+    name: str
+    __slots__ = ("name",)
+
+    def __init__(self, name: str = ""):
+        """Init."""
+        self.name = name if name else self.__class__.__name__.lower()
+
+    def __hash__(self) -> int:
+        """Hash."""
+        return hash((self.__class__, self.name,))
+
+    def __reduce__(self) -> tuple[type[Noset], tuple[str]]:
+        """Reduce."""
+        return self.__class__, (self.name,)
+
+    def __repr__(self):
+        """Repr."""
+        return self.__str__()
+
+    def __str__(self):
+        """Str."""
+        return f'<{self.name}>'
 
 
 @dataclasses.dataclass
@@ -6229,6 +6266,7 @@ def which(data="sudo", raises: bool = False) -> str:
 
 EXECUTABLE = Path(sys.executable)
 EXECUTABLE_SITE = Path(EXECUTABLE).resolve()
+NOSET = Noset()
 
 subprocess.CalledProcessError = CalledProcessError
 

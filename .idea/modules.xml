@@ -10,7 +10,6 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/nodeps.iml" filepath="$PROJECT_DIR$/.idea/nodeps.iml" />
       <module fileurl="file://$PROJECT_DIR$/../pdf/.idea/pdf.iml" filepath="$PROJECT_DIR$/../pdf/.idea/pdf.iml" />
       <module fileurl="file://$PROJECT_DIR$/../Archive/data/prel/.idea/prel.iml" filepath="$PROJECT_DIR$/../Archive/data/prel/.idea/prel.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../puntos/.idea/puntos.iml" filepath="$PROJECT_DIR$/../puntos/.idea/puntos.iml" />
       <module fileurl="file://$PROJECT_DIR$/../Archive/data/rclib/.idea/rclib.iml" filepath="$PROJECT_DIR$/../Archive/data/rclib/.idea/rclib.iml" />
       <module fileurl="file://$PROJECT_DIR$/../secrets/.idea/secrets.iml" filepath="$PROJECT_DIR$/../secrets/.idea/secrets.iml" />
       <module fileurl="file://$PROJECT_DIR$/../shrc/.idea/shrc.iml" filepath="$PROJECT_DIR$/../shrc/.idea/shrc.iml" />

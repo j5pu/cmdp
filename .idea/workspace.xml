@@ -6,6 +6,21 @@
   <component name="BlackConnectSettings" lineLength="120" previewMode="true" triggerOnReformat="true" showSyntaxErrorMsgs="true" />
   <component name="ChangeListManager">
     <list default="true" id="bf31d71b-78d7-4bdd-9f09-b7f6e0f14454" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/backup/puntos/cli.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backup/puntos/jetbrains.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backup/puntos/unlink.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backup/setuid/Makefile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backup/setuid/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backup/setuid/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backup/setuid/__init__.pyi" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backup/setuid/demo.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backup/setuid/demo.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backup/setuid/demo_linux.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backup/setuid/geteuid" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backup/setuid/geteuid.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backup/setuid/seteuid" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backup/setuid/seteuid.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backup/setuid/seteuid.py" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../pdf/assets/OPENBANK-no-conceptp.pdf" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../pdf/json-example.pdf" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../pdf/src/pdf/reembolso/jose/test.py" afterDir="false" />
@@ -14,7 +29,15 @@
       <change beforePath="$PROJECT_DIR$/../mongodata/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../mongodata/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../mongodata/.idea/mongodata.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../mongodata/.idea/mongodata.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../mongodata/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../mongodata/.idea/ruff.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/test_aioclone.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_aioclone.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backup/sudoers.conf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pytest.ini" beforeDir="false" afterPath="$PROJECT_DIR$/pytest.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nodeps/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/nodeps/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nodeps/data/Brewfile" beforeDir="false" afterPath="$PROJECT_DIR$/src/nodeps/data/Brewfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nodeps/extras/_echo/color.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/nodeps/extras/_echo/color.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nodeps/extras/_pretty/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/nodeps/extras/_pretty/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pdf/.editorconfig" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/.editorconfig" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pdf/.idea/pdf.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/.idea/pdf.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pdf/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/.idea/ruff.xml" afterDir="false" />
@@ -38,28 +61,6 @@
       <change beforePath="$PROJECT_DIR$/../pdf/src/pdf/mongo/db.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/src/pdf/mongo/db.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pdf/src/pdf/reembolso/jose/dkv.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/src/pdf/reembolso/jose/dkv.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pdf/tests/conftest.py" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/tests/conftest.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../puntos/.env" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../puntos/Dockerfile" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../puntos/Makefile" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../puntos/setup.cfg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../puntos/src/puntos/ipython_profile/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../puntos/src/puntos/ipython_profile/profile_default/db/dhist" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../puntos/src/puntos/ipython_profile/profile_default/db/syscmdlist" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../puntos/src/puntos/ipython_profile/profile_default/history.sqlite" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../puntos/src/puntos/ipython_profile/profile_default/ipython_config.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../puntos/src/puntos/ipython_profile/profile_default/startup/README" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../puntos/src/puntos/ipython_profile/profile_default/startup/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../puntos/src/puntos/python_startup/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../puntos/src/puntos/python_startup/__init__.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../puntos/src/puntos/python_startup/pyproject.toml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../puntos/src/puntos/stdlib/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../puntos/src/puntos/stdlib/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/../puntos/src/puntos/stdlib/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../puntos/src/puntos/stdlib/__init__.pyi" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../puntos/src/puntos/stdlib/sitecustomize_patch.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../puntos/tests/conftest.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../puntos/tests/pyrc/test_aioclone.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../puntos/tests/pyrc/test_pyrc_cli.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../puntos/tests/pyrc/test_pyrc_imports.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../shrc/profile.d/10-constants.sh" beforeDir="false" afterPath="$PROJECT_DIR$/../shrc/profile.d/10-constants.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../template/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../template/.idea/ruff.xml" afterDir="false" />
     </list>
@@ -77,7 +78,7 @@
     </option>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../puntos" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GitToolBoxStore">
     <option name="projectConfigVersion" value="5" />
@@ -156,20 +157,14 @@
       <recent name="$PROJECT_DIR$/scratch" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/backup/puntos" />
+      <recent name="$PROJECT_DIR$/backup" />
       <recent name="$PROJECT_DIR$/tests" />
       <recent name="$PROJECT_DIR$/src/nodeps" />
       <recent name="$PROJECT_DIR$/src" />
-      <recent name="$PROJECT_DIR$/bin" />
-      <recent name="$PROJECT_DIR$/../Desktop/JetBrains/scratch/scratches" />
     </key>
   </component>
-  <component name="RunManager" selected="Python tests.pytest for test_aioclone.test_aioclone">
-    <configuration name="pytests" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
-      <makefile filename="$PROJECT_DIR$/Makefile" target="pytests" workingDirectory="" arguments="">
-        <envs />
-      </makefile>
-      <method v="2" />
-    </configuration>
+  <component name="RunManager" selected="Python tests.Doctests in Symbol">
     <configuration name="tests" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
       <makefile filename="$PROJECT_DIR$/Makefile" target="tests" workingDirectory="" arguments="">
         <envs />
@@ -207,6 +202,25 @@
       <option name="USE_PATTERN" value="false" />
       <method v="2" />
     </configuration>
+    <configuration name="Doctests in Symbol" type="tests" factoryName="Doctests" temporary="true" nameIsGenerated="true">
+      <module name="nodeps" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/nodeps/extras/_echo" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/nodeps/extras/_echo/color.py" />
+      <option name="CLASS_NAME" value="Symbol" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_CLASS" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <method v="2" />
+    </configuration>
     <configuration name="pytest for test_aioclone.test_aioclone" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
       <module name="nodeps" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -226,6 +240,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python tests.Doctests in Symbol" />
         <item itemvalue="Python tests.pytest for test_aioclone.test_aioclone" />
         <item itemvalue="Python tests.Doctest Env.__post_init__" />
       </list>
@@ -282,6 +297,7 @@
     <SUITE FILE_PATH="coverage/nodeps$Doctest_doctest_fixtures__1_.coverage" NAME="Doctest doctest_fixtures (1) Coverage Results" MODIFIED="1696673581240" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../huti/src/huti" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_Env_parse_as_int.coverage" NAME="Doctest Env.parse_as_int Coverage Results" MODIFIED="1696498355061" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_exec_module_from_file.coverage" NAME="Doctest exec_module_from_file Coverage Results" MODIFIED="1696482697936" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
+    <SUITE FILE_PATH="coverage/nodeps$Doctests_in_Symbol.coverage" NAME="Doctests in Symbol Coverage Results" MODIFIED="1697055199508" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps/extras/_echo" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_cmdrun.coverage" NAME="Doctest cmdrun Coverage Results" MODIFIED="1696435385096" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$Doctest_ColorLogger_logger__1_.coverage" NAME="Doctest ColorLogger.logger (1) Coverage Results" MODIFIED="1696755430896" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src/nodeps" />
     <SUITE FILE_PATH="coverage/nodeps$pytest_for_test_aioclone_test_aioclone.coverage" NAME="pytest for test_aioclone.test_aioclone Coverage Results" MODIFIED="1697052109018" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />

@@ -190,7 +190,8 @@ def is_terminal(file: Console | OpenIO | None = None) -> bool:
         if force_color is not None:
             global FORCE_COLOR  # noqa: PLW0603
             FORCE_COLOR = True
-            file._force_terminal = True
+            if hasattr(file, "_force_terminal"):
+                file._force_terminal = True
             return True
 
         try:

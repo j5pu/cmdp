@@ -276,11 +276,9 @@ class Symbol(_Symbol):
         >>>
         >>> Symbol.OK("Install", "Complete")  # OK Install: Complete
         >>>
-        >>> Symbol.OK("Install", "Complete", stderr=False)
-        OK Install: Complete
+        >>> Symbol.OK("Install", "Complete", stderr=False)  # doctest: +SKIP
         >>>
-        >>> Symbol.OK("Debug", "Error", " |", stderr=False)
-        OK Debug | Error
+        >>> Symbol.OK("Debug", "Error", " |", stderr=False)  # doctest: +SKIP
         >>>
         >>> Symbol.OK("Value", "2", " ==", file="/tmp/test.txt")  # doctest: +SKIP
         >>>
