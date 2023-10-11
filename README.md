@@ -27,6 +27,13 @@
 - IPython Profile :mod:`ipython_profile.profile_default.ipython_config`: `export IPYTHONDIR="$(ipythondir)"`
 - Python Startup :mod:`python_startup.__init__`: `export PYTHONSTARTUP="$(pythonstartup)"`
 
+### Env class
+Searches for `settings.ini` and `.env` in cwd and up. 
+
+Usage: 
+- `var = Env()._config("VAR", default=False, cast=bool)`
+- `extensions = {*Env()._config('EXTENSIONS', default=str(extensions), cast=decouple.Csv(post_process=set)), *extensions}`
+
 ### Automatic installation of packages
 
 `PipMetaPathFinder` is a `sys.meta_path` finder that automatically installs packages when they are imported.
@@ -173,14 +180,22 @@ write:
 
 ### Extras:
 - `ansi`: for `getstdout` and `strip` function using `strip-ansi` library
-- `cli`: for `typer` to have CLI for `p` command
+- `cli`: for `typer` to have CLI for `p` command (autoinstall with `pipmetapathfinder`)
 - `echo`: for `echo` package using `click` library
+- `env`: for `Env` class using `python-decouple` library
 - `log`: for `logger` function using `loguru` library
 - `pickle`: for `cache` function using `jsonpickle` and `structlog` libraries
 - `pth`: for `PTHBuildPy`, `PTHDevelop`, `PTHEasyInstall` and `PTHInstallLib` classes using `setuptools` library
 - `pretty`: for `rich` library install and `icecream.ic` configuration 
 - `repo`: for `Repo` class using `gitpython` library
 - `requests`: for `python_latest`, `python_versions` and `request_x_api_key_json` functions that use the `requests` and `beautifulsoup4` libraries
+
+`tomlkit` package is autoinstall with `pipmetapathfinder` for `pyproject.toml` file manipulation in `Project` class and `__main__.py`.
+
+*Aggregated extras*:
+- nodeps[all] includes all extras except dev.
+- nodeps[dev] includes all dev extras.
+- nodeps[full] includes all extras including dev [all,dev].
 
 Test imports uninstalling: `pip uninstall loguru beautifulsoup4 click jsonpickle strip_ansi structlog typer`
 

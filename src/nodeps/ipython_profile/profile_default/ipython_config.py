@@ -5,7 +5,7 @@ import platform
 
 from IPython.terminal.prompts import Prompts, Token
 
-from nodeps import Project
+from nodeps import Env, Project
 
 
 class MyPrompt(Prompts):
@@ -383,7 +383,7 @@ c.TerminalIPythonApp.exec_lines = [
 ''' A list of dotted module names of IPython extensions to load.
  See also: InteractiveShellApp.extensions
 '''
-c.TerminalIPythonApp.extensions = ["autoreload", "pyflyby", "restmagic", "rich", "storemagic"]
+c.TerminalIPythonApp.extensions = Env().IPYTHON_EXTENSIONS
 
 ''' Path to an extra config file to load.
  See also: BaseIPythonApplication.extra_config_file
@@ -816,7 +816,7 @@ c.TerminalInteractiveShell.banner2 = ''
 ''' Options for displaying tab completions, 'column', 'multicolumn', and
  'readlinelike'. These options are for `prompt_toolkit`, see `prompt_toolkit`
  documentation for more information.
- Choices: any of ['column', 'multicolumn', 'readlinelike']
+ Choices: any of ['column', 'multicolumn', 'threadlike']
  Default: 'multicolumn'
 '''
 # c.TerminalInteractiveShell.display_completions = 'multicolumn'

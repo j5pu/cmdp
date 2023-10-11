@@ -70,6 +70,9 @@ dev = [
 echo = [
     "typer[all] >= 0.9, <1",
 ]
+env = [
+    "python-decouple >=3.8, <4",
+]
 log = [
     "loguru >=0.7.2, <1",
 ]
@@ -94,12 +97,17 @@ all = [
     "nodeps[ansi]",
     "nodeps[cli]",
     "nodeps[echo]",
+    "nodeps[env]",
     "nodeps[log]",
     "nodeps[pickle]",
     "nodeps[pretty]",
     "nodeps[pth]",
     "nodeps[repo]",
     "nodeps[requests]",
+]
+full = [
+    "nodeps[all]",
+    "nodeps[dev]",
 ]
 
 [project.scripts]

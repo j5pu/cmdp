@@ -8,6 +8,7 @@ __all__ = (
     "GITHUB_DOMAIN",
     "GITHUB_TOKEN",
     "GITHUB_URL",
+    "IPYTHON_EXTENSIONS",
     "LINUX",
     "MACOS",
     "NODEPS_EXECUTABLE",
@@ -219,11 +220,12 @@ from . import extras
 from .extras import *
 
 if TYPE_CHECKING:
+    from decouple import CONFIG  # type: ignore[attr-defined]
+
     # noinspection PyCompatibility
     from pip._internal.cli.base_command import Command
 
 __all__ += extras.__all__
-
 
 _NODEPS_PIP_POST_INSTALL = {}
 """Holds the context with wheels installed and paths to package installed to be used in post install"""
@@ -246,6 +248,8 @@ GITHUB_URL = {
 GitHub: api, git+file, git+https, git+ssh, https, ssh and git URLs
 (join directly the user or path without '/' or ':')
 """
+IPYTHON_EXTENSIONS = {"autoreload", "pyflyby", "restmagic", "rich", "storemagic"}
+"""Default IPython extensions to load"""
 LINUX = sys.platform == "linux"
 """Is Linux? sys.platform == 'linux'"""
 MACOS = sys.platform == "darwin"
@@ -737,7 +741,7 @@ class EnumLower(enum.Enum):
 # noinspection LongLine,SpellCheckingInspection
 @dataclasses.dataclass
 class Env:
-    """GitHub Actions Variables Class.
+    """Environ Class.
 
     See Also: `Environment variables
     <https://docs.github.com/en/enterprise-cloud@latest/actions/learn-github-actions/environment-variables>`_
@@ -756,6 +760,11 @@ class Env:
         <https://docs.github.com/en/enterprise-cloud@latest/actions/learn-github-actions/workflow-syntax-for-github
         -actions#jobsjob_idoutputs>`_.
     """
+
+    _config: CONFIG = dataclasses.field(default=None, init=False)
+    """Searches for `settings.ini` and `.env` cwd up. Usage: var = Env()._config("VAR", default=True, cast=bool)."""
+    IPYTHON_EXTENSIONS: set[str] = dataclasses.field(default=None, init=False)
+    """IPython Extensions to load after reading `settings.ini` and `.env`."""
 
     CI: bool | str | None = dataclasses.field(default=None, init=False)
     """Always set to ``true`` in a GitHub Actions environment."""
@@ -1105,30 +1114,56 @@ class Env:
     def __post_init__(self, parsed: bool) -> None:
         """Instance of Env class.
 
+        Examples:
+            >>> from nodeps import Env
+            >>> from nodeps import Path
+            >>>
+            >>> env = Env()
+            >>> assert env._config("ENV_CONFIG_TEST") == 'True'
+            >>> assert env._config("ENV_CONFIG_TEST",  cast=bool) == True
+            >>> assert isinstance(env.PWD, Path)
+            >>> assert "PWD" in env
+
         Args:
             parsed: Parse the environment variables using :func:`nodeps.parse_str`,
                 except :func:`Env.as_int` (default: True)
         """
-        # TODO: python-decouple
         self.__dict__.update({k: self.as_int(k, v) for k, v in os.environ.items()} if parsed else os.environ)
+        with pipmetapathfinder():
+            import decouple  # type: ignore[attr-defined]
+
+            cwd = Path.cwd()
+            files = (
+                decouple.RepositoryIni(path.absolute()) if path.suffix == ".ini" else decouple.RepositoryEnv(".env")
+                for file in ("settings.ini", ".env")
+                if (path := cwd.find_up(name=file))
+            )
+            self._config = decouple.Config(collections.ChainMap(*files))
+            self.IPYTHON_EXTENSIONS = {
+                *self._config(
+                    "IPYTHON_EXTENSIONS", default=str(IPYTHON_EXTENSIONS), cast=decouple.Csv(post_process=set)
+                ),
+                *IPYTHON_EXTENSIONS,
+            }
 
     def __contains__(self, item):
         """Check if item is in self.__dict__."""
         return item in self.__dict__
 
-    def __getattr__(self, name: str) -> str | None:
+    def __getattr__(self, name: str) -> bool | Path | ParseResult | IPv4Address | IPv6Address | int | str | None:
         """Get attribute from self.__dict__ if exists, otherwise return None."""
         if name in self:
             return self.__dict__[name]
         return None
 
-    def __getattribute__(self, name: str) -> str | None:
+    def __getattribute__(self, name: str) -> bool | Path | ParseResult | IPv4Address | IPv6Address | int | str | None:
         """Get attribute from self.__dict__ if exists, otherwise return None."""
-        if hasattr(self, name):
+        try:
             return super().__getattribute__(name)
-        return None
+        except AttributeError:
+            return None
 
-    def __getitem__(self, item: str) -> str | None:
+    def __getitem__(self, item: str) -> bool | Path | ParseResult | IPv4Address | IPv6Address | int | str | None:
         """Get item from self.__dict__ if exists, otherwise return None."""
         return self.__getattr__(item)
 
@@ -2536,7 +2571,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
                 latest = find
             start = start.parent
             if start == Path("/"):
-                return latest if getattr(latest, function)() else found
+                return latest if latest is not None and getattr(latest, function)() else found
 
     def has(self, value: Iterable) -> bool:
         """Checks all items in value exist in `self.parts` (not absolute and not relative).
@@ -3424,11 +3459,11 @@ class PipMetaPathFinder(importlib.abc.MetaPathFinder):
     ) -> importlib._bootstrap.ModuleSpec | None:
         """Try to find a module spec for the specified module."""
         packages = {
+            "decouple": "python-decouple",
             "linkify_it": "linkify-it-py",
         }
         exclude = ["cPickle", "ctags", "PIL"]
         if path is None and fullname is not None and fullname not in exclude:
-
             package = packages.get(fullname) or fullname.split(".")[0].replace("_", "-")
             try:
                 importlib.metadata.Distribution.from_name(package)
@@ -4050,11 +4085,11 @@ class Project:
         return rv
 
     def requirement(
-            self,
-            version: str = PYTHON_DEFAULT_VERSION,
-            install: bool = False,
-            upgrade: bool = False,
-            quiet: bool = True,
+        self,
+        version: str = PYTHON_DEFAULT_VERSION,
+        install: bool = False,
+        upgrade: bool = False,
+        quiet: bool = True,
     ) -> list[str] | int:
         """Dependencies and optional dependencies from pyproject.toml or distribution."""
         global NODEPS_QUIET  # noqa: PLW0603
@@ -4071,9 +4106,9 @@ class Project:
         return req
 
     def requirements(
-            self,
-            upgrade: bool = False,
-            quiet: bool = True,
+        self,
+        upgrade: bool = False,
+        quiet: bool = True,
     ) -> None:
         """Install dependencies and optional dependencies from pyproject.toml or distribution for python versions."""
         global NODEPS_QUIET  # noqa: PLW0603
@@ -4272,8 +4307,7 @@ class Project:
             v = self.root / "venv"
             python = f"python{version}"
             clear = "--clean" if clear else ""
-            subprocess.check_call(f"{python} -m venv {v} --prompt '.' {clear} --upgrade-deps --upgrade",
-                                  shell=True)
+            subprocess.check_call(f"{python} -m venv {v} --prompt '.' {clear} --upgrade-deps --upgrade", shell=True)
             self.info(f"{self.venv.__name__}: {version}")
         self.requirement(version=version, install=True, upgrade=upgrade, quiet=quiet)
 
@@ -4303,10 +4337,7 @@ class Project:
                     {"name": AUTHOR, "email": EMAIL},
                 ],
                 "description": github.get("description", ""),
-                "urls": {
-                    "Homepage": github["html_url"],
-                    "Documentation": f"https://{self.name}.readthedocs.io"
-                },
+                "urls": {"Homepage": github["html_url"], "Documentation": f"https://{self.name}.readthedocs.io"},
                 "dynamic": ["version"],
                 "license": {"text": "MIT"},
                 "readme": "README.md",
@@ -4325,7 +4356,7 @@ class Project:
                     self.info(f"{self.write.__name__}: {self.pyproject_toml.file}")
 
             if self.docsdir:
-                imp = f"import {NODEPS_PROJECT_NAME}.__main__" if self.name == NODEPS_PROJECT_NAME else ''
+                imp = f"import {NODEPS_PROJECT_NAME}.__main__" if self.name == NODEPS_PROJECT_NAME else ""
                 conf = f"""import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
@@ -4480,7 +4511,10 @@ def _copy_pths(self: PTHBuildPy | PTHDevelop | PTHEasyInstall | PTHInstallLib, d
             if not destination.is_file() or not filecmp.cmp(source, destination):
                 destination = str(destination)
                 msg = f"{self.__class__.__name__}: {str(Path(sys.executable).resolve())[-4:]}"
-                log.info(msg, extra={"extra": f"{source} -> {destination}"},)
+                log.info(
+                    msg,
+                    extra={"extra": f"{source} -> {destination}"},
+                )
                 self.copy_file(source, destination)
                 outputs.append(destination)
     return outputs
@@ -4531,9 +4565,7 @@ def _pip_install_wheel(
         _NODEPS_PIP_POST_INSTALL[name] = Path(scheme.purelib, name)
 
 
-def _pip_uninstall_req(
-        self, auto_confirm: bool = False, verbose: bool = False
-):
+def _pip_uninstall_req(self, auto_confirm: bool = False, verbose: bool = False):
     """Pip uninstall patch to post install."""
     assert self.req  # noqa: S101
     p = Project(self.req.name)
@@ -5770,7 +5802,7 @@ def parse_str(  # noqa: PLR0911
             return urllib.parse.urlparse(data)
         if (
             (
-                data[0] in ["/", "~"] or (len(data) >= 2 and f"{data[0]}{data[1]}" == "./")  # noqa: PLR2004
+                data and data[0] in ["/", "~"] or (len(data) >= 2 and f"{data[0]}{data[1]}" == "./")  # noqa: PLR2004
             )
             and ":" not in data
         ) or data == ".":
@@ -6204,7 +6236,6 @@ os.environ["IPYTHONDIR"] = IPYTHONDIR
 os.environ["PIP_ROOT_USER_ACTION"] = "ignore"
 os.environ["PYTHONDONTWRITEBYTECODE"] = ""
 os.environ["PY_IGNORE_IMPORTMISMATCH"] = "1"
-
 
 if "pip._internal.operations.install.wheel" in sys.modules:
     pip._internal.operations.install.wheel.install_wheel = _pip_install_wheel
