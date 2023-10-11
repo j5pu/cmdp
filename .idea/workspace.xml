@@ -6,21 +6,6 @@
   <component name="BlackConnectSettings" lineLength="120" previewMode="true" triggerOnReformat="true" showSyntaxErrorMsgs="true" />
   <component name="ChangeListManager">
     <list default="true" id="bf31d71b-78d7-4bdd-9f09-b7f6e0f14454" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/backup/puntos/cli.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backup/puntos/jetbrains.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backup/puntos/unlink.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backup/setuid/Makefile" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backup/setuid/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backup/setuid/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backup/setuid/__init__.pyi" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backup/setuid/demo.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backup/setuid/demo.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backup/setuid/demo_linux.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backup/setuid/geteuid" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backup/setuid/geteuid.c" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backup/setuid/seteuid" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backup/setuid/seteuid.c" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backup/setuid/seteuid.py" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../pdf/assets/OPENBANK-no-conceptp.pdf" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../pdf/json-example.pdf" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/../pdf/src/pdf/reembolso/jose/test.py" afterDir="false" />
@@ -29,15 +14,6 @@
       <change beforePath="$PROJECT_DIR$/../mongodata/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../mongodata/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../mongodata/.idea/mongodata.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../mongodata/.idea/mongodata.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../mongodata/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../mongodata/.idea/ruff.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backup/sudoers.conf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pytest.ini" beforeDir="false" afterPath="$PROJECT_DIR$/pytest.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nodeps/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/nodeps/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nodeps/data/Brewfile" beforeDir="false" afterPath="$PROJECT_DIR$/src/nodeps/data/Brewfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nodeps/extras/_echo/color.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/nodeps/extras/_echo/color.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nodeps/extras/_pretty/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/nodeps/extras/_pretty/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pdf/.editorconfig" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/.editorconfig" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pdf/.idea/pdf.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/.idea/pdf.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pdf/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/.idea/ruff.xml" afterDir="false" />
