@@ -2,25 +2,9 @@
 import os
 import pathlib
 import platform
-import subprocess
 
 from IPython.terminal.prompts import Prompts, Token
-
 from nodeps import Project
-
-
-
-def get_branch():
-    try:
-        return (
-            subprocess.check_output(
-                "git branch --show-current", shell=True, stderr=subprocess.DEVNULL
-            )
-            .decode("utf-8")
-            .replace("\n", "")
-        )
-    except BaseException:
-        return ""
 
 
 class MyPrompt(Prompts):
@@ -54,7 +38,7 @@ class MyPrompt(Prompts):
                 Token.Prompt
                 if self.shell.last_execution_succeeded
                 else Token.Generic.Error,
-                "❯ ",
+                "❯ ",  # noqa: RUF001
             ),
         ]
 
@@ -68,7 +52,7 @@ class MyPrompt(Prompts):
 
 
 
-c = get_config()  # noqa
+c = get_config()  # noqa: F821
 
 # ------------------------------------------------------------------------------
 # InteractiveShellApp(Configurable) configuration
@@ -203,7 +187,7 @@ Execute the given command string.^
 ''' The Logging format template
  Default: '[%(name)s]%(highlevel)s %(message)s'
 '''
-# c.Application.log_format = '[%(name)s]%(highlevel)s %(message)s'  # noqa
+# c.Application.log_format = '[%(name)s]%(highlevel)s %(message)s'
 
 ''' Set the log level by value or name.
  Choices: any of [0, 10, 20, 30, 40, 50, 'DEBUG', 'INFO', 'WARN', 'ERROR', 'CRITICAL']
@@ -929,7 +913,7 @@ c.TerminalInteractiveShell.banner2 = ''
 '''
  See also: InteractiveShell.logstart
 '''
-# c.TerminalInteractiveShell.logstart = False  # noqa
+# c.TerminalInteractiveShell.logstart = False
 
 ''' Select the loop runner that will be used to execute top-level asynchronous
  code
