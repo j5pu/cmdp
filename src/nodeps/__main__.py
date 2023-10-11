@@ -444,7 +444,7 @@ def latest(
 
 @app.command(name="mip")
 @_mip.command(name="mip")
-def _mip():
+def __mip():
     """Public IP."""
     print(mip())
 

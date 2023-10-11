@@ -9,6 +9,7 @@ name = "José Antonio Puértolas Montañés"
 email = "63794670+j5pu@users.noreply.github.com"
 
 
+
 [project.license]
 text = "MIT"
 
@@ -119,6 +120,7 @@ docs = "nodeps.__main__:_docs"
 extras = "nodeps.__main__:_extras"
 ipythondir = "nodeps.__main__:_ipythondir"
 latest = "nodeps.__main__:_latest"
+mip = "nodeps.__main__:_mip"
 needpull = "nodeps.__main__:_needpull"
 needpush = "nodeps.__main__:_needpush"
 next = "nodeps.__main__:_next"
@@ -143,6 +145,7 @@ venvs = "nodeps.__main__:_venvs"
 [project.urls]
 Homepage = "https://github.com/j5pu/nodeps"
 Documentation = "https://nodeps.readthedocs.io"
+
 
 
 [build-system]

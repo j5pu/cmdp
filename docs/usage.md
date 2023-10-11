@@ -69,6 +69,10 @@
     :prog: latest
     :nested: full
 
+.. click:: nodeps.__main__:_mip_click
+    :prog: mip
+    :nested: full
+
 .. click:: nodeps.__main__:_needpull_click
     :prog: needpull
     :nested: full

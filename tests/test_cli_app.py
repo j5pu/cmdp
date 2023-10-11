@@ -63,15 +63,15 @@ def test_ipythondir(invoke):
     assert "ipython_profile" in invoke.stdout
 
 
+@pytest.mark.parametrize("invoke", [[app, "latest"]], indirect=True)
+def test_latest(invoke):
+    assert invoke.exit_code == 0
+
+
 @pytest.mark.parametrize("invoke", [[app, "mip"]], indirect=True)
 def test_mip(invoke):
     assert invoke.exit_code == 0
     assert "." in invoke.stdout
-
-
-@pytest.mark.parametrize("invoke", [[app, "latest"]], indirect=True)
-def test_latest(invoke):
-    assert invoke.exit_code == 0
 
 
 @pytest.mark.parametrize("invoke", [[app, "next"]], indirect=True)
