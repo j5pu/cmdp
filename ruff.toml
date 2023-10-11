@@ -5,6 +5,7 @@ ignore-init-module-imports = true
 ignore = [
     "C901", # is too complex
     "E741", # Ambiguous variable name: `l`
+    "ERA001", # Commented out code
     "F403", # `from module import *` used; unable to detect undefined names
     "N805", # First argument of a method should be named `self`
     "PLR0913", # Too many arguments to function call (6 > 5)

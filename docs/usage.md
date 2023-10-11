@@ -5,6 +5,10 @@
     :prog: p
     :nested: full
 
+.. click:: nodeps.__main__:_branch_click
+    :prog: branch
+    :nested: full
+
 .. click:: nodeps.__main__:_browser_click
     :prog: browser
     :nested: full
@@ -57,6 +61,10 @@
     :prog: extras
     :nested: full
 
+.. click:: nodeps.__main__:_ipythondir_click
+    :prog: ipythondir
+    :nested: full
+
 .. click:: nodeps.__main__:_latest_click
     :prog: latest
     :nested: full
@@ -91,6 +99,14 @@
 
 .. click:: nodeps.__main__:_pytests_click
     :prog: pytests
+    :nested: full
+
+.. click:: nodeps.__main__:_pythonstartup_click
+    :prog: pythonstartup
+    :nested: full
+
+.. click:: nodeps.__main__:_remote_click
+    :prog: remote
     :nested: full
 
 .. click:: nodeps.__main__:_repos_click

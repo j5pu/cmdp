@@ -13,12 +13,15 @@ __all__ = (
     "NODEPS_EXECUTABLE",
     "NODEPS_PIP_POST_INSTALL_FILENAME",
     "NODEPS_PROJECT_NAME",
+    "NODEPS_PATH",
     "PYTHON_VERSIONS",
     "PYTHON_DEFAULT_VERSION",
     "USER",
     "EMAIL",
+    "IPYTHONDIR",
     "PW_ROOT",
     "PW_USER",
+    "PYTHONSTARTUP",
     "AnyIO",
     "ChainLiteral",
     "ExcType",
@@ -249,6 +252,8 @@ MACOS = sys.platform == "darwin"
 """Is macOS? sys.platform == 'darwin'"""
 NODEPS_EXECUTABLE = "p"
 """NoDeps Executable Name"""
+NODEPS_PATH = pathlib.Path(__file__).parent
+"""NoDeps Source Path"""
 NODEPS_PIP_POST_INSTALL_FILENAME = "_post_install.py"
 """Filename that will be searched after pip installs a package."""
 NODEPS_PROJECT_NAME = "nodeps"
@@ -265,9 +270,13 @@ PYTHON_DEFAULT_VERSION = PYTHON_VERSIONS[0]
 USER = os.getenv("USER")
 """"Environment Variable $USER"""
 
+IPYTHONDIR = str(NODEPS_PATH / "ipython_profile")
+"""IPython Profile :mod:`ipython_profile.profile_default.ipython_config`: `export IPYTHONDIR="$(ipythondir)"`."""
 EMAIL = f"63794670+{GIT}@users.noreply.github.com"
 PW_ROOT = pwd.getpwnam("root")
 PW_USER = pwd.getpwnam(USER) if USER else PW_ROOT
+PYTHONSTARTUP = str(NODEPS_PATH / "python_startup/__init__.py")
+"""Python Startup :mod:`python_startup.__init__`: `export PYTHONSTARTUP="$(pythonstartup)"`."""
 
 AnyIO = IO[AnyStr]
 ChainLiteral: TypeAlias = Literal["all", "first", "unique"]
@@ -3554,6 +3563,16 @@ class Project:
         """
         return Path(self.executable(version=version)).parent / executable if executable else ""
 
+    def branch(self) -> str:
+        """Current branch.
+
+        Examples:
+            >>> from nodeps import Project
+            >>>
+            >>> assert Project.nodeps().branch() == 'main'
+        """
+        return stdout(f"{self.git} branch --show-current") or ""
+
     def brew(self, c: str | None = None) -> int:
         """Runs brew bundle."""
         if which("brew") and self.brewfile and (c is None or not which(c)):
@@ -3981,6 +4000,16 @@ class Project:
                 if rc != 0:
                     sys.exit(rc)
         return rc
+
+    def remote(self) -> str:
+        """Remote url.
+
+        Examples:
+            >>> from nodeps import Project
+            >>>
+            >>> assert Project.nodeps().remote() == 'https://github.com/j5pu/nodeps'
+        """
+        return stdout(f"{self.git} config --get remote.origin.url") or ""
 
     @classmethod
     def repos(

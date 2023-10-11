@@ -23,6 +23,10 @@
 
 ## Features
 
+### Globals to set with nodeps commands
+- IPython Profile :mod:`ipython_profile.profile_default.ipython_config`: `export IPYTHONDIR="$(ipythondir)"`
+- Python Startup :mod:`python_startup.__init__`: `export PYTHONSTARTUP="$(pythonstartup)"`
+
 ### Automatic installation of packages
 
 `PipMetaPathFinder` is a `sys.meta_path` finder that automatically installs packages when they are imported.

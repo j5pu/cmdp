@@ -1,5 +1,6 @@
 """CLI for nodeps."""
 __all__ = (
+    "_branch",
     "_browser",
     "_build",
     "_builds",
@@ -13,7 +14,9 @@ __all__ = (
     "_diverge",
     "_docs",
     "_extras",
+    "_ipythondir",
     "_latest",
+    "_mip",
     "_needpull",
     "_needpush",
     "_next",
@@ -22,6 +25,8 @@ __all__ = (
     "_push",
     "_pypi",
     "_pytests",
+    "_pythonstartup",
+    "_remote",
     "_repos",
     "_requirement",
     "_requirements",
@@ -40,15 +45,18 @@ from pathlib import Path
 from typing import Annotated
 
 from . import (
+    IPYTHONDIR,
     NODEPS_EXECUTABLE,
     NODEPS_PROJECT_NAME,
     PYTHON_DEFAULT_VERSION,
     PYTHON_VERSIONS,
+    PYTHONSTARTUP,
     Bump,
     GitSHA,
     Project,
     ProjectRepos,
     dict_sort,
+    mip,
     pipmetapathfinder,
 )
 
@@ -84,6 +92,7 @@ def _versions_completions(ctx: typer.Context, args: list[str], incomplete: str):
 _cwd = Path.cwd()
 app = typer.Typer(no_args_is_help=True, context_settings={"help_option_names": ["-h", "--help"]})
 
+_branch = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="branch",)
 _browser = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="browser",)
 _build = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="build",)
 _builds = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="builds",)
@@ -97,7 +106,9 @@ _distribution = typer.Typer(context_settings={"help_option_names": ["-h", "--hel
 _diverge = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="diverge",)
 _docs = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="docs",)
 _extras = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="extras",)
+_ipythondir = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="ipythondir",)
 _latest = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="latest",)
+_mip = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="mip",)
 _needpull = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="needpull",)
 _needpush = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="needpush",)
 _next = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="next",)
@@ -106,6 +117,8 @@ _pull = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, na
 _push = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="push",)
 _pypi = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="pypi",)
 _pytests = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="pytests",)
+_pythonstartup = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="pythonstartup",)
+_remote = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="remote",)
 _repos = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="repos",)
 _requirement = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="requirement",)
 _requirements = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="requirements",)
@@ -116,6 +129,21 @@ _tests = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, n
 _version = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="version",)
 _venv = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="venv",)
 _venvs = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="venvs",)
+
+
+@app.command()
+@_branch.command()
+def branch(
+    data: Annotated[
+        Path,
+        typer.Argument(
+            help="Path/file to project or name of project",
+            autocompletion=_repos_completions,
+        ),
+    ] = _cwd,
+):
+    """Current branch."""
+    print(Project(data).branch())
 
 
 @app.command()
@@ -393,6 +421,13 @@ def github(
 
 
 @app.command()
+@_ipythondir.command()
+def ipythondir():
+    """IPython Profile :mod:`ipython_profile.profile_default.ipython_config`: `export IPYTHONDIR="$(ipythondir)"`."""
+    print(IPYTHONDIR)
+
+
+@app.command()
 @_latest.command()
 def latest(
     data: Annotated[
@@ -405,6 +440,13 @@ def latest(
 ):
     """Latest tag."""
     print(Project(data).latest())
+
+
+@app.command(name="mip")
+@_mip.command(name="mip")
+def _mip():
+    """Public IP."""
+    print(mip())
 
 
 @app.command()
@@ -554,6 +596,28 @@ def pytests(
 ):
     """Run pytest for all versions."""
     sys.exit(Project(data).pytests())
+
+
+@app.command()
+@_pythonstartup.command()
+def pythonstartup():
+    """Python Startup :mod:`python_startup.__init__`: `export PYTHONSTARTUP="$(pythonstartup)"`."""
+    print(PYTHONSTARTUP)
+
+
+@app.command()
+@_remote.command()
+def remote(
+    data: Annotated[
+        Path,
+        typer.Argument(
+            help="Path/file to project or name of project",
+            autocompletion=_repos_completions,
+        ),
+    ] = _cwd,
+):
+    """Remote url."""
+    print(Project(data).remote())
 
 
 @app.command()

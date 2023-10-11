@@ -6,6 +6,12 @@ from nodeps.__main__ import app
 from nodeps import NODEPS_PROJECT_NAME
 
 
+@pytest.mark.parametrize("invoke", [[app, "branch"]], indirect=True)
+def test_branch(invoke):
+    assert invoke.exit_code == 0
+    assert invoke.stdout
+
+
 @pytest.mark.parametrize("invoke", [[app, "build"]], indirect=True)
 def test_build(invoke):
     assert invoke.exit_code == 0
@@ -21,8 +27,6 @@ def test_build_name(invoke):
     assert invoke.exit_code == 0
 
 
-# FIXME: change to tests when aiohttp can be install in 3.12
-# @pytest.mark.skip(reason="3.12 aiohttp install error")
 @pytest.mark.parametrize("invoke", [[app, "builds"]], indirect=True)
 def test_builds(invoke):
     assert invoke.exit_code == 0
@@ -53,6 +57,18 @@ def test_extras(invoke):
     assert invoke.exit_code == 0
 
 
+@pytest.mark.parametrize("invoke", [[app, "ipythondir"]], indirect=True)
+def test_ipythondir(invoke):
+    assert invoke.exit_code == 0
+    assert "ipython_profile" in invoke.stdout
+
+
+@pytest.mark.parametrize("invoke", [[app, "mip"]], indirect=True)
+def test_mip(invoke):
+    assert invoke.exit_code == 0
+    assert "." in invoke.stdout
+
+
 @pytest.mark.parametrize("invoke", [[app, "latest"]], indirect=True)
 def test_latest(invoke):
     assert invoke.exit_code == 0
@@ -61,6 +77,18 @@ def test_latest(invoke):
 @pytest.mark.parametrize("invoke", [[app, "next"]], indirect=True)
 def test_next(invoke):
     assert invoke.exit_code == 0
+
+
+@pytest.mark.parametrize("invoke", [[app, "pythonstartup"]], indirect=True)
+def test_pythonstartup(invoke):
+    assert invoke.exit_code == 0
+    assert "python_startup" in invoke.stdout
+
+
+@pytest.mark.parametrize("invoke", [[app, "remote"]], indirect=True)
+def test_remote(invoke):
+    assert invoke.exit_code == 0
+    assert "https://" in invoke.stdout
 
 
 @pytest.mark.parametrize("invoke", [[app, "repos"]], indirect=True)
