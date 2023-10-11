@@ -4,6 +4,7 @@ import pathlib
 import platform
 
 from IPython.terminal.prompts import Prompts, Token
+
 from nodeps import Project
 
 
@@ -49,7 +50,6 @@ class MyPrompt(Prompts):
             (Token.OutPromptNum, str(self.shell.execution_count)),
             (Token.OutPrompt, '>: '),
         ]
-
 
 
 c = get_config()  # noqa: F821

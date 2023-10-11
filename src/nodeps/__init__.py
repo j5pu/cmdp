@@ -6200,6 +6200,7 @@ EXECUTABLE_SITE = Path(EXECUTABLE).resolve()
 
 subprocess.CalledProcessError = CalledProcessError
 
+os.environ["IPYTHONDIR"] = IPYTHONDIR
 os.environ["PIP_ROOT_USER_ACTION"] = "ignore"
 os.environ["PYTHONDONTWRITEBYTECODE"] = ""
 os.environ["PY_IGNORE_IMPORTMISMATCH"] = "1"
