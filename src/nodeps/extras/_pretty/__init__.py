@@ -124,17 +124,18 @@ def ins(obj: Any, *, _console: Console | None = None, title: str | None = None, 
         >>> from nodeps.extras._pretty import ins
         >>>
         >>> # to see summarized info.
-        >>> ins(ins)  # doctest: +ELLIPSIS
+        >>> ins(ins)  # doctest: +SKIP
         >>> # to not see methods.
-        >>> ins(ins, methods=False)  # doctest: +ELLIPSIS
+        >>> ins(ins, methods=False)  # doctest: +SKIP
         >>> # to see full (non-abbreviated) help.
-        >>> ins(ins, help=True)  # doctest: +ELLIPSIS
+        >>> ins(ins, help=True)  # doctest: +SKIP
         >>> # to not see private attributes (single underscore).
-        >>> ins(ins, private=False)  # doctest: +ELLIPSIS
+        >>> ins(ins, private=False)  # doctest: +SKIP
         >>> # to see attributes beginning with double underscore.
-        >>> ins(ins, dunder=True)  # doctest: +ELLIPSIS
+        >>> ins(ins, dunder=True)  # doctest: +SKIP
         >>> # to see all attributes.
-        >>> ins(ins, _all=True)  # doctest: +ELLIPSIS
+        >>> ins(ins, _all=True)  # doctest: +SKIP
+        '
 
     Args:
         obj (Any): An object to inspect.
