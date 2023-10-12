@@ -1,4 +1,4 @@
-# shellcheck disable=SC2015
+# shellcheck disable=SC2015,SC2034
 
 TEST_MACOS="$(uname -a | grep -i darwin 2>/dev/null)"
 TEST_LOGNAME="$( test -n "${DARWIN}" && stat -f "%Su" /dev/console || logname )"

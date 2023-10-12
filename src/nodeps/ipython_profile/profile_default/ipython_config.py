@@ -793,7 +793,7 @@ c.TerminalInteractiveShell.banner2 = ""
  direct exit without any confirmation.
  Default: True
 """
-# c.TerminalInteractiveShell.confirm_exit = True
+c.TerminalInteractiveShell.confirm_exit = False
 
 """
  See also: InteractiveShell.debug
