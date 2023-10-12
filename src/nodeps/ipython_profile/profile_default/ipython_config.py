@@ -743,7 +743,7 @@ c.TerminalInteractiveShell.auto_match = True
 """ Autoformatter to reformat Terminal code. Can be `'black'`, `'yapf'` or `None`
  Default: None
 """
-# c.TerminalInteractiveShell.autoformatter = None
+c.TerminalInteractiveShell.autoformatter = 'black'
 
 """
  See also: InteractiveShell.autoindent
