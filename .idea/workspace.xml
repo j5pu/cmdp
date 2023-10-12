@@ -14,6 +14,8 @@
       <change beforePath="$PROJECT_DIR$/../mongodata/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../mongodata/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../mongodata/.idea/mongodata.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../mongodata/.idea/mongodata.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../mongodata/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../mongodata/.idea/ruff.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nodeps/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/nodeps/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pdf/.editorconfig" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/.editorconfig" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pdf/.idea/pdf.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/.idea/pdf.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pdf/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/.idea/ruff.xml" afterDir="false" />

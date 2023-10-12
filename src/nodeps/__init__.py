@@ -4305,12 +4305,9 @@ class Project:
             and (pypi != self.next(part=part, force=force))
             and "Private :: Do Not Upload" not in self.pyproject_toml.config.get("project", {}).get("classifiers", [])
         ):
-            build = self.build()
-            print(build)
-            return subprocess.run(
-                f"{self.executable()} -m twine upload -u __token__  {self.build()}",
-                shell=True,
-            ).returncode
+            c = f"{self.executable()} -m twine upload -u __token__  {self.build()}"
+            print(c)
+            return subprocess.run(c, shell=True).returncode
         return 0
 
     def version(self) -> str:
