@@ -6,7 +6,7 @@ TEST_LOGNAMEHOME="$( bash -c "cd ~$( printf %q "${LOGNAME}" ) && pwd" )"
 TEST_ROOTHOME=~root
 TEST_LOGGEDINUSER="$( echo "show State:/Users/ConsoleUser" | scutil | awk '/Name :/ && ! /loginwindow/ { print $3 }' )"
 
-if test -n "${MACOS}"; then
+if test -n "${TEST_MACOS}"; then
   TEST_LOGNAMEREALNAME="$( dscl . -read /Users/"${LOGNAME}" RealName RealName | sed -n 's/^ //g;2p' )"
 else
   TEST_LOGNAMEREALNAME="$( id -nu )"

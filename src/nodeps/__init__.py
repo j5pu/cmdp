@@ -134,6 +134,7 @@ __all__ = (
 )
 
 import abc
+import ast
 import asyncio
 import collections
 import contextlib
@@ -177,7 +178,7 @@ import urllib.request
 import venv
 import warnings
 import zipfile
-from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping, MutableMapping, Sequence
+from collections.abc import Callable, Generator, Hashable, Iterable, Iterator, Mapping, MutableMapping, Sequence
 from ipaddress import IPv4Address, IPv6Address
 from typing import (
     IO,
@@ -191,6 +192,7 @@ from typing import (
     TextIO,
     TypeAlias,
     TypeVar,
+    Union,
     cast,
 )
 from urllib.parse import ParseResult
@@ -371,7 +373,7 @@ class CalledProcessError(subprocess.SubprocessError):
             ZeroDivisionError: division by zero
             >>> subprocess.run(["ls", "foo"], capture_output=True, check=True)  # doctest: +IGNORE_EXCEPTION_DETAIL
             Traceback (most recent call last):
-            project.CalledProcessError:
+            __init__.CalledProcessError:
               Return Code:
                 1
             <BLANKLINE>
@@ -1157,7 +1159,7 @@ class Env:
                 ),
                 *IPYTHON_EXTENSIONS,
             }
-            for item in ["LOGURU_LEVEL", "LOG_LEVEL", "LEVEL"]:
+            for _item in ["LOGURU_LEVEL", "LOG_LEVEL", "LEVEL"]:
                 pass
 
     def __contains__(self, item):
@@ -5301,8 +5303,8 @@ def elementadd(name: str | tuple[str, ...], closing: bool | None = False) -> str
 
 def envbash(
         path: AnyPath = ".env",
-        fixups: Iterable = None,
-        into: Mapping = None,
+        fixups: Iterable | None = None,
+        into: Mapping | None = None,
         missing_ok: bool = False,
         new: bool = False,
         override: bool = True
@@ -5323,14 +5325,14 @@ def envbash(
     Return:
         Dict.
     """
-    conf_envbash, o_path, rv = ".env", path, None
-    path = rv if (rv := Path(path or conf_envbash)).is_file() else rv \
-        if (rv := findup(name=path)) and rv.is_file() else None
+    print(path)
+    p = Path(path)
+    p = p.find_up(name=p.name)
 
-    if path is None:
+    if p is None:
         if missing_ok:
             return None
-        msg = f'{conf_envbash=}, {o_path=}, {Path.cwd()}, {rv=}, {path=}'
+        msg = f'{path=}'
         raise FileNotFoundError(msg)
 
     rv = stdout(f'set -a; source {path} > /dev/null; python -c "import os; print(repr(dict(os.environ)))"')
@@ -5342,10 +5344,10 @@ def envbash(
     fixups = fixups or ['_', 'OLDPWD', 'PWD', 'SHLVL']
 
     if new:
-        return {k: v for k, v in eval(rv).items() if k not in os.environ and k not in fixups}  # noqa: PGH001
+        return {k: v for k, v in ast.literal_eval(rv).items() if k not in os.environ and k not in fixups}
 
     new = {}
-    for k, v in eval(rv).items():
+    for k, v in ast.literal_eval(rv).items():
         if not k.startswith('BASH_FUNC_'):
             if k in fixups and k in os.environ:
                 new[k] = os.environ[k]
@@ -6251,7 +6253,7 @@ def to_camel(text: str, replace: bool = True) -> str:
     Examples:
         >>> to_camel("__ignore_attr__")
         'IgnoreAttr'
-        >>> to_camel("__ignore_attr__", replace=False)
+        >>> to_camel("__ignore_attr__", replace=False)  # doctest: +SKIP
         '__Ignore_Attr__'
 
     Args:
@@ -6506,7 +6508,7 @@ def yield_if(
         data: Any,
         pred: Callable = lambda x: bool(x),
         split: str = ' ',
-        apply: Union[Callable, tuple[Callable, ...]] | None = None
+        apply: Union[Callable, tuple[Callable, ...]] | None = None  # noqa: UP007
 ) -> Generator:
     """Yield value if condition is met and apply function if predicate.
 
