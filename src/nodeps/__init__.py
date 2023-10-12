@@ -5296,6 +5296,67 @@ def elementadd(name: str | tuple[str, ...], closing: bool | None = False) -> str
     """
     return "".join(f'<{"/" if closing else ""}{i}>' for i in ((name,) if isinstance(name, str) else name))
 
+EnvironOS = type(os.environ)
+
+def envbash(
+        path: AnyPath = None,
+        fixups: Iterable = None,
+        into: Mapping = None,
+        missing_ok: bool = False,
+        new: bool = False,
+        override: bool = True
+) -> EnvironOS | dict[str, str]:
+    """Source ``path`` or ``path``relative to cwd upwards and return the resulting environment as a dictionary.
+
+    Args:
+        path: bash file to source or name relative to cwd upwards.
+        fixups: remove from new environment if they are not in os.environ or get from os.environ instead of new env.
+        into: if override updated into (Default: None for os.environ).
+        missing_ok: do not raise exception if file ot found.
+        new: return only vars in file.
+        override: override
+
+    Raises:
+        FileNotFoundError.
+
+    Return:
+        Dict.
+    """
+    conf_envbash, o_path, rv = ".env", path, None
+    path = rv if (rv := Path(path or conf_envbash)).is_file() else rv \
+        if (rv := findup(name=path)) and rv.is_file() else None
+
+    if path is None:
+        if missing_ok:
+            return None
+        msg = f'{conf_envbash=}, {o_path=}, {Path.cwd()}, {rv=}, {path=}'
+        raise FileNotFoundError(msg)
+
+    rv = stdout(f'set -a; source {path} > /dev/null; python -c "import os; print(repr(dict(os.environ)))"')
+
+    if not rv:
+        msg = f'source {path=}'
+        raise ValueError(msg)
+
+    fixups = fixups or ['_', 'OLDPWD', 'PWD', 'SHLVL']
+
+    if new:
+        return {k: v for k, v in eval(rv).items() if k not in os.environ and k not in fixups}  # noqa: PGH001
+
+    new = {}
+    for k, v in eval(rv).items():
+        if not k.startswith('BASH_FUNC_'):
+            if k in fixups and k in os.environ:
+                new[k] = os.environ[k]
+            elif k not in fixups:
+                new[k] = v
+
+    if override:
+        into = os.environ if into is None else into
+        into.update(new)
+        return into
+    return new
+
 
 def exec_module_from_file(file: Path | str, name: str | None = None) -> types.ModuleType:
     """Executes module from file location.
