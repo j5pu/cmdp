@@ -168,6 +168,7 @@ import sys
 import sysconfig
 import tarfile
 import tempfile
+import textwrap
 import threading
 import time
 import tokenize
@@ -176,7 +177,7 @@ import urllib.request
 import venv
 import warnings
 import zipfile
-from collections.abc import Callable, Hashable, Iterable, Iterator, MutableMapping, Sequence
+from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping, MutableMapping, Sequence
 from ipaddress import IPv4Address, IPv6Address
 from typing import (
     IO,
@@ -230,6 +231,7 @@ from nodeps import extras
 from nodeps.extras import *
 
 if TYPE_CHECKING:
+    EnvironOS: TypeAlias = type(os.environ)
     from decouple import CONFIG  # type: ignore[attr-defined]
 
     # noinspection PyCompatibility
@@ -1151,7 +1153,7 @@ class Env:
             self._config = decouple.Config(collections.ChainMap(*files))
             self.IPYTHON_EXTENSIONS = {
                 *self._config(
-                    "IPYTHON_EXTENSIONS", default=str(IPYTHON_EXTENSIONS), cast=decouple.Csv(post_process=set)
+                    "IPYTHON_EXTENSIONS", default=",".join(IPYTHON_EXTENSIONS), cast=decouple.Csv(post_process=set)
                 ),
                 *IPYTHON_EXTENSIONS,
             }
@@ -5296,10 +5298,9 @@ def elementadd(name: str | tuple[str, ...], closing: bool | None = False) -> str
     """
     return "".join(f'<{"/" if closing else ""}{i}>' for i in ((name,) if isinstance(name, str) else name))
 
-EnvironOS = type(os.environ)
 
 def envbash(
-        path: AnyPath = None,
+        path: AnyPath = ".env",
         fixups: Iterable = None,
         into: Mapping = None,
         missing_ok: bool = False,
@@ -5851,6 +5852,7 @@ def map_with_args(
     """
     return [func(item, *args, **kwargs) for item in yield_if(data, pred=pred, split=split)]
 
+
 def mip() -> str | None:
     """My Public IP.
 
@@ -6244,13 +6246,12 @@ def timestamp_now(file: Path | str):
 
 
 def to_camel(text: str, replace: bool = True) -> str:
-    """
-    Convert to Camel
+    """Convert to Camel.
 
     Examples:
-        >>> to_camel(N.IGNORE_ATTR)
+        >>> to_camel("__ignore_attr__")
         'IgnoreAttr'
-        >>> to_camel(N.IGNORE_ATTR, replace=False)
+        >>> to_camel("__ignore_attr__", replace=False)
         '__Ignore_Attr__'
 
     Args:
@@ -6260,7 +6261,7 @@ def to_camel(text: str, replace: bool = True) -> str:
     Returns:
         Camel text.
     """
-    rv = ''.join(map(str.title, toiter(text, '_')))
+    rv = ''.join(map(str.title, toiter(text, split='_')))
     return rv.replace('_', '') if replace else rv
 
 
@@ -6455,12 +6456,13 @@ def varname(index=2, lower=True, prefix=None, sep='_'):
     """
     with contextlib.suppress(IndexError, KeyError):
         _stack = inspect.stack()
-        func = _stack[index - 1].function
-        index = index + 1 if func == N.POST_INIT else index
-        if line := textwrap.dedent(_stack[index].code_context[0]):
-            if var := re.sub(f'(.| ){func}.*', str(), line.split(' = ')[0].replace('assert ', str()).split(' ')[0]):
-                return (prefix if prefix else '') + (var.lower() if lower else var).split(**splitsep(sep))[0]
+        f = _stack[index - 1].function
+        index = index + 1 if f == "__post_init__" else index
+        if (line := textwrap.dedent(_stack[index].code_context[0])) and (
+                var := re.sub(f'(.| ){f}.*', "", line.split(' = ')[0].replace('assert ', "").split(' ')[0])):
+            return (prefix if prefix else '') + (var.lower() if lower else var).split(sep=sep)[0]
     return None
+
 
 def which(data="sudo", raises: bool = False) -> str:
     """Checks if cmd or path is executable or exported bash function.

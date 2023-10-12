@@ -6,15 +6,11 @@
   <component name="BlackConnectSettings" lineLength="120" previewMode="true" triggerOnReformat="true" showSyntaxErrorMsgs="true" />
   <component name="ChangeListManager">
     <list default="true" id="bf31d71b-78d7-4bdd-9f09-b7f6e0f14454" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/tests/env.bash" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/test_envbash.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../kitpdf/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../kitpdf/.idea/ruff.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mongodata/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../mongodata/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mongodata/.idea/mongodata.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../mongodata/.idea/mongodata.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../mongodata/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../mongodata/.idea/ruff.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ruff.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/nodeps/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/nodeps/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../template/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../template/.idea/ruff.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/nodeps/ipython_profile/profile_default/ipython_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/nodeps/ipython_profile/profile_default/ipython_config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../shrc/files/com.mnopi.jetbrains.plist" beforeDir="false" afterPath="$PROJECT_DIR$/../shrc/files/com.mnopi.jetbrains.plist" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -69,28 +65,28 @@
     <option name="showModules" value="false" />
     <option name="showVisibilityIcons" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "/Users/j5pu/nodeps/tests",
-    "run.code.analysis.last.selected.profile": "pProject Default",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/j5pu/nodeps/tests&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   },
-  "keyToStringList": {
-    "GitStage.ChangesTree.GroupingKeys": [
-      "directory",
-      "module",
-      "repository"
+  &quot;keyToStringList&quot;: {
+    &quot;GitStage.ChangesTree.GroupingKeys&quot;: [
+      &quot;directory&quot;,
+      &quot;module&quot;,
+      &quot;repository&quot;
     ],
-    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
-      "Python"
+    &quot;com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File&quot;: [
+      &quot;Python&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
       <console-settings custom-start-script="import sys; print('Python %s on %s' % (sys.version, sys.platform))&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from nodeps import *" module-name="nodeps" is-module-sdk="true">
