@@ -1629,4 +1629,4 @@ c.Completer.auto_close_dict_keys = True
          when IPython starts.
  Default: False
 """
-# c.StoreMagics.autorestore = False
+c.StoreMagics.autorestore = True
