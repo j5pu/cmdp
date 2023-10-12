@@ -101,6 +101,7 @@ __all__ = (
     "group_user",
     "gz",
     "in_tox",
+    "indict",
     "mip",
     "noexc",
     "parent",
@@ -120,6 +121,8 @@ __all__ = (
     "toiter",
     "urljson",
     "which",
+    "yield_if",
+    "yield_last",
     "EXECUTABLE",
     "EXECUTABLE_SITE",
     "NOSET",
@@ -1147,6 +1150,8 @@ class Env:
                 ),
                 *IPYTHON_EXTENSIONS,
             }
+            for item in ["LOGURU_LEVEL", "LOG_LEVEL", "LEVEL"]:
+                pass
 
     def __contains__(self, item):
         """Check if item is in self.__dict__."""
@@ -4306,8 +4311,10 @@ class Project:
             and "Private :: Do Not Upload" not in self.pyproject_toml.config.get("project", {}).get("classifiers", [])
         ):
             c = f"{self.executable()} -m twine upload -u __token__  {self.build()}"
-            print(c)
-            return subprocess.run(c, shell=True).returncode
+            rc = subprocess.run(c, shell=True).returncode
+            if rc != 0:
+                print(c)
+                return rc
         return 0
 
     def version(self) -> str:
@@ -5717,6 +5724,29 @@ def in_tox() -> bool:
     return ".tox" in sysconfig.get_paths()["purelib"]
 
 
+def indict(data: MutableMapping, items: MutableMapping | None = None, **kwargs: Any) -> bool:
+    """All item/kwargs pairs in flat dict.
+
+    Examples:
+        >>> from nodeps import indict
+        >>> from nodeps.variables.builtin import BUILTIN
+        >>>
+        >>> assert indict(BUILTIN, {'iter': iter}, credits=credits) is True
+        >>> assert indict(BUILTIN, {'iter': 'fake'}) is False
+        >>> assert indict(BUILTIN, {'iter': iter}, credits='fake') is False
+        >>> assert indict(BUILTIN, credits='fake') is False
+
+    Args:
+        data: dict to search.
+        items: key/value pairs.
+        **kwargs: key/value pairs.
+
+    Returns:
+        True if all pairs in dict.
+    """
+    return all(x[0] in data and x[1] == data[x[0]] for x in ((items if items else {}) | kwargs).items())
+
+
 def mip() -> str | None:
     """My Public IP.
 
@@ -6261,6 +6291,66 @@ def which(data="sudo", raises: bool = False) -> str:
     if raises and not rv:
         raise CommandNotFoundError(data)
     return rv
+
+
+def yield_if(
+        data: Any,
+        pred: Callable = lambda x: bool(x),
+        split: str = ' ',
+        apply=None
+):
+    """Yield value if condition is met and apply function if predicate.
+
+    Examples:
+        >>> assert list(yield_if([True, None])) == [True]
+        >>> assert list(yield_if('test1.test2', pred=lambda x: x.endswith('2'), split='.')) == ['test2']
+        >>> assert list(yield_if('test1.test2', pred=lambda x: x.endswith('2'), split='.', \
+        apply=lambda x: x.removeprefix('test'))) == ['2']
+        >>> assert list(yield_if('test1.test2', pred=lambda x: x.endswith('2'), split='.', \
+        apply=(lambda x: x.removeprefix('test'), lambda x: int(x)))) == [2]
+
+
+    Args:
+        data: data
+        pred: predicate (default: if value)
+        split: split char for str.
+        apply: functions to apply if predicate is met.
+
+    Returns:
+        Yield values if condition is met and apply functions if provided.
+    """
+    for item in toiter(data, split=split):
+        if pred(item):
+            if apply:
+                for func in toiter(apply):
+                    item = func(item)  # noqa: PLW2901
+            yield item
+
+
+def yield_last(data, split=' '):
+    """Yield value if condition is met and apply function if predicate.
+
+    Examples:
+        >>> assert list(yield_last([True, None])) == [(False, True, None), (True, None, None)]
+        >>> assert list(yield_last('first last')) == [(False, 'first', None), (True, 'last', None)]
+        >>> assert list(yield_last('first.last', split='.')) == [(False, 'first', None), (True, 'last', None)]
+        >>> assert list(yield_last(dict(first=1, last=2))) == [(False, 'first', 1), (True, 'last', 2)]
+
+
+    Args:
+        data: data.
+        split: split char for str.
+
+    Returns:
+        Yield value and True when is the last item on iterable
+    """
+    data = toiter(data, split=split)
+    mm = isinstance(data, MutableMapping)
+    total = len(data)
+    count = 0
+    for i in data:
+        count += 1
+        yield count == total, *(i, data.get(i) if mm else None,)
 
 
 EXECUTABLE = Path(sys.executable)

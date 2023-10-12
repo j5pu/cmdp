@@ -3,8 +3,8 @@
   <component name="RuffConfigService">
     <option name="globalRuffExecutablePath" value="/usr/local/bin/ruff" />
     <option name="globalRuffLspExecutablePath" value="/usr/local/bin/ruff" />
-    <option name="projectRuffExecutablePath" value="$PROJECT_DIR$/venv/bin/ruff" />
-    <option name="projectRuffLspExecutablePath" value="$PROJECT_DIR$/venv/bin/ruff-lsp" />
+    <option name="projectRuffExecutablePath" value="$PROJECT_DIR$/../kitpdf/venv/bin/ruff" />
+    <option name="projectRuffLspExecutablePath" value="$PROJECT_DIR$/../kitpdf/venv/bin/ruff-lsp" />
     <option name="useRuffFormat" value="true" />
     <option name="useRuffLsp" value="true" />
   </component>
