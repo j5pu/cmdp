@@ -870,7 +870,7 @@ c.TerminalInteractiveShell.banner2 = ""
          highlighting. To see available styles, run `pygmentize -L styles`.
  Default: traitlets.Undefined
 """
-# c.TerminalInteractiveShell.highlighting_style = traitlets.Undefined
+c.TerminalInteractiveShell.highlighting_style = "monokai"
 
 """ Override highlighting format for specific tokens
  Default: {}
