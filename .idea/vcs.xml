@@ -7,11 +7,9 @@
     <mapping directory="$PROJECT_DIR$/../Archive/data" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../Archive/turbogit" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../envg" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../kitpdf" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../mongodata" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../pdf" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../secrets" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../shrc" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../template" vcs="Git" />
   </component>
 </project>

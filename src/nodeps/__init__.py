@@ -102,6 +102,8 @@ __all__ = (
     "gz",
     "in_tox",
     "indict",
+    "iscoro",
+    "map_with_args",
     "mip",
     "noexc",
     "parent",
@@ -118,8 +120,11 @@ __all__ = (
     "tardir",
     "tilde",
     "timestamp_now",
+    "to_camel",
     "toiter",
+    "tomodules",
     "urljson",
+    "varname",
     "which",
     "yield_if",
     "yield_last",
@@ -221,8 +226,8 @@ try:
 except ModuleNotFoundError:
     pip = object
 
-from . import extras
-from .extras import *
+from nodeps import extras
+from nodeps.extras import *
 
 if TYPE_CHECKING:
     from decouple import CONFIG  # type: ignore[attr-defined]
@@ -5747,6 +5752,44 @@ def indict(data: MutableMapping, items: MutableMapping | None = None, **kwargs: 
     return all(x[0] in data and x[1] == data[x[0]] for x in ((items if items else {}) | kwargs).items())
 
 
+def iscoro(data: Any) -> bool:
+    """Is coro?."""
+    return any([inspect.isasyncgen(data), inspect.isasyncgenfunction(data),
+                asyncio.iscoroutine(data), inspect.iscoroutinefunction(data)])
+
+
+def map_with_args(
+        data: Any,
+        func: Callable,
+        /,
+        *args,
+        pred: Callable = lambda x: bool(x),
+        split: str = ' ',
+        **kwargs) -> list:
+    """Apply pred/filter to data and map with args and kwargs.
+
+    Examples:
+        >>> from nodeps import map_with_args
+        >>>
+        >>> # noinspection PyUnresolvedReferences
+        >>> def f(i, *ar, **kw):
+        ...     return f'{i}: {[a(i) for a in ar]}, {", ".join([f"{k}: {v(i)}" for k, v in kw.items()])}'
+        >>> map_with_args('0.1.2', f, int, list, pred=lambda x: x != '0', split='.', int=int, str=str)
+        ["1: [1, ['1']], int: 1, str: 1", "2: [2, ['2']], int: 2, str: 2"]
+
+    Args:
+        data: data.
+        func: final function to map.
+        *args: args to final map function.
+        pred: pred to filter data before map.
+        split: split for data str.
+        **kwargs: kwargs to final map function.
+
+    Returns:
+        List with results.
+    """
+    return [func(item, *args, **kwargs) for item in yield_if(data, pred=pred, split=split)]
+
 def mip() -> str | None:
     """My Public IP.
 
@@ -6139,6 +6182,27 @@ def timestamp_now(file: Path | str):
     os.utime(file, (now, now))
 
 
+def to_camel(text: str, replace: bool = True) -> str:
+    """
+    Convert to Camel
+
+    Examples:
+        >>> to_camel(N.IGNORE_ATTR)
+        'IgnoreAttr'
+        >>> to_camel(N.IGNORE_ATTR, replace=False)
+        '__Ignore_Attr__'
+
+    Args:
+        text: text to convert.
+        replace: remove '_'  (default: True)
+
+    Returns:
+        Camel text.
+    """
+    rv = ''.join(map(str.title, toiter(text, '_')))
+    return rv.replace('_', '') if replace else rv
+
+
 def to_latin9(chars: str) -> str:
     """Converts string to latin9 hex.
 
@@ -6255,6 +6319,88 @@ def urljson(
         return json.loads(response.read().decode())
 
 
+def varname(index=2, lower=True, prefix=None, sep='_'):
+    """Caller var name.
+
+    Examples:
+        >>> from dataclasses import dataclass
+        >>> from nodeps import varname
+        >>>
+        >>> def function() -> str:
+        ...     return varname()
+        >>>
+        >>> class ClassTest:
+        ...     def __init__(self):
+        ...         self.name = varname()
+        ...
+        ...     @property
+        ...     def prop(self):
+        ...         return varname()
+        ...
+        ...     # noinspection PyMethodMayBeStatic
+        ...     def method(self):
+        ...         return varname()
+        >>>
+        >>> @dataclass
+        ... class DataClassTest:
+        ...     def __post_init__(self):
+        ...         self.name = varname()
+        >>>
+        >>> name = varname(1)
+        >>> Function = function()
+        >>> classtest = ClassTest()
+        >>> method = classtest.method()
+        >>> prop = classtest.prop
+        >>> dataclasstest = DataClassTest()
+        >>>
+        >>> def test_var():
+        ...     assert name == 'name'
+        >>>
+        >>> def test_function():
+        ...     assert Function == function.__name__.lower()
+        >>>
+        >>> def test_class():
+        ...     assert classtest.name == ClassTest.__name__.lower()
+        >>>
+        >>> def test_method():
+        ...     assert classtest.method() == ClassTest.__name__.lower()
+        ...     assert method == 'method'
+        >>> def test_property():
+        ...     assert classtest.prop == ClassTest.__name__.lower()
+        ...     assert prop == 'prop'
+        >>> def test_dataclass():
+        ...     assert dataclasstest.name == DataClassTest.__name__.lower()
+
+        .. code-block:: python
+
+            class A:
+
+                def __init__(self):
+
+                    self.instance = varname()
+
+            a = A()
+
+            var = varname(1)
+
+    Args:
+        index: index.
+        lower: lower.
+        prefix: prefix to add.
+        sep: split.
+
+    Returns:
+        Optional[str]: Var name.
+    """
+    with contextlib.suppress(IndexError, KeyError):
+        _stack = inspect.stack()
+        func = _stack[index - 1].function
+        index = index + 1 if func == N.POST_INIT else index
+        if line := textwrap.dedent(_stack[index].code_context[0]):
+            if var := re.sub(f'(.| ){func}.*', str(), line.split(' = ')[0].replace('assert ', str()).split(' ')[0]):
+                return (prefix if prefix else '') + (var.lower() if lower else var).split(**splitsep(sep))[0]
+    return None
+
 def which(data="sudo", raises: bool = False) -> str:
     """Checks if cmd or path is executable or exported bash function.
 
@@ -6297,11 +6443,13 @@ def yield_if(
         data: Any,
         pred: Callable = lambda x: bool(x),
         split: str = ' ',
-        apply=None
-):
+        apply: Union[Callable, tuple[Callable, ...]] | None = None
+) -> Generator:
     """Yield value if condition is met and apply function if predicate.
 
     Examples:
+        >>> from nodeps import yield_if
+        >>>
         >>> assert list(yield_if([True, None])) == [True]
         >>> assert list(yield_if('test1.test2', pred=lambda x: x.endswith('2'), split='.')) == ['test2']
         >>> assert list(yield_if('test1.test2', pred=lambda x: x.endswith('2'), split='.', \
@@ -6327,10 +6475,12 @@ def yield_if(
             yield item
 
 
-def yield_last(data, split=' '):
+def yield_last(data: Any, split: str = ' ') -> Iterator[tuple[bool, Any, None]]:
     """Yield value if condition is met and apply function if predicate.
 
     Examples:
+        >>> from nodeps import yield_last
+        >>>
         >>> assert list(yield_last([True, None])) == [(False, True, None), (True, None, None)]
         >>> assert list(yield_last('first last')) == [(False, 'first', None), (True, 'last', None)]
         >>> assert list(yield_last('first.last', split='.')) == [(False, 'first', None), (True, 'last', None)]
