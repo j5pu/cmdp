@@ -692,7 +692,7 @@ c.InteractiveShell.banner2 = ""
  module).
  Default: False
 """
-# c.InteractiveShell.sphinxify_docstring = False
+c.InteractiveShell.sphinxify_docstring = True
 
 """ Warn if running in a virtual environment with no IPython installed (so IPython
  from the global environment is used).
