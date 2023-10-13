@@ -840,6 +840,7 @@ class CommandNotFoundError(_NoDepsBaseError):
     """Raised when command is not found."""
 
 
+# noinspection PyPep8Naming
 class dd(collections.defaultdict):  # noqa: N801
     """Default Dict Helper Class.
 
@@ -921,7 +922,7 @@ class dd(collections.defaultdict):  # noqa: N801
 
         iterable = isinstance(factory, Iterable)
         self.__factory__ = None if iterable else factory
-        super().__init__(dd_factory(self.__factory__), *(args + (factory,) if iterable else args), **kwargs)
+        super().__init__(dd_factory(self.__factory__), *((*args, factory) if iterable else args), **kwargs)
 
     def __repr__(self) -> str:
         """Representation."""
@@ -930,7 +931,8 @@ class dd(collections.defaultdict):  # noqa: N801
     __class_getitem__ = classmethod(types.GenericAlias)
 
 
-class dictsort(dict, MutableMapping[_KT, _VT]):
+# noinspection PyPep8Naming
+class dictsort(dict, MutableMapping[_KT, _VT]):  # noqa: N801
     """Dict Sort Class.
 
     Examples:
@@ -1685,6 +1687,8 @@ class FrameSimple:
     path: Path
     vars: dict[str, Any]  # noqa: A003
 
+
+# noinspection PyPep8Naming
 class getter(Callable[[Any], Any | tuple[Any, ...]]):  # noqa: N801
     """Return a callable object that fetches the given attribute(s)/item(s) from its operand.
 
@@ -1731,9 +1735,9 @@ class getter(Callable[[Any], Any | tuple[Any, ...]]):  # noqa: N801
         >>> test = dict(a='a', b='b')
         >>> test1_dict = dict(d='d', test=test)
         >>> assert getter('d test.a test.a.c test.c test.m.j.k')(test1_dict) == \
-        getter('d test.a test.a.c test.c test.m.j.k')(test1)
-        >>> assert getter('d test.a test.a.c test.c test.m.j.k')(test1_dict) == (test1_dict['d'], test1_dict['test']['a'], \
-        None, None, None)
+                getter('d test.a test.a.c test.c test.m.j.k')(test1)
+        >>> assert getter('d test.a test.a.c test.c test.m.j.k')(test1_dict) == \
+                (test1_dict['d'], test1_dict['test']['a'], None, None, None)
         >>> assert getter('a c')(test1_dict) == (None, None)
         >>> dicts = getter('a c d test.a', 'test.b', default={})(test1_dict)
         >>> assert dicts == ({}, {}, test1_dict['d'], test1_dict['test']['a'], test1_dict['test']['b'])
@@ -1767,9 +1771,10 @@ class getter(Callable[[Any], Any | tuple[Any, ...]]):  # noqa: N801
     """
     __slots__ = ('_attrs', '_call', '_copy', '_default', '_mm')
 
-    def __init__(self, attr: str | Iterable[str], *attrs: str, default: bool = None):
+    def __init__(self, attr: str | Iterable[str], *attrs: str, default: bool | Any = None):
+        """Init."""
         self._copy: bool = 'copy' in dir(type(default))
-        self._default = default
+        self._default: bool | Any = default
         _attrs = toiter(attr)
         attr = _attrs[0]
         attrs = (tuple(_attrs[1:]) if len(_attrs) > 1 else ()) + attrs
@@ -1819,8 +1824,8 @@ class getter(Callable[[Any], Any | tuple[Any, ...]]):  # noqa: N801
         return self.__class__, self._attrs
 
     def __repr__(self) -> str:
-        """Reoresentation."""
-        return self.__class__.__name__ + '(' + ','.join(f'{i}={repr(getattr(self, i))}' for i in self._attrs) + ')'
+        """Representation."""
+        return self.__class__.__name__ + '(' + ','.join(f'{i}={getattr(self, i)!r}' for i in self._attrs) + ')'
 
 
 @dataclasses.dataclass

@@ -2,21 +2,15 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/../Archive/bapy/.idea/bapy.iml" filepath="$PROJECT_DIR$/../Archive/bapy/.idea/bapy.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../Archive/bbin/.idea/bbin.iml" filepath="$PROJECT_DIR$/../Archive/bbin/.idea/bbin.iml" />
       <module fileurl="file://$PROJECT_DIR$/../envg/.idea/envg.iml" filepath="$PROJECT_DIR$/../envg/.idea/envg.iml" />
       <module fileurl="file://$PROJECT_DIR$/../kitpdf/.idea/kitpdf.iml" filepath="$PROJECT_DIR$/../kitpdf/.idea/kitpdf.iml" />
       <module fileurl="file://$PROJECT_DIR$/../mongodata/.idea/mongodata.iml" filepath="$PROJECT_DIR$/../mongodata/.idea/mongodata.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/nodeps.iml" filepath="$PROJECT_DIR$/.idea/nodeps.iml" />
       <module fileurl="file://$PROJECT_DIR$/../pdf/.idea/pdf.iml" filepath="$PROJECT_DIR$/../pdf/.idea/pdf.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../Archive/data/prel/.idea/prel.iml" filepath="$PROJECT_DIR$/../Archive/data/prel/.idea/prel.iml" />
       <module fileurl="file://$PROJECT_DIR$/../Archive/data/rclib/.idea/rclib.iml" filepath="$PROJECT_DIR$/../Archive/data/rclib/.idea/rclib.iml" />
       <module fileurl="file://$PROJECT_DIR$/../secrets/.idea/secrets.iml" filepath="$PROJECT_DIR$/../secrets/.idea/secrets.iml" />
       <module fileurl="file://$PROJECT_DIR$/../shrc/.idea/shrc.iml" filepath="$PROJECT_DIR$/../shrc/.idea/shrc.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../Archive/data/sstr/.idea/sstr.iml" filepath="$PROJECT_DIR$/../Archive/data/sstr/.idea/sstr.iml" />
       <module fileurl="file://$PROJECT_DIR$/../template/.idea/template.iml" filepath="$PROJECT_DIR$/../template/.idea/template.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../Archive/turbogit/.idea/turbogit.iml" filepath="$PROJECT_DIR$/../Archive/turbogit/.idea/turbogit.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../Archive/data/upins/.idea/upins.iml" filepath="$PROJECT_DIR$/../Archive/data/upins/.idea/upins.iml" />
     </modules>
   </component>
 </project>
