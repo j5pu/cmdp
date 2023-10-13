@@ -6004,12 +6004,11 @@ def load_ipython_extension(ipython: InteractiveShell | None = None) -> Config | 
             warnings.filterwarnings("ignore", ".*To exit:.*", UserWarning)
     else:
         try:
-            ipython = get_ipython()  # type: ignore[attr-defined]
-            return load_ipython_extension(ipython)
+            config = get_config()  # type: ignore[attr-defined]
         except NameError:
             from traitlets.config import Config
             config = Config()
-            config.TerminalIPythonApp.extensions = IPYTHON_EXTENSIONS
+        config.TerminalIPythonApp.extensions = IPYTHON_EXTENSIONS
 
     config.BaseIPythonApplication.verbose_crash = True
     config.TerminalIPythonApp.display_banner = False

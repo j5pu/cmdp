@@ -1,7 +1,7 @@
 """IPython Config."""  # noqa: INP001
 from nodeps import IPYTHON_EXTENSIONS, MyPrompt
 
-c = get_config()  # type: ignore[attr-defined]
+c = get_config()  # type: ignore[attr-defined]  # noqa: F821
 
 # ------------------------------------------------------------------------------
 # InteractiveShellApp(Configurable) configuration
