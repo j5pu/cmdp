@@ -4,6 +4,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 import nodeps.__main__
 project = "nodeps"
 author = "José Antonio Puértolas Montañés"
+# noinspection PyShadowingBuiltins
 copyright = "2023, José Antonio Puértolas Montañés"
 extensions = [
     "myst_parser",

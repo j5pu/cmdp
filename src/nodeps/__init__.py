@@ -6035,6 +6035,9 @@ def load_ipython_extension(ipython: InteractiveShell | None = None) -> Config | 
     config.PlainTextFormatter.max_seq_length = 0
     config.Completer.auto_close_dict_keys = True
     config.StoreMagics.autorestore = True
+    config.InteractiveShell.color_info = True
+    config.InteractiveShell.colors = 'Linux'
+    config.TerminalInteractiveShell.true_color = True
 
     if ipython is None:
         return config
