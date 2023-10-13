@@ -4321,7 +4321,7 @@ class Project:
         ):
             with pipmetapathfinder():
                 from twine.__main__ import main
-                sys.argv = ["twine", "-u", "__token__", self.build()]
+                sys.argv = ["twine", "-u", "__token__", str(self.build())]
                 return int(main())
         return 0
         #     c = f"{self.executable()} -m twine upload -u __token__  {self.build()}"
