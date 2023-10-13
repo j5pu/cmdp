@@ -331,6 +331,7 @@ if TYPE_CHECKING:
 
     # noinspection PyCompatibility
     from pip._internal.cli.base_command import Command
+    from traitlets.config import Config
 
 _NODEPS_PIP_POST_INSTALL = {}
 """Holds the context with wheels installed and paths to package installed to be used in post install"""
@@ -4439,30 +4440,6 @@ class Project:
             and (pypi != self.next(part=part, force=force))
             and "Private :: Do Not Upload" not in self.pyproject_toml.config.get("project", {}).get("classifiers", [])
         ):
-        #     rc = 0
-        #     with pipmetapathfinder():
-        #         import http
-        #
-        #         import requests
-        #         import twine.exceptions
-        #         from twine.__main__ import logger as _logger
-        #         from twine.commands.upload import upload
-        #         from twine.settings import Settings
-        #         try:
-        #             upload(Settings(username="__token__"), [str(self.build())])
-        #         except requests.HTTPError as exc:
-        #             rc = 1
-        #             status_code = exc.response.status_code
-        #             status_phrase = http.HTTPStatus(status_code).phrase
-        #             _logger.error(
-        #                 f"{exc.__class__.__name__}: {status_code} {status_phrase} "
-        #                 f"from {exc.response.url}\n"
-        #                 f"{exc.response.reason}"
-        #             )
-        #         except twine.exceptions.TwineException as exc:
-        #             rc = 1
-        #             _logger.error(f"{exc.__class__.__name__}: {exc.args[0]}")
-        # return rc
             c = f"{self.executable()} -m twine upload -u __token__  {self.build().parent}/*"
             rc = subprocess.run(c, shell=True).returncode
             if rc != 0:
@@ -5970,8 +5947,11 @@ def iscoro(data: Any) -> bool:
     )
 
 
-def load_ipython_extension(ipython: InteractiveShell):
+def load_ipython_extension(ipython: InteractiveShell | None = None) -> Config | None:  # noqa: PLR0915
     """IPython extension.
+
+    We are entering twice at startup: from $PYTHONSTARTUP and ipython is None
+        and from $IPYTHONDIR to load nodeps extension.
 
     The `ipython` argument is the currently active `InteractiveShell`
     instance, which can be used in any way. This allows you to register
@@ -5983,58 +5963,77 @@ def load_ipython_extension(ipython: InteractiveShell):
         - almost no globals
         - and only nodeps in sys.modules
     """
-    extensions = [item.removeprefix("IPython.extensions.") for item in ipython.extension_manager.loaded]
-    for extension in IPYTHON_EXTENSIONS:
-        if extension not in extensions and extension != NODEPS_PROJECT_NAME:
-            ipython.extension_manager.load_extension(extension)
-            # print(extension)
-            # ipython.run_line_magic("load_ext", extension)
-    ipython.config.BaseIPythonApplication.verbose_crash = True
-    ipython.config.TerminalIPythonApp.display_banner = False
-    ipython.config.TerminalIPythonApp.exec_PYTHONSTARTUP = True
-    ipython.config.InteractiveShell.automagic = True
-    ipython.config.InteractiveShell.banner1 = ""
-    ipython.config.InteractiveShell.banner2 = ""
-    ipython.config.InteractiveShell.sphinxify_docstring = True
-    ipython.config.TerminalInteractiveShell.auto_match = True
-    ipython.config.TerminalInteractiveShell.autoformatter = 'black'
-    ipython.config.TerminalInteractiveShell.banner1 = ""
-    ipython.config.TerminalInteractiveShell.banner2 = ""
-    ipython.config.TerminalInteractiveShell.confirm_exit = False
-    ipython.config.TerminalInteractiveShell.highlighting_style = "monokai"
-    ipython.config.TerminalInteractiveShell.prompts_class = MyPrompt
-    ipython.config.TerminalInteractiveShell.term_title = True
-    ipython.config.PlainTextFormatter.max_seq_length = 0
-    ipython.config.Completer.auto_close_dict_keys = True
-    ipython.config.StoreMagics.autorestore = True
+    if ipython:
+        config = ipython.config
+        ipython.prompts = MyPrompt(ipython)
+        loaded = ipython.extension_manager.loaded
+        if NODEPS_PROJECT_NAME not in loaded:
+            extensions = [item.removeprefix("IPython.extensions.") for item in loaded]
+            for extension in IPYTHON_EXTENSIONS:
+                if extension not in extensions and extension != NODEPS_PROJECT_NAME:
+                    ipython.extension_manager.load_extension(extension)
+                    # print(extension)
+                    # ipython.run_line_magic("load_ext", extension)
 
-    from IPython.core.magic import Magics, line_magic, magics_class
+            from IPython.core.magic import Magics, line_magic, magics_class
 
-    @magics_class
-    class NodepsMagic(Magics):
+            @magics_class
+            class NodepsMagic(Magics):
+                """Nodeps magic class."""
+                @line_magic
+                def nodeps(self, _):
+                    """Nodeps magic."""
+                    self.shell.run_line_magic("reload_ext", NODEPS_PROJECT_NAME)
 
-        @line_magic
-        def nodeps(self, line):
-            self.shell.run_line_magic("load_ext", NODEPS_PROJECT_NAME)
-            return line
+            ipython.register_magics(NodepsMagic)
 
-    ipython.register_magics(NodepsMagic)
+            try:
+                import rich.console  # type: ignore[attr-defined]
+                import rich.pretty  # type: ignore[attr-defined]
+                import rich.traceback  # type: ignore[attr-defined]
+                console = rich.console.Console(force_terminal=True, color_system="256")
+                rich.pretty.install(console, expand_all=True)
+                rich.traceback.install(show_locals=True, suppress={"click", "_pytest", "rich", })
+            except ModuleNotFoundError:
+                pass
 
-    try:
-        import rich.console  # type: ignore[attr-defined]
-        import rich.pretty  # type: ignore[attr-defined]
-        import rich.traceback  # type: ignore[attr-defined]
-        console = rich.console.Console(force_terminal=True, color_system="256")
-        rich.pretty.install(console, expand_all=True)  # type: ignore[attr-defined]
-        rich.traceback.install(show_locals=True, suppress={"click", "_pytest", "rich", })  # type: ignore[attr-defined]
-    except ModuleNotFoundError:
-        pass
+            if env := os.environ.get("VIRTUAL_ENV"):
+                module = Path(env).parent.name
+                ipython.ex(f"from {module} import *")
 
-    if env := os.environ.get("VIRTUAL_ENV"):
-        module = Path(env).parent.name
-        ipython.ex(f"from {module} import *")
+            warnings.filterwarnings("ignore", ".*To exit:.*", UserWarning)
+    else:
+        try:
+            ipython = get_ipython()  # type: ignore[attr-defined]
+            return load_ipython_extension(ipython)
+        except NameError:
+            from traitlets.config import Config
+            config = Config()
+            config.TerminalIPythonApp.extensions = IPYTHON_EXTENSIONS
 
-    warnings.filterwarnings("ignore", ".*To exit:.*", UserWarning)
+    config.BaseIPythonApplication.verbose_crash = True
+    config.TerminalIPythonApp.display_banner = False
+    config.TerminalIPythonApp.exec_PYTHONSTARTUP = True
+    config.InteractiveShell.automagic = True
+    config.InteractiveShell.banner1 = ""
+    config.InteractiveShell.banner2 = ""
+    config.InteractiveShell.sphinxify_docstring = True
+    config.TerminalInteractiveShell.auto_match = True
+    config.TerminalInteractiveShell.autoformatter = 'black'
+    config.TerminalInteractiveShell.banner1 = ""
+    config.TerminalInteractiveShell.banner2 = ""
+    config.TerminalInteractiveShell.confirm_exit = False
+    config.TerminalInteractiveShell.highlighting_style = "monokai"
+    config.TerminalInteractiveShell.prompts_class = MyPrompt
+    config.TerminalInteractiveShell.term_title = True
+    config.PlainTextFormatter.max_seq_length = 0
+    config.Completer.auto_close_dict_keys = True
+    config.StoreMagics.autorestore = True
+
+    if ipython is None:
+        return config
+    return None
+
 
 def map_with_args(
     data: Any, func: Callable, /, *args, pred: Callable = lambda x: bool(x), split: str = " ", **kwargs

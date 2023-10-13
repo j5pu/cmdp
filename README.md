@@ -32,6 +32,7 @@
 ```ìpython
 In [1]: %load_ext nodeps
 In [2]: %reload_ext nodeps
+In [3]: nodeps  # magic command
 ```
 
 It is the same as:
