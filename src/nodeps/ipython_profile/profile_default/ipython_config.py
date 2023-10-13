@@ -906,7 +906,7 @@ c.TerminalInteractiveShell.highlighting_style = "monokai"
 """ Class used to generate Prompt token for prompt_toolkit
  Default: 'IPython.terminal.prompts.Prompts'
 """
-c.TerminalInteractiveShell.prompts_class = MyPrompt
+# c.TerminalInteractiveShell.prompts_class = MyPrompt
 
 """
  See also: InteractiveShell.quiet

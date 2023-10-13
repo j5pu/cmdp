@@ -5983,9 +5983,6 @@ def load_ipython_extension(ipython: InteractiveShell):
         - almost no globals
         - and only nodeps in sys.modules
     """
-    if env := os.environ.get("VIRTUAL_ENV"):
-        module = Path(env).parent.name
-        ipython.ex(f"from {module} import *")
     extensions = [item.removeprefix("IPython.extensions.") for item in ipython.extension_manager.loaded]
     for extension in IPYTHON_EXTENSIONS:
         if extension not in extensions and extension != NODEPS_PROJECT_NAME:
@@ -5993,6 +5990,7 @@ def load_ipython_extension(ipython: InteractiveShell):
             # print(extension)
             # ipython.run_line_magic("load_ext", extension)
     ipython.config.TerminalInteractiveShell.prompts_class = MyPrompt
+
     try:
         import rich.console  # type: ignore[attr-defined]
         import rich.pretty  # type: ignore[attr-defined]
@@ -6002,6 +6000,10 @@ def load_ipython_extension(ipython: InteractiveShell):
         rich.traceback.install(show_locals=True, suppress={"click", "_pytest", "rich", })  # type: ignore[attr-defined]
     except ModuleNotFoundError:
         pass
+
+    if env := os.environ.get("VIRTUAL_ENV"):
+        module = Path(env).parent.name
+        ipython.ex(f"from {module} import *")
 
     # ipython.config.TerminalInteractiveShell.prompts_class = MyPrompt
 
