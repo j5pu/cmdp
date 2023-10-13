@@ -271,7 +271,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/src/nodeps/__init__.py</url>
-          <line>5464</line>
+          <line>5463</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
       </breakpoints>
