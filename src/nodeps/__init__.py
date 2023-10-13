@@ -40,10 +40,13 @@ __all__ = (
     "CmdError",
     "ColorLogger",
     "CommandNotFoundError",
+    "dd",
+    "dictsort",
     "Env",
     "EnvBuilder",
     "FileConfig",
     "FrameSimple",
+    "getter",
     "GitSHA",
     "GroupUser",
     "InvalidArgumentError",
@@ -835,6 +838,116 @@ class ColorLogger(logging.Formatter):
 
 class CommandNotFoundError(_NoDepsBaseError):
     """Raised when command is not found."""
+
+
+class dd(collections.defaultdict):  # noqa: N801
+    """Default Dict Helper Class.
+
+    Examples:
+        >>> from nodeps import dd
+        >>>
+        >>> d = dd()
+        >>> d
+        dd(None, {})
+        >>> d[1]
+        >>> d.get(1)
+        >>>
+        >>> d = dd({})
+        >>> d
+        dd(None, {})
+        >>> d[1]
+        >>> d.get(1)
+        >>>
+        >>> d = dd({}, a=1)
+        >>> d
+        dd(None, {'a': 1})
+        >>> d[1]
+        >>> d.get(1)
+        >>>
+        >>> d = dd(dict)
+        >>> d
+        dd(<class 'dict'>, {})
+        >>> d.get(1)
+        >>> d
+        dd(<class 'dict'>, {})
+        >>> d[1]
+        {}
+        >>> d
+        dd(<class 'dict'>, {1: {}})
+        >>> d = dd(tuple)
+        >>> d
+        dd(<class 'tuple'>, {})
+        >>> d[1]
+        ()
+        >>> d.get(1)
+        ()
+        >>>
+        >>> d = dd(True)
+        >>> d
+        dd(True, {})
+        >>> d[1]
+        True
+        >>> d.get(1)
+        True
+        >>>
+        >>> d = dd({1: 1}, a=1)
+        >>> d
+        dd(None, {1: 1, 'a': 1})
+        >>> d[1]
+        1
+        >>> d.get(1)
+        1
+        >>>
+        >>> d = dd(list, {1: 1}, a=1)
+        >>> d
+        dd(<class 'list'>, {1: 1, 'a': 1})
+        >>> d[2]
+        []
+        >>> d
+        dd(<class 'list'>, {1: 1, 'a': 1, 2: []})
+        >>>
+        >>> d = dd(True, {1: 1}, a=1)
+        >>> d
+        dd(True, {1: 1, 'a': 1})
+        >>> d.get('c')
+        >>> d['c']
+        True
+    """
+    __slots__ = ('__factory__',)
+
+    def __init__(self, factory: Union[Callable, Any] = None, *args: Any, **kwargs: Any):  # noqa: UP007
+        """Init."""
+        def dd_factory(value): return lambda: value() if callable(value) else value
+
+        iterable = isinstance(factory, Iterable)
+        self.__factory__ = None if iterable else factory
+        super().__init__(dd_factory(self.__factory__), *(args + (factory,) if iterable else args), **kwargs)
+
+    def __repr__(self) -> str:
+        """Representation."""
+        return f'{self.__class__.__name__}({self.__factory__}, {dict(self)})'
+
+    __class_getitem__ = classmethod(types.GenericAlias)
+
+
+class dictsort(dict, MutableMapping[_KT, _VT]):
+    """Dict Sort Class.
+
+    Examples:
+        >>> from nodeps import dictsort
+        >>>
+        >>> d = dictsort(b=1, c=2, a=3)
+        >>> assert d.sort() == dictsort({'a': 3, 'b': 1, 'c': 2})
+    """
+    __slots__ = ()
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Init."""
+        super().__init__(*args, **kwargs)
+
+    def sort(self) -> dictsort[_KT, _VT]:
+        """Sort."""
+        return self.__class__({item: self[item] for item in sorted(self)})
 
 
 # noinspection LongLine,SpellCheckingInspection
@@ -1654,7 +1767,7 @@ class getter(Callable[[Any], Any | tuple[Any, ...]]):  # noqa: N801
     """
     __slots__ = ('_attrs', '_call', '_copy', '_default', '_mm')
 
-    def __init__(self, attr, *attrs, default=None):
+    def __init__(self, attr: str | Iterable[str], *attrs: str, default: bool = None):
         self._copy: bool = 'copy' in dir(type(default))
         self._default = default
         _attrs = toiter(attr)
@@ -1697,11 +1810,16 @@ class getter(Callable[[Any], Any | tuple[Any, ...]]):  # noqa: N801
 
             self._call = func
 
-    def __call__(self, obj): return self._call(obj)
+    def __call__(self, obj: Any) -> Any | tuple[Any, ...]:
+        """Call."""
+        return self._call(obj)
 
-    def __reduce__(self): return self.__class__, self._attrs
+    def __reduce__(self) -> tuple[type[getter], type[str, ...]]:
+        """Reduce."""
+        return self.__class__, self._attrs
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Reoresentation."""
         return self.__class__.__name__ + '(' + ','.join(f'{i}={repr(getattr(self, i))}' for i in self._attrs) + ')'
 
 
