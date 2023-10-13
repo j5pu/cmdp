@@ -1234,7 +1234,7 @@ class Env:
             cwd = Path.cwd()
             files = (
                 decouple.RepositoryIni(path.absolute()) if path.suffix == ".ini" else decouple.RepositoryEnv(".env")
-                for file in ("settings.ini", ".env")
+                for file in ("settings.ini", )  # ".env" process by envbash()
                 if (path := cwd.find_up(name=file))
             )
             self._config = decouple.Config(collections.ChainMap(*files))
