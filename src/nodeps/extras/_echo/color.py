@@ -1,4 +1,4 @@
-"""Secho Color Module."""
+"""Echo Color Module."""
 __all__ = (
     "COLORIZE",
     "EnumLower",
@@ -32,9 +32,10 @@ def msg_click_typer():
 
 
 class EnumLower(enum.Enum):
-    """Enum lower value class."""
-    def _generate_next_value_(self: str, *args):
-        return self.lower()
+    """EnumLower class."""
+
+    def _generate_next_value_(self: str, start, count: int, last_values) -> str:
+        return str(self).lower()
 
 
 class _Color(EnumLower):

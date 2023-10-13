@@ -27,6 +27,21 @@
 - IPython Profile :mod:`ipython_profile.profile_default.ipython_config`: `export IPYTHONDIR="$(ipythondir)"`
 - Python Startup :mod:`python_startup.__init__`: `export PYTHONSTARTUP="$(pythonstartup)"`
 
+## IPython extension
+
+```ìpython
+In [1]: %load_ext nodeps
+In [2]: %reload_ext nodeps
+```
+
+It is the same as:
+```python
+import IPython
+IPython.start_ipython(["--ext=nodeps"])
+```
+
+and:
+
 ### Env class
 Searches for `settings.ini` and `.env` in cwd and up. 
 

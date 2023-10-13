@@ -17,6 +17,7 @@ Examples:
     >>> import time
     >>> from rich.console import Console
     >>> from rich.json import JSON
+    >>> from rich import print_json
     >>>
     >>> c = Console()
     >>> with c.status("Working...", spinner="material"):  # doctest: +SKIP
@@ -69,7 +70,6 @@ __all__ = (
     "ins",
     "is_terminal",
     "CONSOLE",
-    "print_json",
     "ic",
     "icc",
 )
@@ -85,11 +85,9 @@ try:
     import rich.console  # type: ignore[attr-defined]
     import rich.pretty  # type: ignore[attr-defined]
     import rich.traceback  # type: ignore[attr-defined]
-    from rich import print_json  # type: ignore[attr-defined]
     from rich.console import Console  # type: ignore[name-defined]
 except ModuleNotFoundError:
     Console = object
-    print_json = object()
 
 CONSOLE = None
 

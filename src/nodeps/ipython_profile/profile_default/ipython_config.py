@@ -1,52 +1,5 @@
 """IPython Config."""  # noqa: INP001
-import os
-import pathlib
-import platform
-
-from IPython.terminal.prompts import Prompts, Token
-
-from nodeps import Env, Project
-
-
-class MyPrompt(Prompts):
-    """IPython prompt."""
-
-    @property
-    def project(self) -> Project:
-        """Project instance."""
-        return Project()
-
-    def in_prompt_tokens(self, cli=None):
-        """In prompt tokens."""
-        return [
-            (Token, ""),
-            (Token.OutPrompt, pathlib.Path().absolute().stem),
-            (Token, " "),
-            (Token.Generic, "↪"),
-            (Token.Generic, self.project.branch()),
-            *((Token, " "), (Token.Prompt, "©") if os.environ.get("VIRTUAL_ENV") else (Token, "")),
-            (Token, " "),
-            (Token.Name.Class, "v" + platform.python_version()),
-            (Token, " "),
-            (Token.Name.Entity, self.project.latest()),
-            (Token, " "),
-            (Token.Prompt, "["),
-            (Token.PromptNum, str(self.shell.execution_count)),
-            (Token.Prompt, "]: "),
-            (
-                Token.Prompt if self.shell.last_execution_succeeded else Token.Generic.Error,
-                "❯ ",  # noqa: RUF001
-            ),
-        ]
-
-    def out_prompt_tokens(self, cli=None):
-        """Out Prompt."""
-        return [
-            (Token.OutPrompt, "Out<"),
-            (Token.OutPromptNum, str(self.shell.execution_count)),
-            (Token.OutPrompt, ">: "),
-        ]
-
+from nodeps import Env, MyPrompt
 
 c = get_config()  # noqa: F821
 
@@ -1344,7 +1297,7 @@ c.TerminalInteractiveShell.term_title = True
          Set to 0 to disable truncation.
  Default: 1000
 """
-# c.PlainTextFormatter.max_seq_length = 1000
+c.PlainTextFormatter.max_seq_length = 0
 
 """
  Default: 79

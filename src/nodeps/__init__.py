@@ -8,7 +8,6 @@ __all__ = (
     "GITHUB_DOMAIN",
     "GITHUB_TOKEN",
     "GITHUB_URL",
-    "IPYTHON_EXTENSIONS",
     "LINUX",
     "MACOS",
     "NODEPS_EXECUTABLE",
@@ -19,6 +18,7 @@ __all__ = (
     "PYTHON_DEFAULT_VERSION",
     "USER",
     "EMAIL",
+    "IPYTHON_EXTENSIONS",
     "IPYTHONDIR",
     "PW_ROOT",
     "PW_USER",
@@ -40,7 +40,6 @@ __all__ = (
     "CmdError",
     "ColorLogger",
     "CommandNotFoundError",
-    "EnumLower",
     "Env",
     "EnvBuilder",
     "FileConfig",
@@ -49,6 +48,7 @@ __all__ = (
     "GroupUser",
     "InvalidArgumentError",
     "LetterCounter",
+    "MyPrompt",
     "NamedtupleMeta",
     "Noset",
     "OwnerRepo",
@@ -131,6 +131,49 @@ __all__ = (
     "EXECUTABLE",
     "EXECUTABLE_SITE",
     "NOSET",
+    "getstdout",
+    "strip",
+    "black",
+    "red",
+    "green",
+    "yellow",
+    "blue",
+    "magenta",
+    "cyan",
+    "white",
+    "bblack",
+    "bred",
+    "bgreen",
+    "byellow",
+    "bblue",
+    "bmagenta",
+    "bcyan",
+    "bwhite",
+    "reset",
+    "COLORIZE",
+    "EnumLower",
+    "Color",
+    "SYMBOL",
+    "Symbol",
+    "LOGGER_DEFAULT_FMT",
+    "logger",
+    "cache",
+    "FORCE_COLOR",
+    "IPYTHON",
+    "IS_REPL",
+    "IS_TTY",
+    "OpenIO",
+    "ins",
+    "is_terminal",
+    "CONSOLE",
+    "ic",
+    "icc",
+    "Repo",
+    "PYTHON_FTP",
+    "python_latest",
+    "python_version",
+    "python_versions",
+    "request_x_api_key_json",
 )
 
 import abc
@@ -158,6 +201,7 @@ import json
 import logging
 import os
 import pathlib
+import platform
 import pwd
 import re
 import shutil
@@ -229,17 +273,64 @@ try:
 except ModuleNotFoundError:
     pip = object
 
-from nodeps import extras
-from nodeps.extras import *
+try:
+    from IPython.terminal.prompts import Prompts, Token  # type: ignore[attr-defined]
+except ModuleNotFoundError:
+    Prompts = Token = object
+
+from nodeps.extras import (
+    COLORIZE,
+    CONSOLE,
+    FORCE_COLOR,
+    IPYTHON,
+    IS_REPL,
+    IS_TTY,
+    LOGGER_DEFAULT_FMT,
+    PYTHON_FTP,
+    SYMBOL,
+    Color,
+    EnumLower,
+    OpenIO,
+    Repo,
+    Symbol,
+    bblack,
+    bblue,
+    bcyan,
+    bgreen,
+    black,
+    blue,
+    bmagenta,
+    bred,
+    bwhite,
+    byellow,
+    cache,
+    cyan,
+    getstdout,
+    green,
+    ic,
+    icc,
+    ins,
+    is_terminal,
+    logger,
+    magenta,
+    python_latest,
+    python_version,
+    python_versions,
+    red,
+    request_x_api_key_json,
+    reset,
+    strip,
+    white,
+    yellow,
+)
 
 if TYPE_CHECKING:
     EnvironOS: TypeAlias = type(os.environ)
     from decouple import CONFIG  # type: ignore[attr-defined]
+    from IPython.core.interactiveshell import InteractiveShell
 
     # noinspection PyCompatibility
     from pip._internal.cli.base_command import Command
-
-__all__ += extras.__all__
 
 _NODEPS_PIP_POST_INSTALL = {}
 """Holds the context with wheels installed and paths to package installed to be used in post install"""
@@ -262,8 +353,6 @@ GITHUB_URL = {
 GitHub: api, git+file, git+https, git+ssh, https, ssh and git URLs
 (join directly the user or path without '/' or ':')
 """
-IPYTHON_EXTENSIONS = {"autoreload", "pyflyby", "restmagic", "rich", "storemagic"}
-"""Default IPython extensions to load"""
 LINUX = sys.platform == "linux"
 """Is Linux? sys.platform == 'linux'"""
 MACOS = sys.platform == "darwin"
@@ -288,6 +377,8 @@ PYTHON_DEFAULT_VERSION = PYTHON_VERSIONS[0]
 USER = os.getenv("USER")
 """"Environment Variable $USER"""
 
+IPYTHON_EXTENSIONS = {"autoreload", NODEPS_PROJECT_NAME, "storemagic"}
+"""Default IPython extensions to load"""
 IPYTHONDIR = str(NODEPS_PATH / "ipython_profile")
 """IPython Profile :mod:`ipython_profile.profile_default.ipython_config`: `export IPYTHONDIR="$(ipythondir)"`."""
 EMAIL = f"63794670+{GIT}@users.noreply.github.com"
@@ -675,9 +766,9 @@ class ColorLogger(logging.Formatter):
     black = "\x1b[30m"
     blue = "\x1b[34m"
     cyan = "\x1b[36m"
-    green = "\x1b[32m"
+    gr = "\x1b[32m"
     grey = "\x1b[38;21m"
-    magenta = "\x1b[35m"
+    mg = "\x1b[35m"
     red = "\x1b[31;21m"
     red_bold = "\x1b[31;1m"
     reset = "\x1b[0m"
@@ -690,12 +781,12 @@ class ColorLogger(logging.Formatter):
         logging.INFO: f"{cyan}%(levelname)8s{reset} {vertical}"
         f"{cyan}%(name)s{reset} {vertical}"
         f"{cyan}%(filename)s{reset}:{cyan}%(lineno)d{reset} {vertical}"
-        f"{green}%(extra)s{reset} {vertical}"
+        f"{gr}%(extra)s{reset} {vertical}"
         f"{cyan}%(message)s{reset}",
         logging.WARNING: f"{yellow}%(levelname)8s{reset} {vertical}"
         f"{yellow}%(name)s{reset} {vertical}"
         f"{yellow}%(filename)s{reset}:{yellow}%(lineno)d{reset} {vertical}"
-        f"{green}%(repo)s{reset} {vertical}"
+        f"{gr}%(repo)s{reset} {vertical}"
         f"{yellow}%(message)s{reset}",
         logging.ERROR: red + fmt + reset,
         logging.CRITICAL: red_bold + fmt + reset,
@@ -743,13 +834,6 @@ class ColorLogger(logging.Formatter):
 
 class CommandNotFoundError(_NoDepsBaseError):
     """Raised when command is not found."""
-
-
-class EnumLower(enum.Enum):
-    """EnumLower class."""
-
-    def _generate_next_value_(self: str, start, count: int, last_values) -> str:
-        return str(self).lower()
 
 
 # noinspection LongLine,SpellCheckingInspection
@@ -1561,6 +1645,46 @@ class LetterCounter:
         return "".join(reversed([string.ascii_uppercase[i] for i in self.current_value]))
 
 
+class MyPrompt(Prompts):
+    """IPython prompt."""
+
+    @property
+    def project(self) -> Project:
+        """Project instance."""
+        return Project()
+
+    def in_prompt_tokens(self, cli=None):
+        """In prompt tokens."""
+        return [
+            (Token, ""),
+            (Token.OutPrompt, pathlib.Path().absolute().stem),
+            (Token, " "),
+            (Token.Generic, "↪"),
+            (Token.Generic, self.project.branch()),
+            *((Token, " "), (Token.Prompt, "©") if os.environ.get("VIRTUAL_ENV") else (Token, "")),
+            (Token, " "),
+            (Token.Name.Class, "v" + platform.python_version()),
+            (Token, " "),
+            (Token.Name.Entity, self.project.latest()),
+            (Token, " "),
+            (Token.Prompt, "["),
+            (Token.PromptNum, str(self.shell.execution_count)),
+            (Token.Prompt, "]: "),
+            (
+                Token.Prompt if self.shell.last_execution_succeeded else Token.Generic.Error,
+                "❯ ",  # noqa: RUF001
+            ),
+        ]
+
+    def out_prompt_tokens(self, cli=None):
+        """Out Prompt."""
+        return [
+            (Token.OutPrompt, "Out<"),
+            (Token.OutPromptNum, str(self.shell.execution_count)),
+            (Token.OutPrompt, ">: "),
+        ]
+
+
 class NamedtupleMeta(metaclass=abc.ABCMeta):
     """Namedtuple Metaclass.
 
@@ -1606,6 +1730,7 @@ class Noset:
         >>> assert repr(NOSET) == f'<{name}>'
         >>> assert repr(Noset("test")) == f'<test>'
     """
+
     name: str
     __slots__ = ("name",)
 
@@ -1615,7 +1740,12 @@ class Noset:
 
     def __hash__(self) -> int:
         """Hash."""
-        return hash((self.__class__, self.name,))
+        return hash(
+            (
+                self.__class__,
+                self.name,
+            )
+        )
 
     def __reduce__(self) -> tuple[type[Noset], tuple[str]]:
         """Reduce."""
@@ -1627,7 +1757,7 @@ class Noset:
 
     def __str__(self):
         """Str."""
-        return f'<{self.name}>'
+        return f"<{self.name}>"
 
 
 @dataclasses.dataclass
@@ -4321,8 +4451,9 @@ class Project:
         ):
             with pipmetapathfinder():
                 from twine.__main__ import main
+
                 sys.argv = ["twine", "upload", "-u", "__token__", str(self.build())]
-                return int(main())
+                return int(bool(main()))
         return 0
         #     c = f"{self.executable()} -m twine upload -u __token__  {self.build()}"
         #     rc = subprocess.run(c, shell=True).returncode
@@ -5307,12 +5438,12 @@ def elementadd(name: str | tuple[str, ...], closing: bool | None = False) -> str
 
 
 def envbash(
-        path: AnyPath = ".env",
-        fixups: Iterable | None = None,
-        into: Mapping | None = None,
-        missing_ok: bool = False,
-        new: bool = False,
-        override: bool = True
+    path: AnyPath = ".env",
+    fixups: Iterable | None = None,
+    into: Mapping | None = None,
+    missing_ok: bool = False,
+    new: bool = False,
+    override: bool = True,
 ) -> EnvironOS | dict[str, str]:
     """Source ``path`` or ``path``relative to cwd upwards and return the resulting environment as a dictionary.
 
@@ -5337,23 +5468,23 @@ def envbash(
     if p is None:
         if missing_ok:
             return None
-        msg = f'{path=}'
+        msg = f"{path=}"
         raise FileNotFoundError(msg)
 
     rv = stdout(f'set -a; source {path} > /dev/null; python -c "import os; print(repr(dict(os.environ)))"')
 
     if not rv:
-        msg = f'source {path=}'
+        msg = f"source {path=}"
         raise ValueError(msg)
 
-    fixups = fixups or ['_', 'OLDPWD', 'PWD', 'SHLVL']
+    fixups = fixups or ["_", "OLDPWD", "PWD", "SHLVL"]
 
     if new:
         return {k: v for k, v in ast.literal_eval(rv).items() if k not in os.environ and k not in fixups}
 
     new = {}
     for k, v in ast.literal_eval(rv).items():
-        if not k.startswith('BASH_FUNC_'):
+        if not k.startswith("BASH_FUNC_"):
             if k in fixups and k in os.environ:
                 new[k] = os.environ[k]
             elif k not in fixups:
@@ -5823,18 +5954,54 @@ def indict(data: MutableMapping, items: MutableMapping | None = None, **kwargs: 
 
 def iscoro(data: Any) -> bool:
     """Is coro?."""
-    return any([inspect.isasyncgen(data), inspect.isasyncgenfunction(data),
-                asyncio.iscoroutine(data), inspect.iscoroutinefunction(data)])
+    return any(
+        [
+            inspect.isasyncgen(data),
+            inspect.isasyncgenfunction(data),
+            asyncio.iscoroutine(data),
+            inspect.iscoroutinefunction(data),
+        ]
+    )
+
+
+def load_ipython_extension(ipython: InteractiveShell):
+    """IPython extension.
+
+    The `ipython` argument is the currently active `InteractiveShell`
+    instance, which can be used in any way. This allows you to register
+    new magics or aliases, for example.
+
+    https://ipython.readthedocs.io/en/stable/config/extensions/index.html
+
+    Before extension is loaded:
+        - almost no globals
+        - and only nodeps in sys.modules
+    """
+    if env := os.environ.get("VIRTUAL_ENV"):
+        module = Path(env).parent.name
+        ipython.ex(f"from {module} import *")
+    extensions = [item.removeprefix("IPython.extensions.") for item in ipython.extension_manager.loaded]
+    for extension in IPYTHON_EXTENSIONS:
+        if extension not in extensions and extension != NODEPS_PROJECT_NAME:
+            ipython.extension_manager.load_extension(extension)
+            # print(extension)
+            # ipython.run_line_magic("load_ext", extension)
+    try:
+        import rich.console  # type: ignore[attr-defined]
+        import rich.pretty  # type: ignore[attr-defined]
+        import rich.traceback  # type: ignore[attr-defined]
+        console = rich.console.Console(force_terminal=True, color_system="256")
+        rich.pretty.install(console, expand_all=True)  # type: ignore[attr-defined]
+        rich.traceback.install(show_locals=True, suppress={"click", "_pytest", "rich", })  # type: ignore[attr-defined]
+    except ModuleNotFoundError:
+        pass
+
+    # ipython.config.TerminalInteractiveShell.prompts_class = MyPrompt
 
 
 def map_with_args(
-        data: Any,
-        func: Callable,
-        /,
-        *args,
-        pred: Callable = lambda x: bool(x),
-        split: str = ' ',
-        **kwargs) -> list:
+    data: Any, func: Callable, /, *args, pred: Callable = lambda x: bool(x), split: str = " ", **kwargs
+) -> list:
     """Apply pred/filter to data and map with args and kwargs.
 
     Examples:
@@ -6268,8 +6435,8 @@ def to_camel(text: str, replace: bool = True) -> str:
     Returns:
         Camel text.
     """
-    rv = ''.join(map(str.title, toiter(text, split='_')))
-    return rv.replace('_', '') if replace else rv
+    rv = "".join(map(str.title, toiter(text, split="_")))
+    return rv.replace("_", "") if replace else rv
 
 
 def to_latin9(chars: str) -> str:
@@ -6388,7 +6555,7 @@ def urljson(
         return json.loads(response.read().decode())
 
 
-def varname(index=2, lower=True, prefix=None, sep='_'):
+def varname(index=2, lower=True, prefix=None, sep="_"):
     """Caller var name.
 
     Examples:
@@ -6466,8 +6633,9 @@ def varname(index=2, lower=True, prefix=None, sep='_'):
         f = _stack[index - 1].function
         index = index + 1 if f == "__post_init__" else index
         if (line := textwrap.dedent(_stack[index].code_context[0])) and (
-                var := re.sub(f'(.| ){f}.*', "", line.split(' = ')[0].replace('assert ', "").split(' ')[0])):
-            return (prefix if prefix else '') + (var.lower() if lower else var).split(sep=sep)[0]
+            var := re.sub(f"(.| ){f}.*", "", line.split(" = ")[0].replace("assert ", "").split(" ")[0])
+        ):
+            return (prefix if prefix else "") + (var.lower() if lower else var).split(sep=sep)[0]
     return None
 
 
@@ -6510,10 +6678,10 @@ def which(data="sudo", raises: bool = False) -> str:
 
 
 def yield_if(
-        data: Any,
-        pred: Callable = lambda x: bool(x),
-        split: str = ' ',
-        apply: Union[Callable, tuple[Callable, ...]] | None = None  # noqa: UP007
+    data: Any,
+    pred: Callable = lambda x: bool(x),
+    split: str = " ",
+    apply: Union[Callable, tuple[Callable, ...]] | None = None,  # noqa: UP007
 ) -> Generator:
     """Yield value if condition is met and apply function if predicate.
 
@@ -6545,7 +6713,7 @@ def yield_if(
             yield item
 
 
-def yield_last(data: Any, split: str = ' ') -> Iterator[tuple[bool, Any, None]]:
+def yield_last(data: Any, split: str = " ") -> Iterator[tuple[bool, Any, None]]:
     """Yield value if condition is met and apply function if predicate.
 
     Examples:
@@ -6570,7 +6738,13 @@ def yield_last(data: Any, split: str = ' ') -> Iterator[tuple[bool, Any, None]]:
     count = 0
     for i in data:
         count += 1
-        yield count == total, *(i, data.get(i) if mm else None,)
+        yield (
+            count == total,
+            *(
+                i,
+                data.get(i) if mm else None,
+            ),
+        )
 
 
 EXECUTABLE = Path(sys.executable)
