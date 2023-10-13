@@ -5989,7 +5989,24 @@ def load_ipython_extension(ipython: InteractiveShell):
             ipython.extension_manager.load_extension(extension)
             # print(extension)
             # ipython.run_line_magic("load_ext", extension)
+    ipython.config.BaseIPythonApplication.verbose_crash = True
+    ipython.config.TerminalIPythonApp.display_banner = False
+    ipython.config.TerminalIPythonApp.exec_PYTHONSTARTUP = True
+    ipython.config.InteractiveShell.automagic = True
+    ipython.config.InteractiveShell.banner1 = ""
+    ipython.config.InteractiveShell.banner2 = ""
+    ipython.config.InteractiveShell.sphinxify_docstring = True
+    ipython.config.TerminalInteractiveShell.auto_match = True
+    ipython.config.TerminalInteractiveShell.autoformatter = 'black'
+    ipython.config.TerminalInteractiveShell.banner1 = ""
+    ipython.config.TerminalInteractiveShell.banner2 = ""
+    ipython.config.TerminalInteractiveShell.confirm_exit = False
+    ipython.config.TerminalInteractiveShell.highlighting_style = "monokai"
     ipython.config.TerminalInteractiveShell.prompts_class = MyPrompt
+    ipython.config.TerminalInteractiveShell.term_title = True
+    ipython.config.PlainTextFormatter.max_seq_length = 0
+    ipython.config.Completer.auto_close_dict_keys = True
+    ipython.config.StoreMagics.autorestore = True
 
     try:
         import rich.console  # type: ignore[attr-defined]
@@ -6005,7 +6022,6 @@ def load_ipython_extension(ipython: InteractiveShell):
         module = Path(env).parent.name
         ipython.ex(f"from {module} import *")
 
-    # ipython.config.TerminalInteractiveShell.prompts_class = MyPrompt
 
 
 def map_with_args(
