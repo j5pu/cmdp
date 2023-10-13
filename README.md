@@ -69,7 +69,7 @@ cwd = Path.cwd()
 files = (
     decouple.RepositoryIni(path.absolute()) if path.suffix == ".ini" else decouple.RepositoryEnv(".env")
     for file in ("settings.ini", )  # ".env" process by envbash()
-    if (path := cwd.find_up(name=file))
+    if (path := cwd.find_up())
 )
 config = decouple.Config(collections.ChainMap(*files))
 EXTENSIONS = {
