@@ -4536,6 +4536,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 {imp}
 project = "{github["name"]}"
 author = "{AUTHOR}"
+# noinspection PyShadowingBuiltins
 copyright = "{datetime.datetime.now().year}, {AUTHOR}"
 extensions = [
     "myst_parser",

@@ -1,9 +1,13 @@
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# noinspection PyUnresolvedReferences
 import nodeps.__main__
+
 project = "nodeps"
 author = "José Antonio Puértolas Montañés"
+# noinspection PyShadowingBuiltins
 copyright = "2023, José Antonio Puértolas Montañés"
 extensions = [
     "myst_parser",
@@ -16,8 +20,10 @@ extensions = [
     "sphinx.ext.intersphinx",
 ]
 autoclass_content = "both"
-autodoc_default_options = {"members": True, "member-order": "bysource",
-                           "undoc-members": True, "show-inheritance": True}
+autodoc_default_options = {
+    "members": True, "member-order": "bysource",
+    "undoc-members": True, "show-inheritance": True
+}
 autodoc_typehints = "description"
 autosectionlabel_prefix_document = True
 html_theme = "furo"
