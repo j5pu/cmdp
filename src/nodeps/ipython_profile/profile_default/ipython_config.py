@@ -1,4 +1,6 @@
 """IPython Config."""  # noqa: INP001
-from nodeps import load_ipython_extension
+from nodeps import IPYTHON_EXTENSIONS
 
-config = load_ipython_extension()
+config = get_config()  # type: ignore[attr-defined]  # noqa: F821
+config.TerminalInteractiveShell.banner1 = ""
+config.TerminalIPythonApp.extensions = IPYTHON_EXTENSIONS

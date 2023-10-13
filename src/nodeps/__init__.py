@@ -5947,7 +5947,7 @@ def iscoro(data: Any) -> bool:
     )
 
 
-def load_ipython_extension(ipython: InteractiveShell | None = None) -> Config | None:  # noqa: PLR0915
+def load_ipython_extension(ipython: InteractiveShell | None = None) -> Config | None:  # noqa: PLR0915, PLR0912
     """IPython extension.
 
     We are entering twice at startup: from $PYTHONSTARTUP and ipython is None
@@ -6006,8 +6006,13 @@ def load_ipython_extension(ipython: InteractiveShell | None = None) -> Config | 
         try:
             config = get_config()  # type: ignore[attr-defined]
         except NameError:
-            from traitlets.config import Config
-            config = Config()
+            try:
+                ipython = get_ipython()  # type: ignore[attr-defined]
+                return load_ipython_extension(ipython)
+            except NameError:
+                from traitlets.config import Config
+                config = Config()
+
         config.TerminalIPythonApp.extensions = IPYTHON_EXTENSIONS
 
     config.BaseIPythonApplication.verbose_crash = True

@@ -27,7 +27,14 @@
 - IPython Profile :mod:`ipython_profile.profile_default.ipython_config`: `export IPYTHONDIR="$(ipythondir)"`
 - Python Startup :mod:`python_startup.__init__`: `export PYTHONSTARTUP="$(pythonstartup)"`
 
-## IPython extension
+### IPython extension
+
+Add the following to PyCharm Console:
+
+```python
+from nodeps import load_ipython_extension
+load_ipython_extension()
+```
 
 ```ìpython
 In [1]: %load_ext nodeps
@@ -40,8 +47,6 @@ It is the same as:
 import IPython
 IPython.start_ipython(["--ext=nodeps"])
 ```
-
-and:
 
 ### Env class and LOG
 
