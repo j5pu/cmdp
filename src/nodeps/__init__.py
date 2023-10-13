@@ -4319,12 +4319,17 @@ class Project:
             and (pypi != self.next(part=part, force=force))
             and "Private :: Do Not Upload" not in self.pyproject_toml.config.get("project", {}).get("classifiers", [])
         ):
-            c = f"{self.executable()} -m twine upload -u __token__  {self.build()}"
-            rc = subprocess.run(c, shell=True).returncode
-            if rc != 0:
-                print(c)
-                return rc
+            with pipmetapathfinder():
+                from twine.__main__ import main
+                sys.argv = ["twine", "-u", "__token__", self.build()]
+                return int(main())
         return 0
+        #     c = f"{self.executable()} -m twine upload -u __token__  {self.build()}"
+        #     rc = subprocess.run(c, shell=True).returncode
+        #     if rc != 0:
+        #         print(c)
+        #         return rc
+        # return 0
 
     def version(self) -> str:
         """Version from pyproject.toml, tag, distribution or pypi."""
