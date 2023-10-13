@@ -6023,7 +6023,6 @@ def load_ipython_extension(ipython: InteractiveShell):
         ipython.ex(f"from {module} import *")
 
 
-
 def map_with_args(
     data: Any, func: Callable, /, *args, pred: Callable = lambda x: bool(x), split: str = " ", **kwargs
 ) -> list:
