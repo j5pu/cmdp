@@ -1226,6 +1226,7 @@ class Env:
             parsed: Parse the environment variables using :func:`nodeps.parse_str`,
                 except :func:`Env.as_int` (default: True)
         """
+        envbash()
         self.__dict__.update({k: self.as_int(k, v) for k, v in os.environ.items()} if parsed else os.environ)
         with pipmetapathfinder():
             import decouple  # type: ignore[attr-defined]
@@ -5461,7 +5462,6 @@ def envbash(
     Return:
         Dict.
     """
-    print(path)
     p = Path(path)
     p = p.find_up(name=p.name)
 
