@@ -1572,6 +1572,136 @@ class FrameSimple:
     path: Path
     vars: dict[str, Any]  # noqa: A003
 
+class getter:
+    """Return a callable object that fetches the given attribute(s)/item(s) from its operand.
+
+    >>> from types import SimpleNamespace
+    >>> from pickle import dumps, loads
+    >>> from copy import deepcopy
+    >>> from nodeps import getter
+    >>>
+    >>> test = SimpleNamespace(a='a', b='b')
+    >>> assert getter('a b')(test) == (test.a, test.b)
+    >>> assert getter('a c')(test) == (test.a, None)
+    >>> dicts = getter('a c d', default={})(test)
+    >>> assert dicts == (test.a, {}, {})
+    >>> assert id(dicts[1]) != id(dicts[2])
+    >>> assert getter('a')(test) == test.a
+    >>> assert getter('a b', 'c')(test) == (test.a, test.b, None)
+    >>> assert getter(['a', 'b'], 'c')(test) == (test.a, test.b, None)
+    >>> assert getter(['a', 'b'])(test) == (test.a, test.b)
+    >>>
+    >>> test = dict(a='a', b='b')
+    >>> assert getter('a b')(test) == (test['a'], test['b'])
+    >>> assert getter('a c')(test) == (test['a'], None)
+    >>> dicts = getter('a c d', default={})(test)
+    >>> assert dicts == (test['a'], {}, {})
+    >>> assert id(dicts[1]) != id(dicts[2])
+    >>> assert getter('a')(test) == test['a']
+    >>> assert getter('a b', 'c')(test) == (test['a'], test['b'], None)
+    >>> assert getter(['a', 'b'], 'c')(test) == (test['a'], test['b'], None)
+    >>> assert getter(['a', 'b'])(test) == (test['a'], test['b'])
+    >>>
+    >>> test = SimpleNamespace(a='a', b='b')
+    >>> test1 = SimpleNamespace(d='d', test=test)
+    >>> assert getter('d test.a test.a.c test.c test.m.j.k')(test1) == (test1.d, test1.test.a, None, None, None)
+    >>> assert getter('a c')(test1) == (None, None)
+    >>> dicts = getter('a c d test.a', 'test.b', default={})(test1)
+    >>> assert dicts == ({}, {}, test1.d, test1.test.a, test1.test.b)
+    >>> assert id(dicts[1]) != id(dicts[2])
+    >>> assert getter('a')(test1) is None
+    >>> assert getter('test.b')(test1) == test1.test.b
+    >>> assert getter(['a', 'test.b'], 'c')(test1) == (None, test1.test.b, None)
+    >>> assert getter(['a', 'a.b.c'])(test1) == (None, None)
+    >>>
+    >>> test = dict(a='a', b='b')
+    >>> test1_dict = dict(d='d', test=test)
+    >>> assert getter('d test.a test.a.c test.c test.m.j.k')(test1_dict) == \
+    getter('d test.a test.a.c test.c test.m.j.k')(test1)
+    >>> assert getter('d test.a test.a.c test.c test.m.j.k')(test1_dict) == (test1_dict['d'], test1_dict['test']['a'], \
+    None, None, None)
+    >>> assert getter('a c')(test1_dict) == (None, None)
+    >>> dicts = getter('a c d test.a', 'test.b', default={})(test1_dict)
+    >>> assert dicts == ({}, {}, test1_dict['d'], test1_dict['test']['a'], test1_dict['test']['b'])
+    >>> assert id(dicts[1]) != id(dicts[2])
+    >>> assert getter('a')(test1_dict) is None
+    >>> assert getter('test.b')(test1_dict) == test1_dict['test']['b']
+    >>> assert getter(['a', 'test.b'], 'c')(test1_dict) == (None, test1_dict['test']['b'], None)
+    >>> assert getter(['a', 'a.b.c'])(test1_dict) == (None, None)
+    >>>
+    >>> encode = dumps(test1_dict)
+    >>> test1_dict_decode = loads(encode)
+    >>> assert id(test1_dict) != id(test1_dict_decode)
+    >>> test1_dict_copy = deepcopy(test1_dict)
+    >>> assert id(test1_dict) != id(test1_dict_copy)
+    >>>
+    >>> assert getter('d test.a test.a.c test.c test.m.j.k')(test1_dict_decode) == \
+    (test1_dict_decode['d'], test1_dict_decode['test']['a'], None, None, None)
+    >>> assert getter('a c')(test1_dict_decode) == (None, None)
+    >>> dicts = getter('a c d test.a', 'test.b', default={})(test1_dict_decode)
+    >>> assert dicts == ({}, {}, test1_dict_decode['d'], test1_dict['test']['a'], test1_dict_decode['test']['b'])
+    >>> assert id(dicts[1]) != id(dicts[2])
+    >>> assert getter('a')(test1_dict_decode) is None
+    >>> assert getter('test.b')(test1_dict_decode) == test1_dict_decode['test']['b']
+    >>> assert getter(['a', 'test.b'], 'c')(test1_dict_decode) == (None, test1_dict_decode['test']['b'], None)
+    >>> assert getter(['a', 'a.b.c'])(test1_dict_decode) == (None, None)
+
+    The call returns:
+        - getter('name')(r): r.name/r['name'].
+        - getter('name', 'date')(r): (r.name, r.date)/(r['name'], r['date']).
+        - getter('name.first', 'name.last')(r):(r.name.first, r.name.last)/(r['name.first'], r['name.last']).
+    """
+    __slots__ = ('_attrs', '_call', '_copy', '_default', '_mm')
+
+    def __init__(self, attr, *attrs, default=None):
+        self._copy = True if 'copy' in dir(type(default)) else False
+        self._default = default
+        _attrs = toiter(attr)
+        attr = _attrs[0]
+        attrs = (tuple(_attrs[1:]) if len(_attrs) > 1 else ()) + attrs
+        if not attrs:
+            if not isinstance(attr, str):
+                raise TypeError('attribute name must be a string')
+            self._attrs = (attr,)
+            names = attr.split('.')
+
+            def func(obj):
+                mm = isinstance(obj, MutableMapping)
+                count = 0
+                total = len(names)
+                for name in names:
+                    count += 1
+                    _default = self._default.copy() if self._copy else self._default
+                    if mm:
+                        try:
+                            obj = obj[name]
+                            if not isinstance(obj, MutableMapping) and count < total:
+                                obj = None
+                                break
+                        except KeyError:
+                            obj = _default
+                            break
+                    else:
+                        obj = getattr(obj, name, _default)
+                return obj
+
+            self._call = func
+        else:
+            self._attrs = (attr,) + attrs
+            callers = tuple(self.__class__(item, default=self._default) for item in self._attrs)
+
+            def func(obj):
+                return tuple(call(obj) for call in callers)
+
+            self._call = func
+
+    def __call__(self, obj): return self._call(obj)
+
+    def __reduce__(self): return self.__class__, self._attrs
+
+    def __repr__(self):
+        return self.__class__.__name__ + '(' + ','.join(f'{i}={repr(getattr(self, i))}' for i in self._attrs) + ')'
+
 
 @dataclasses.dataclass
 class GroupUser:
