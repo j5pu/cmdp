@@ -6,17 +6,13 @@
   <component name="BlackConnectSettings" lineLength="120" previewMode="true" triggerOnReformat="true" showSyntaxErrorMsgs="true" />
   <component name="ChangeListManager">
     <list default="true" id="bf31d71b-78d7-4bdd-9f09-b7f6e0f14454" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.env" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../kitpdf/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../kitpdf/.idea/ruff.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../mongodata/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../mongodata/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../mongodata/.idea/mongodata.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../mongodata/.idea/mongodata.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../mongodata/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../mongodata/.idea/ruff.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings.ini" beforeDir="false" afterPath="$PROJECT_DIR$/settings.ini" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/nodeps/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/nodeps/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/nodeps/ipython_profile/profile_default/history.sqlite" beforeDir="false" afterPath="$PROJECT_DIR$/src/nodeps/ipython_profile/profile_default/history.sqlite" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/nodeps/ipython_profile/profile_default/ipython_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/nodeps/ipython_profile/profile_default/ipython_config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../pdf/pypdf" beforeDir="false" afterPath="$PROJECT_DIR$/../pdf/pypdf" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../template/.idea/ruff.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../template/.idea/ruff.xml" afterDir="false" />
     </list>
@@ -268,6 +264,21 @@
           <url>file://$PROJECT_DIR$/src/nodeps/__init__.py</url>
           <line>5472</line>
           <option name="timeStamp" value="5" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/venv/lib/python3.11/site-packages/twine/commands/__init__.py</url>
+          <line>37</line>
+          <option name="timeStamp" value="6" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/venv/lib/python3.11/site-packages/twine/commands/__init__.py</url>
+          <line>39</line>
+          <option name="timeStamp" value="7" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/venv/lib/python3.11/site-packages/twine/commands/__init__.py</url>
+          <line>38</line>
+          <option name="timeStamp" value="8" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

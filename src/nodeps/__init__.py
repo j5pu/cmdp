@@ -4439,36 +4439,36 @@ class Project:
             and (pypi != self.next(part=part, force=force))
             and "Private :: Do Not Upload" not in self.pyproject_toml.config.get("project", {}).get("classifiers", [])
         ):
-            rc = 0
-            with pipmetapathfinder():
-                import http
-
-                import requests
-                import twine.exceptions
-                from twine.__main__ import logger as _logger
-                from twine.commands.upload import upload
-                from twine.settings import Settings
-                try:
-                    upload(Settings(username="__token__"), [str(self.build())])
-                except requests.HTTPError as exc:
-                    rc = 1
-                    status_code = exc.response.status_code
-                    status_phrase = http.HTTPStatus(status_code).phrase
-                    _logger.error(
-                        f"{exc.__class__.__name__}: {status_code} {status_phrase} "
-                        f"from {exc.response.url}\n"
-                        f"{exc.response.reason}"
-                    )
-                except twine.exceptions.TwineException as exc:
-                    rc = 1
-                    _logger.error(f"{exc.__class__.__name__}: {exc.args[0]}")
-        return rc
-        #     c = f"{self.executable()} -m twine upload -u __token__  {self.build()}"
-        #     rc = subprocess.run(c, shell=True).returncode
-        #     if rc != 0:
-        #         print(c)
-        #         return rc
-        # return 0
+        #     rc = 0
+        #     with pipmetapathfinder():
+        #         import http
+        #
+        #         import requests
+        #         import twine.exceptions
+        #         from twine.__main__ import logger as _logger
+        #         from twine.commands.upload import upload
+        #         from twine.settings import Settings
+        #         try:
+        #             upload(Settings(username="__token__"), [str(self.build())])
+        #         except requests.HTTPError as exc:
+        #             rc = 1
+        #             status_code = exc.response.status_code
+        #             status_phrase = http.HTTPStatus(status_code).phrase
+        #             _logger.error(
+        #                 f"{exc.__class__.__name__}: {status_code} {status_phrase} "
+        #                 f"from {exc.response.url}\n"
+        #                 f"{exc.response.reason}"
+        #             )
+        #         except twine.exceptions.TwineException as exc:
+        #             rc = 1
+        #             _logger.error(f"{exc.__class__.__name__}: {exc.args[0]}")
+        # return rc
+            c = f"{self.executable()} -m twine upload -u __token__  {self.build().parent}/*"
+            rc = subprocess.run(c, shell=True).returncode
+            if rc != 0:
+                print(c)
+                return rc
+        return 0
 
     def version(self) -> str:
         """Version from pyproject.toml, tag, distribution or pypi."""
@@ -6008,6 +6008,18 @@ def load_ipython_extension(ipython: InteractiveShell):
     ipython.config.Completer.auto_close_dict_keys = True
     ipython.config.StoreMagics.autorestore = True
 
+    from IPython.core.magic import Magics, line_magic, magics_class
+
+    @magics_class
+    class NodepsMagic(Magics):
+
+        @line_magic
+        def nodeps(self, line):
+            self.shell.run_line_magic("load_ext", NODEPS_PROJECT_NAME)
+            return line
+
+    ipython.register_magics(NodepsMagic)
+
     try:
         import rich.console  # type: ignore[attr-defined]
         import rich.pretty  # type: ignore[attr-defined]
@@ -6022,6 +6034,7 @@ def load_ipython_extension(ipython: InteractiveShell):
         module = Path(env).parent.name
         ipython.ex(f"from {module} import *")
 
+    warnings.filterwarnings("ignore", ".*To exit:.*", UserWarning)
 
 def map_with_args(
     data: Any, func: Callable, /, *args, pred: Callable = lambda x: bool(x), split: str = " ", **kwargs
