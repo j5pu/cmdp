@@ -377,7 +377,7 @@ PYTHON_DEFAULT_VERSION = PYTHON_VERSIONS[0]
 USER = os.getenv("USER")
 """"Environment Variable $USER"""
 
-IPYTHON_EXTENSIONS = {"autoreload", NODEPS_PROJECT_NAME, "storemagic"}
+IPYTHON_EXTENSIONS = ["autoreload", NODEPS_PROJECT_NAME, "storemagic"]
 """Default IPython extensions to load"""
 IPYTHONDIR = str(NODEPS_PATH / "ipython_profile")
 """IPython Profile :mod:`ipython_profile.profile_default.ipython_config`: `export IPYTHONDIR="$(ipythondir)"`."""
@@ -859,10 +859,8 @@ class Env:
         -actions#jobsjob_idoutputs>`_.
     """
 
-    _config: CONFIG = dataclasses.field(default=None, init=False)
+    config: CONFIG = dataclasses.field(default=None, init=False)
     """Searches for `settings.ini` and `.env` cwd up. Usage: var = Env()._config("VAR", default=True, cast=bool)."""
-    IPYTHON_EXTENSIONS: set[str] = dataclasses.field(default=None, init=False)
-    """IPython Extensions to load after reading `settings.ini` and `.env`."""
 
     CI: bool | str | None = dataclasses.field(default=None, init=False)
     """Always set to ``true`` in a GitHub Actions environment."""
@@ -1196,6 +1194,9 @@ class Env:
     __CFBundleIdentifier: str | None = dataclasses.field(default=None, init=False)
     __CF_USER_TEXT_ENCODING: str | None = dataclasses.field(default=None, init=False)
 
+    LOGURU_LEVEL: str | None = dataclasses.field(default="DEBUG", init=False)
+    LOG_LEVEL: int | str | None = dataclasses.field(default="DEBUG", init=False)
+
     _parse_as_int: ClassVar[tuple[str, ...]] = (
         "GITHUB_RUN_ATTEMPT",
         "GITHUB_RUN_ID",
@@ -1213,12 +1214,14 @@ class Env:
         """Instance of Env class.
 
         Examples:
+            >>> import logging
             >>> from nodeps import Env
             >>> from nodeps import Path
             >>>
             >>> env = Env()
-            >>> assert env._config("ENV_CONFIG_TEST") == 'True'
-            >>> assert env._config("ENV_CONFIG_TEST",  cast=bool) == True
+            >>> assert env.config("DECOUPLE_CONFIG_TEST") == 'True'
+            >>> assert env.config("DECOUPLE_CONFIG_TEST",  cast=bool) == True
+            >>> assert env.LOG_LEVEL == logging.DEBUG
             >>> assert isinstance(env.PWD, Path)
             >>> assert "PWD" in env
 
@@ -1228,24 +1231,12 @@ class Env:
         """
         envbash()
         self.__dict__.update({k: self.as_int(k, v) for k, v in os.environ.items()} if parsed else os.environ)
-        with pipmetapathfinder():
-            import decouple  # type: ignore[attr-defined]
+        self.LOG_LEVEL = getattr(logging, self.LOG_LEVEL.upper() if isinstance(self.LOG_LEVEL, str) else self.LOG_LEVEL)
 
-            cwd = Path.cwd()
-            files = (
-                decouple.RepositoryIni(path.absolute()) if path.suffix == ".ini" else decouple.RepositoryEnv(".env")
-                for file in ("settings.ini", )  # ".env" process by envbash()
-                if (path := cwd.find_up(name=file))
-            )
-            self._config = decouple.Config(collections.ChainMap(*files))
-            self.IPYTHON_EXTENSIONS = {
-                *self._config(
-                    "IPYTHON_EXTENSIONS", default=",".join(IPYTHON_EXTENSIONS), cast=decouple.Csv(post_process=set)
-                ),
-                *IPYTHON_EXTENSIONS,
-            }
-            for _item in ["LOGURU_LEVEL", "LOG_LEVEL", "LEVEL"]:
-                pass
+        if path := (Path.cwd() / "settings.ini").find_up():
+            with pipmetapathfinder():
+                import decouple  # type: ignore[attr-defined]
+                self.config = decouple.Config(decouple.RepositoryIni(path.absolute()))
 
     def __contains__(self, item):
         """Check if item is in self.__dict__."""
@@ -2719,7 +2710,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
                 return None
 
     def find_up(
-        self, function: PathIsLiteral = "is_file", name: str = "__init__.py", uppermost: bool = False
+        self, uppermost: bool = False
     ) -> Path | None:
         """Find file or dir up.
 
@@ -2729,31 +2720,29 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             >>> import email.mime
             >>> from nodeps import Path
             >>>
-            >>> assert 'email/mime/__init__.py' in Path(email.mime.__file__).find_up()
-            >>> assert 'email/__init__.py' in Path(email.__file__).find_up(uppermost=True)
+            >>> assert 'email/mime/__init__.py' in Path(email.mime.__file__, "__init__.py").find_up()
+            >>> assert 'email/__init__.py' in Path(email.__file__, "__init__.py").find_up(uppermost=True)
 
 
         Args:
-            function: :class:`PIs` (default: PIs.IS_FILE)
-            name: name (default: data.INIT_PY).
             uppermost: find uppermost (default: False).
 
         Returns:
             FindUp:
         """
-        start = self.to_parent().absolute()
+        start = self.absolute().parent
         latest = None
         found = None
         while True:
-            find = start / name
-            if getattr(find, function)():
+            find = start / self.name
+            if find.exists():
                 found = find
                 if not uppermost:
                     return find
                 latest = find
             start = start.parent
             if start == Path("/"):
-                return latest if latest is not None and getattr(latest, function)() else found
+                return latest if latest is not None and latest.exists() else found
 
     def has(self, value: Iterable) -> bool:
         """Checks all items in value exist in `self.parts` (not absolute and not relative).
@@ -4450,12 +4439,30 @@ class Project:
             and (pypi != self.next(part=part, force=force))
             and "Private :: Do Not Upload" not in self.pyproject_toml.config.get("project", {}).get("classifiers", [])
         ):
+            rc = 0
             with pipmetapathfinder():
-                from twine.__main__ import main
+                import http
 
-                sys.argv = ["twine", "upload", "-u", "__token__", str(self.build())]
-                return int(bool(main()))
-        return 0
+                import requests
+                import twine.exceptions
+                from twine.__main__ import logger as _logger
+                from twine.commands.upload import upload
+                from twine.settings import Settings
+                try:
+                    upload(Settings(username="__token__"), [str(self.build())])
+                except requests.HTTPError as exc:
+                    rc = 1
+                    status_code = exc.response.status_code
+                    status_phrase = http.HTTPStatus(status_code).phrase
+                    _logger.error(
+                        f"{exc.__class__.__name__}: {status_code} {status_phrase} "
+                        f"from {exc.response.url}\n"
+                        f"{exc.response.reason}"
+                    )
+                except twine.exceptions.TwineException as exc:
+                    rc = 1
+                    _logger.error(f"{exc.__class__.__name__}: {exc.args[0]}")
+        return rc
         #     c = f"{self.executable()} -m twine upload -u __token__  {self.build()}"
         #     rc = subprocess.run(c, shell=True).returncode
         #     if rc != 0:
@@ -5463,15 +5470,14 @@ def envbash(
         Dict.
     """
     p = Path(path)
-    p = p.find_up(name=p.name)
-
+    p = p.find_up()
     if p is None:
         if missing_ok:
             return None
         msg = f"{path=}"
         raise FileNotFoundError(msg)
 
-    rv = stdout(f'set -a; source {path} > /dev/null; python -c "import os; print(repr(dict(os.environ)))"')
+    rv = stdout(f'set -a; . {p} > /dev/null; python -c "import os; print(repr(dict(os.environ)))"')
 
     if not rv:
         msg = f"source {path=}"
@@ -5986,6 +5992,7 @@ def load_ipython_extension(ipython: InteractiveShell):
             ipython.extension_manager.load_extension(extension)
             # print(extension)
             # ipython.run_line_magic("load_ext", extension)
+    ipython.config.TerminalInteractiveShell.prompts_class = MyPrompt
     try:
         import rich.console  # type: ignore[attr-defined]
         import rich.pretty  # type: ignore[attr-defined]

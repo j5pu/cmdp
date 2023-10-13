@@ -42,13 +42,43 @@ IPython.start_ipython(["--ext=nodeps"])
 
 and:
 
-### Env class
-Searches for `settings.ini` and `.env` in cwd and up. 
+### Env class and LOG
+
+#### Searches for `.env` in cwd and up using `envbash` function
+Usage: `env = Env()`.
+- `LOGURU_LEVEL` will be set in `os.environ`. 
+- `LOG_LEVEL` will be set and parsed to int for `logging` module. `logger.setLevel(env.LOG_LEVEL)`
+
+Posible values for `LOGURU_LEVEL` and `LOG_LEVEL`: "TRACE", "DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL".
+`LOG_LEVEL` also accepts lower case or int.
+
+#### Searches for `settings.ini` in cwd and up. If file is found `python-decouple` is used.
 
 Usage: 
 - `var = Env()._config("VAR", default=False, cast=bool)`
 - `extensions = {*Env()._config('EXTENSIONS', default=str(extensions), cast=decouple.Csv(post_process=set)), *extensions}`
 
+To change decouple to use both `settings.ini` and `.env`:
+```python
+import collections
+import decouple  # type: ignore[attr-defined]
+from nodeps import Path
+
+EXTENSIONS = ["foo", "boo"]
+cwd = Path.cwd()
+files = (
+    decouple.RepositoryIni(path.absolute()) if path.suffix == ".ini" else decouple.RepositoryEnv(".env")
+    for file in ("settings.ini", )  # ".env" process by envbash()
+    if (path := cwd.find_up(name=file))
+)
+config = decouple.Config(collections.ChainMap(*files))
+EXTENSIONS = {
+    *config(
+        "EXTENSIONS", default=",".join(EXTENSIONS), cast=decouple.Csv(post_process=set)
+    ),
+    *EXTENSIONS,
+}
+```
 ### Automatic installation of packages
 
 `PipMetaPathFinder` is a `sys.meta_path` finder that automatically installs packages when they are imported.

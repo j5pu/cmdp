@@ -1,5 +1,5 @@
 """IPython Config."""  # noqa: INP001
-from nodeps import Env, MyPrompt
+from nodeps import IPYTHON_EXTENSIONS, MyPrompt
 
 c = get_config()  # noqa: F821
 
@@ -333,7 +333,7 @@ c.TerminalIPythonApp.exec_lines = [
  See also: InteractiveShellApp.extensions
 """
 
-c.TerminalIPythonApp.extensions = list(Env().IPYTHON_EXTENSIONS)
+c.TerminalIPythonApp.extensions = IPYTHON_EXTENSIONS
 
 """ Path to an extra config file to load.
  See also: BaseIPythonApplication.extra_config_file
