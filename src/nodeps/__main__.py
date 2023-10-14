@@ -68,7 +68,7 @@ def _repos_completions(ctx: typer.Context, args: list[str], incomplete: str):
     from rich.console import Console
 
     console = Console(stderr=True)
-    console.print(f"{args}")
+    console.print(f"{args}") if args else console.print()
     r = Project().repos(ProjectRepos.DICT)
     valid = list(r.keys()) + [str(item) for item in r.values()]
     provided = ctx.params.get("name") or []
@@ -81,7 +81,7 @@ def _versions_completions(ctx: typer.Context, args: list[str], incomplete: str):
     from rich.console import Console
 
     console = Console(stderr=True)
-    console.print(f"{args}")
+    console.print(f"{args}") if args else console.print()
     valid = PYTHON_VERSIONS
     provided = ctx.params.get("name") or []
     for item in valid:
