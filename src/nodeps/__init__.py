@@ -6204,7 +6204,10 @@ def iscoro(data: Any) -> bool:
     )
 
 
-def load_ipython_extension(ipython: InteractiveShell | None = None) -> Config | None:  # noqa: PLR0915, PLR0912
+def load_ipython_extension(  # noqa: PLR0912, PLR0915
+        ipython: InteractiveShell | None = None,
+        magic: bool = False
+) -> Config | None:
     """IPython extension.
 
     We are entering twice at startup: from $PYTHONSTARTUP and ipython is None
@@ -6220,7 +6223,16 @@ def load_ipython_extension(ipython: InteractiveShell | None = None) -> Config | 
         - almost no globals
         - and only nodeps in sys.modules
     """
-    print(__file__)
+    if ipython is None:
+        with contextlib.suppress(NameError):
+            ipython = get_ipython()  # type: ignore[attr-defined]  # noqa: F821
+
+    from_pycharm_console = "ipython-input" in sys._getframe(1).f_code.co_filename
+
+    if magic and ipython:
+        ipython.run_line_magic("reload_ext", NODEPS_PROJECT_NAME)
+        return None
+
     if ipython:
         config = ipython.config
         ipython.prompts = MyPrompt(ipython)
@@ -6264,13 +6276,8 @@ def load_ipython_extension(ipython: InteractiveShell | None = None) -> Config | 
         try:
             config = get_config()  # type: ignore[attr-defined]
         except NameError:
-            try:
-                ipython = get_ipython()  # type: ignore[attr-defined]
-                print("here")
-                return load_ipython_extension(ipython)
-            except NameError:
-                from traitlets.config import Config
-                config = Config()
+            from traitlets.config import Config
+            config = Config()
 
         config.TerminalIPythonApp.extensions = IPYTHON_EXTENSIONS
 
@@ -6295,6 +6302,9 @@ def load_ipython_extension(ipython: InteractiveShell | None = None) -> Config | 
     config.InteractiveShell.color_info = True
     config.InteractiveShell.colors = 'Linux'
     config.TerminalInteractiveShell.true_color = True
+
+    if from_pycharm_console:
+        load_ipython_extension(ipython, magic=True)
 
     if ipython is None:
         return config
