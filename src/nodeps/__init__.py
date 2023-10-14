@@ -6220,6 +6220,7 @@ def load_ipython_extension(ipython: InteractiveShell | None = None) -> Config | 
         - almost no globals
         - and only nodeps in sys.modules
     """
+    print(__file__)
     if ipython:
         config = ipython.config
         ipython.prompts = MyPrompt(ipython)
@@ -6265,6 +6266,7 @@ def load_ipython_extension(ipython: InteractiveShell | None = None) -> Config | 
         except NameError:
             try:
                 ipython = get_ipython()  # type: ignore[attr-defined]
+                print("here")
                 return load_ipython_extension(ipython)
             except NameError:
                 from traitlets.config import Config
