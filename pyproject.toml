@@ -8,6 +8,7 @@ requires-python = ">=3.11"
 name = "José Antonio Puértolas Montañés"
 email = "63794670+j5pu@users.noreply.github.com"
 
+
 [project.license]
 text = "MIT"
 
@@ -107,6 +108,7 @@ full = [
 
 [project.scripts]
 p = "nodeps.__main__:app"
+g = "nodeps.__main__:g"
 branch = "nodeps.__main__:_branch"
 browser = "nodeps.__main__:_browser"
 build = "nodeps.__main__:_build"
@@ -148,6 +150,7 @@ venvs = "nodeps.__main__:_venvs"
 [project.urls]
 Homepage = "https://github.com/j5pu/nodeps"
 Documentation = "https://nodeps.readthedocs.io"
+
 
 [build-system]
 requires = [

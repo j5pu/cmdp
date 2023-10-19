@@ -5,6 +5,10 @@
     :prog: p
     :nested: full
 
+.. click:: nodeps.__main__:g_click
+    :prog: g
+    :nested: full
+
 .. click:: nodeps.__main__:_branch_click
     :prog: branch
     :nested: full

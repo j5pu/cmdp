@@ -45,6 +45,9 @@ from pathlib import Path
 from typing import Annotated
 
 from . import (
+    GIT,
+    GIT_DEFAULT_SCHEME,
+    GITHUB_URL,
     IPYTHONDIR,
     NODEPS_EXECUTABLE,
     NODEPS_PROJECT_NAME,
@@ -52,6 +55,7 @@ from . import (
     PYTHON_VERSIONS,
     PYTHONSTARTUP,
     Bump,
+    Gh,
     GitSHA,
     Project,
     ProjectRepos,
@@ -64,11 +68,26 @@ with pipmetapathfinder():
     import typer
 
 
+def _scheme_completions(ctx: typer.Context, args: list[str], incomplete: str):
+    from rich.console import Console
+    console = Console(stderr=True)
+    if args:
+        console.print(f"{args}")
+
+    valid = list(GITHUB_URL)
+    valid.pop(0)
+    provided = ctx.params.get("name") or []
+    for item in valid:
+        if item.startswith(incomplete) and item not in provided:
+            yield item
+
+
 def _repos_completions(ctx: typer.Context, args: list[str], incomplete: str):
     from rich.console import Console
-
     console = Console(stderr=True)
-    console.print(f"{args}") if args else console.print()
+    if args:
+        console.print(f"{args}")
+
     r = Project().repos(ProjectRepos.DICT)
     valid = list(r.keys()) + [str(item) for item in r.values()]
     provided = ctx.params.get("name") or []
@@ -81,7 +100,8 @@ def _versions_completions(ctx: typer.Context, args: list[str], incomplete: str):
     from rich.console import Console
 
     console = Console(stderr=True)
-    console.print(f"{args}") if args else console.print()
+    if args:
+        console.print(f"{args}")
     valid = PYTHON_VERSIONS
     provided = ctx.params.get("name") or []
     for item in valid:
@@ -90,7 +110,10 @@ def _versions_completions(ctx: typer.Context, args: list[str], incomplete: str):
 
 
 _cwd = Path.cwd()
-app = typer.Typer(no_args_is_help=True, context_settings={"help_option_names": ["-h", "--help"]})
+app = typer.Typer(add_completion=False, no_args_is_help=True, context_settings={"help_option_names": ["-h", "--help"]},
+                  name=NODEPS_EXECUTABLE)
+g = typer.Typer(add_completion=False, no_args_is_help=True, context_settings={"help_option_names": ["-h", "--help"]},
+                name="g")
 
 _branch = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="branch",)
 _browser = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="browser",)
@@ -129,6 +152,20 @@ _tests = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, n
 _version = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="version",)
 _venv = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="venv",)
 _venvs = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="venvs",)
+
+
+@app.command
+@g.command()
+def admin(
+    owner: str = typer.Option(GIT, help="Repo owner or path"),
+    repo: str = typer.Option(None, help="Repo name. If repo is None uses cwd"),
+    scheme: str = typer.Option(GIT_DEFAULT_SCHEME, help="url scheme", autocompletion=_scheme_completions),
+    data: str = typer.Option(None, help="path or url, if data and repo is None uses cwd"),
+    user: str = typer.Option(GIT, help="user name to check if admin"),
+):
+    """Can user admin repository."""
+    print(int(not Gh(owner=owner, repo=repo, scheme=scheme, data=data).admin(user=user)))
+    sys.exit(int(not Gh(owner=owner, repo=repo, scheme=scheme, data=data).admin(user=user)))
 
 
 @app.command()
@@ -417,7 +454,8 @@ def github(
     ] = _cwd,
 ):
     """GitHub repo api."""
-    print(Project(data).github())
+    from rich import print_json
+    print_json(data=Project(data).gh.github())
 
 
 @app.command()
@@ -946,11 +984,10 @@ if "sphinx" in sys.modules and __name__ != "__main__":
             new["project"]["scripts"] = {}
         for key, value in globals().copy().items():
             if isinstance(value, typer.Typer):
-                program = NODEPS_EXECUTABLE if key == "app" else key.replace("_", "")
                 cls = f"{NODEPS_PROJECT_NAME}.__main__:{key}"
-                new["project"]["scripts"][program] = cls
+                new["project"]["scripts"][value.info.name] = cls
                 text += f".. click:: {cls}_click\n"
-                text += f"    :prog: {program}\n"
+                text += f"    :prog: {value.info.name}\n"
                 text += "    :nested: full\n\n"
                 globals()[f"{key}_click"] = typer.main.get_command(value)
         text += "```\n"
@@ -964,7 +1001,10 @@ if "sphinx" in sys.modules and __name__ != "__main__":
                 print(f"{pyproject_toml}: updated!")
 
 if __name__ == "__main__":
+    import typer.completion
     try:
+        # https://github.com/tiangolo/typer/issues/498
+        typer.completion.completion_init()
         sys.exit(app())
     except KeyboardInterrupt:
         print("Aborted!")

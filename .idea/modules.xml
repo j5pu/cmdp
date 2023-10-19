@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/../Archive/.idea/Archive.iml" filepath="$PROJECT_DIR$/../Archive/.idea/Archive.iml" />
       <module fileurl="file://$PROJECT_DIR$/../envg/.idea/envg.iml" filepath="$PROJECT_DIR$/../envg/.idea/envg.iml" />
       <module fileurl="file://$PROJECT_DIR$/../kitpdf/.idea/kitpdf.iml" filepath="$PROJECT_DIR$/../kitpdf/.idea/kitpdf.iml" />
       <module fileurl="file://$PROJECT_DIR$/../mongodata/.idea/mongodata.iml" filepath="$PROJECT_DIR$/../mongodata/.idea/mongodata.iml" />

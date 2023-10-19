@@ -47,14 +47,15 @@ __all__ = (
     "FileConfig",
     "FrameSimple",
     "getter",
+    "Gh",
     "GitSHA",
+    "GitUrl",
     "GroupUser",
     "InvalidArgumentError",
     "LetterCounter",
     "MyPrompt",
     "NamedtupleMeta",
     "Noset",
-    "OwnerRepo",
     "Passwd",
     "PathStat",
     "Path",
@@ -326,6 +327,7 @@ from nodeps.extras import (
     white,
     yellow,
 )
+from nodeps.platforms import PLATFORMS
 
 if TYPE_CHECKING:
     EnvironOS: TypeAlias = type(os.environ)
@@ -346,7 +348,7 @@ GITHUB_DOMAIN = "github.com"
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", os.environ.get("GH_TOKEN", os.environ.get("TOKEN")))
 """GitHub Token"""
 GITHUB_URL = {
-    "api": f"https://api.{GITHUB_DOMAIN}/",
+    "api": f"https://api.{GITHUB_DOMAIN}",
     "git+file": "git+file://",
     "git+https": f"git+https://{GITHUB_DOMAIN}/",
     "git+ssh": f"git+ssh://git@{GITHUB_DOMAIN}/",
@@ -914,11 +916,14 @@ class dd(collections.defaultdict):  # noqa: N801
         >>> d['c']
         True
     """
-    __slots__ = ('__factory__',)
+
+    __slots__ = ("__factory__",)
 
     def __init__(self, factory: Union[Callable, Any] = None, *args: Any, **kwargs: Any):  # noqa: UP007
         """Init."""
-        def dd_factory(value): return lambda: value() if callable(value) else value
+
+        def dd_factory(value):
+            return lambda: value() if callable(value) else value
 
         iterable = isinstance(factory, Iterable)
         self.__factory__ = None if iterable else factory
@@ -926,7 +931,7 @@ class dd(collections.defaultdict):  # noqa: N801
 
     def __repr__(self) -> str:
         """Representation."""
-        return f'{self.__class__.__name__}({self.__factory__}, {dict(self)})'
+        return f"{self.__class__.__name__}({self.__factory__}, {dict(self)})"
 
     __class_getitem__ = classmethod(types.GenericAlias)
 
@@ -941,6 +946,7 @@ class dictsort(dict, MutableMapping[_KT, _VT]):  # noqa: N801
         >>> d = dictsort(b=1, c=2, a=3)
         >>> assert d.sort() == dictsort({'a': 3, 'b': 1, 'c': 2})
     """
+
     __slots__ = ()
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -1352,6 +1358,7 @@ class Env:
         if path := (Path.cwd() / "settings.ini").find_up():
             with pipmetapathfinder():
                 import decouple  # type: ignore[attr-defined]
+
                 self.config = decouple.Config(decouple.RepositoryIni(path.absolute()))
 
     def __contains__(self, item):
@@ -1769,21 +1776,22 @@ class getter(Callable[[Any], Any | tuple[Any, ...]]):  # noqa: N801
             - getter('name', 'date')(r): (r.name, r.date)/(r['name'], r['date']).
             - getter('name.first', 'name.last')(r):(r.name.first, r.name.last)/(r['name.first'], r['name.last']).
     """
-    __slots__ = ('_attrs', '_call', '_copy', '_default', '_mm')
+
+    __slots__ = ("_attrs", "_call", "_copy", "_default", "_mm")
 
     def __init__(self, attr: str | Iterable[str], *attrs: str, default: bool | Any = None):
         """Init."""
-        self._copy: bool = 'copy' in dir(type(default))
+        self._copy: bool = "copy" in dir(type(default))
         self._default: bool | Any = default
         _attrs = toiter(attr)
         attr = _attrs[0]
         attrs = (tuple(_attrs[1:]) if len(_attrs) > 1 else ()) + attrs
         if not attrs:
             if not isinstance(attr, str):
-                msg = 'attribute name must be a string'
+                msg = "attribute name must be a string"
                 raise TypeError(msg)
             self._attrs = (attr,)
-            names = attr.split('.')
+            names = attr.split(".")
 
             def func(obj):
                 mm = isinstance(obj, MutableMapping)
@@ -1825,15 +1833,181 @@ class getter(Callable[[Any], Any | tuple[Any, ...]]):  # noqa: N801
 
     def __repr__(self) -> str:
         """Representation."""
-        return self.__class__.__name__ + '(' + ','.join(f'{i}={getattr(self, i)!r}' for i in self._attrs) + ')'
+        return self.__class__.__name__ + "(" + ",".join(f"{i}={getattr(self, i)!r}" for i in self._attrs) + ")"
 
 
 @dataclasses.dataclass
-class GroupUser:
-    """GroupUser class."""
+class Gh:
+    """Owner Repo and Url Parser Class.
 
-    group: int | str
-    user: int | str
+    if scheme is "git+file" will only use repo argument as the path and must be absolute path
+
+    furl:
+        - url.query: after "?", i.e. ?ref=master&foo=bar
+        - url.args: query args dict, i.e. {'ref': 'master', 'foo': 'bar'}
+        - url.fragment: after "#", i.e. #two/directories?one=argument
+        - url.fragment.path.segments: i.e. ['two', 'directories']
+        - url.fragment.args: i.e. {'one': 'argument'}
+
+
+    Examples:
+        >>> import os
+        >>> import pytest
+        >>> import nodeps
+        >>> from nodeps import Gh
+        >>>
+        >>> r = Gh()
+        >>> r.url # doctest: +ELLIPSIS
+        'https://github.com/.../nodeps'
+        >>> assert r.url == Gh(nodeps.__file__).url == Gh().url
+        >>> Gh(repo="test").url # doctest: +ELLIPSIS
+        'https://github.com/.../test'
+        >>> Gh("cpython", "cpython").url
+        'https://github.com/cpython/cpython'
+        >>> Gh(repo="/tmp/cpython", scheme="git+file").url
+        'git+file:///tmp/cpython.git'
+        >>> Gh("cpython", "cpython", scheme="git+https").url
+        'git+https://github.com/cpython/cpython'
+        >>> Gh("cpython", "cpython", scheme="git+ssh").url
+        'git+ssh://git@github.com/cpython/cpython'
+        >>> Gh("cpython", "cpython", scheme="ssh").url
+        'git@github.com:cpython/cpython'
+        >>> Gh("cpython", "cpython", scheme="https").url
+        'https://github.com/cpython/cpython'
+        >>> Gh(data="https://github.com/cpython/cpython").url
+        'https://github.com/cpython/cpython'
+
+    Args:
+        owner: repo owner or Path
+        repo: repo name or repo path for git+file scheme (default: None)
+        scheme: Git URL scheme
+        data: url or path to get remote url (default: cwd if not repo)
+
+    Raises:
+        InvalidArgumentError: if invalid argument to get URL
+    """
+
+    owner: str | Path = dataclasses.field(default=GIT)
+    repo: str = dataclasses.field(default=None)
+    scheme: str = dataclasses.field(default=GIT_DEFAULT_SCHEME)
+    data: ParseResult | Path | str = dataclasses.field(default=None)
+    parsed: ParseResult = dataclasses.field(default=None, init=False)
+    path: Path = dataclasses.field(default=None, init=False)
+    """Url path"""
+
+    api_repos_url: ClassVar[str] = f"{GITHUB_URL['api']}/repos"
+
+    def __post_init__(self):
+        """Post Init."""
+        self.data = p if (p := Path(self.owner)).exists() else self.data
+        u = None
+        if self.repo:
+            if self.scheme == "git+file":
+                if not self.repo.startswith("/"):
+                    msg = f"Repo must be an absolute file for '{self.scheme}': {self.repo}"
+                    raise ValueError(msg)
+                self.owner = ""
+            u = GITHUB_URL[self.scheme] + self.owner_repo
+            print(u)
+        elif isinstance(self.data, Path) or self.data is None:
+            u = self.remote()
+        elif isinstance(self.data, (str | ParseResult)):
+            u = self.data
+
+        if u is None:
+            msg = f"Invalid repository path or remote url in repository: {self.data}"
+            raise InvalidArgumentError(msg)
+
+        self.parsed = urllib.parse.urlparse(u, scheme=self.scheme) if isinstance(u, str) else u
+        self.path = Path(self.parsed.path.removeprefix("/"))if self.parsed.scheme == "git+file" else (
+            Path(self.parsed.path))
+
+        if self.parsed.scheme == "git+file" and self.path.suffix == "":
+            u = self.parsed.geturl() + ".git"
+        elif self.parsed.scheme != "git+file" and self.path.suffix == ".git":
+            u = self.parsed.geturl().removesuffix(".git")
+
+        if isinstance(u, str):
+            self.parsed = urllib.parse.urlparse(u)
+        if self.repo is None:
+            self.scheme = self.parsed.scheme
+            self.owner = self.path.parts[0]
+            self.repo = self.path.parts[1]
+
+    def admin(self, user: str = GIT) -> bool:
+        """Check if user has admin permissions.
+
+        Examples:
+            >>> import nodeps
+            >>> from nodeps import Gh
+            >>> from nodeps import NODEPS_PROJECT_NAME
+            >>>
+            >>> assert Gh(nodeps.__file__).admin() is True
+            >>> assert Gh(nodeps.__file__).admin("foo") is False
+
+        Arguments:
+            user: default $GIT
+
+        Returns:
+            bool
+        """
+        return (
+            urljson(f"{self.api_repos_url}/{self.owner_repo}/collaborators/{user}/permission")["permission"]
+            == "admin"
+        )
+
+    def github(
+        self,
+    ) -> dict[str, str | list | dict[str, str | list | dict[str, str | list]]]:
+        """GitHub repos api.
+
+        Examples:
+            >>> from nodeps import Gh
+            >>> from nodeps import NODEPS_PROJECT_NAME
+            >>>
+            >>> assert Gh(NODEPS_PROJECT_NAME).github()["name"] == NODEPS_PROJECT_NAME
+
+        Returns:
+            dict: pypi information
+        """
+        return urljson(f"{self.api_repos_url}/{self.owner_repo}")
+
+    @property
+    def owner_repo(self) -> str:
+        """Get owner/repo."""
+        return f"{self.owner + '/' if self.owner else ''}{self.repo}"
+
+    def public(self) -> bool:
+        """Check if repo ius public.
+
+        Examples:
+            >>> import nodeps
+            >>> from nodeps import Gh
+            >>> from nodeps import NODEPS_PROJECT_NAME
+            >>>
+            >>> assert Gh(nodeps.__file__).public() is True
+            >>> assert Gh(repo="pdf").public() is False
+
+        Returns:
+            bool
+        """
+        return self.github()["visibility"] == "public"
+
+    def remote(self) -> str | None:
+        """Get remote url."""
+        path = self.data.to_parent() if isinstance(self.data, Path) else Path.cwd() if self.data is None else None
+        if path:
+            self.data = path
+            return stdout(f"git -C {path} config --get remote.origin.url")
+        return None
+
+    @property
+    def url(self) -> str:
+        """Url."""
+        rv = self.parsed.geturl()
+        if self.scheme == "git+file":
+            rv = rv.replace(":/", ":///")
+        return rv
 
 
 class GitSHA(str, enum.Enum):
@@ -1842,6 +2016,434 @@ class GitSHA(str, enum.Enum):
     BASE = enum.auto()
     LOCAL = enum.auto()
     REMOTE = enum.auto()
+
+
+@dataclasses.dataclass
+class GitUrl:
+    """Parsed Git URL Helper Class."""
+    _user: str = dataclasses.field(default="", init=False)
+    access_token: str = dataclasses.field(default="", init=False)
+    domain: str = dataclasses.field(default="", init=False)
+    groups_path: str = dataclasses.field(default="", init=False)
+    owner: str = dataclasses.field(default="", init=False)
+    ownerrepo: str = dataclasses.field(default="", init=False)
+    path_raw: str = dataclasses.field(default="", init=False)
+    platform: str = dataclasses.field(default=None, init=False)
+    protocol: str = dataclasses.field(default="", init=False)
+    port: str = dataclasses.field(default="", init=False)
+    repo: str = dataclasses.field(default="", init=False)
+    url: str = dataclasses.field(default="", init=False)
+    """Does not have .git unless is git+file"""
+    username: str = dataclasses.field(default="", init=False)
+    parsed_info: dataclasses.InitVar[collections.defaultdict] = None
+
+    required_attributes: ClassVar[tuple] = ("domain", "repo",)
+    """Possible values to extract from a Git Url."""
+
+    def __post_init__(self, parsed_info: collections.defaultdict):
+        """Post Init."""
+        self._parsed = parsed_info
+
+        # Set parsed objects as attributes
+        for k, v in parsed_info.items():
+            setattr(self, k, v)
+
+        for name, plat in PLATFORMS:
+            if name == self.platform:
+                self._platform_obj = plat
+                break
+
+    def _valid_attrs(self):
+        return all(getattr(self, attr, None) for attr in self.required_attributes)
+
+    @property
+    def valid(self):
+        """Checks if url is valid.
+
+        It is equivalent to :meth:`validate`.
+
+        Examples:
+            >>> from nodeps import GitUrl
+            >>>
+            >>> url = 'git@github.com:Org/Private-repo.git'
+            >>> GitUrl.parse(url).valid
+            True
+            >>> GitUrl.validate(url)
+            True
+
+        """
+        return all(
+            [
+                self._valid_attrs(),
+            ]
+        )
+
+    # <editor-fold desc="Aliases">
+    @property
+    def data(self):
+        """Parsed data as dict."""
+        return dict(self._parsed)
+
+    @property
+    def host(self):
+        """Alias property for domain."""
+        return self.domain
+
+    @property
+    def resource(self):
+        """Alias property for domain."""
+        return self.domain
+
+    @property
+    def name(self):
+        """Alias property for repo."""
+        return self.repo
+
+    @property
+    def user(self):
+        """Alias property for _user or owner. _user == "git for ssh."""
+        if hasattr(self, "_user"):
+            return self._user
+
+        return self.owner
+
+    @property
+    def groups(self):
+        """List of groups. GitLab only."""
+        if self.groups_path:
+            return self.groups_path.split("/")
+        return []
+    # </editor-fold>
+
+    def format(self, protocol):  # noqa: A003
+        """Reformat URL to protocol."""
+        if protocol == "git+file":
+            return self.url
+        items = copy.copy(self._parsed)
+        items["port_slash"] = f"{self.port}/" if self.port else ""
+        items["groups_slash"] = f"{self.groups_path}/" if self.groups_path else ""
+        items["dot_git"] = "" if items["repo"].endswith(".git") else ".git"
+        return self._platform_obj.FORMATS[protocol] % items
+
+    @property
+    def normalized(self):
+        """Normalize URL with .git."""
+        return self.format(self.protocol)
+
+    # <editor-fold desc="ReWrite">
+    @property
+    def url2git(self):
+        """Rewrite url to git.
+
+        Examples:
+            >>> from nodeps import GitUrl
+            >>>
+            >>> url = 'git@github.com:Org/Private-repo.git'
+            >>> p = GitUrl.parse(url)
+            >>> p.url2git
+            'git://github.com/Org/Private-repo.git'
+        """
+        return self.format("git")
+
+    @property
+    def url2githttps(self):
+        """Rewrite url to git.
+
+        Examples:
+            >>> from nodeps import GitUrl
+            >>>
+            >>> url = 'git@github.com:Org/Private-repo.git'
+            >>> p = GitUrl.parse(url)
+            >>> p.url2githttps
+            'git+https://github.com/Org/Private-repo.git'
+        """
+        return self.format("git+https")
+
+    @property
+    def url2gitssh(self):
+        """Rewrite url to git.
+
+        Examples:
+            >>> from nodeps import GitUrl
+            >>>
+            >>> url = 'git@github.com:Org/Private-repo.git'
+            >>> p = GitUrl.parse(url)
+            >>> p.url2gitssh
+            'git+ssh://git@github.com/Org/Private-repo.git'
+        """
+        return self.format("git+ssh")
+
+    @property
+    def url2https(self):
+        """Rewrite url to https.
+
+        Examples:
+            >>> from nodeps import GitUrl
+            >>>
+            >>> url = 'git@github.com:Org/Private-repo.git'
+            >>> p = GitUrl.parse(url)
+            >>> p.url2https
+            'https://github.com/Org/Private-repo.git'
+        """
+        return self.format("https")
+
+    @property
+    def url2ssh(self):
+        """Rewrite url to ssh.
+
+        Examples:
+            >>> from nodeps import GitUrl
+            >>>
+            >>> url = 'git@github.com:Org/Private-repo.git'
+            >>> p = GitUrl.parse(url)
+            >>> p.url2ssh
+            'git@github.com:Org/Private-repo.git'
+        """
+        return self.format("ssh")
+    # </editor-fold>
+
+    # All supported Urls for a repo
+    @property
+    def urls(self):
+        """All supported urls for a repo.
+
+        Examples:
+            >>> from nodeps import GitUrl
+            >>> url = 'git@github.com:Org/Private-repo.git'
+            >>>
+            >>> GitUrl.parse(url).urls
+            {'git': 'git://github.com/Org/Private-repo.git',\
+ 'git+https': 'git+https://github.com/Org/Private-repo.git',\
+ 'git+ssh': 'git+ssh://git@github.com/Org/Private-repo.git',\
+ 'https': 'https://github.com/Org/Private-repo.git',\
+ 'ssh': 'git@github.com:Org/Private-repo.git'}
+        """
+        return {protocol: self.format(protocol) for protocol in self._platform_obj.PROTOCOLS}
+
+    # <editor-fold desc="Platforms">
+    @property
+    def github(self):
+        """GitHub platform."""
+        return self.platform == "github"
+
+    @property
+    def bitbucket(self):
+        """BitBucket platform."""
+        return self.platform == "bitbucket"
+
+    @property
+    def friendcode(self):
+        """FriendCode platform."""
+        return self.platform == "friendcode"
+
+    @property
+    def assembla(self):
+        """Assembla platform."""
+        return self.platform == "assembla"
+
+    @property
+    def gitlab(self):
+        """GitLab platform."""
+        return self.platform == "gitlab"
+    # </editor-fold>
+
+    @classmethod
+    def parse(cls, data: str | Path | None = None, repo: str | None = None, check_domain: bool = True) -> GitUrl:
+        """Parse url.
+
+        Examples:
+            >>> import nodeps
+            >>> from nodeps import GitUrl
+            >>> from nodeps import NODEPS_PROJECT_NAME
+            >>>
+            >>> p = GitUrl.parse()
+            >>> p1 = GitUrl.parse(nodeps.__file__)
+            >>> p2 = GitUrl.parse(repo=NODEPS_PROJECT_NAME)
+            >>> assert p2.url == p1.url == p.url == "https://github.com/j5pu/nodeps"
+            >>>
+            >>> u = 'git@bitbucket.org:AaronO/some-repo.git'
+            >>> p = GitUrl.parse(u)
+            >>> p.host, p.owner, p.repo, p.protocol
+            ('bitbucket.org', 'AaronO', 'some-repo', 'ssh')
+            >>> assert p.normalized == u
+            >>> assert p.url == u.removesuffix(".git")
+            >>> assert p.ownerrepo == "AaronO/some-repo"
+            >>>
+            >>> u = "https://github.com/cpython/cpython"
+            >>> p = GitUrl.parse(u)
+            >>> p.host, p.owner, p.repo, p.protocol
+            ('github.com', 'cpython', 'cpython', 'https')
+            >>> assert p.normalized == u + ".git"
+            >>> assert p.url == u
+            >>>
+            >>> p1 = GitUrl.parse(data="cpython", repo="cpython")
+            >>> assert p == p1
+            >>>
+            >>> u = "git+https://github.com/cpython/cpython"
+            >>> p = GitUrl.parse(u)
+            >>> p.host, p.owner, p.repo, p.protocol
+            ('github.com', 'cpython', 'cpython', 'git+https')
+            >>> assert p.normalized == u + ".git"
+            >>> assert p.url == u
+            >>>
+            >>> u = "git+ssh://git@github.com/cpython/cpython"
+            >>> p = GitUrl.parse(u)
+            >>> p.host, p.owner, p.repo, p.protocol
+            ('github.com', 'cpython', 'cpython', 'git+ssh')
+            >>> assert p.normalized == u + ".git"
+            >>> assert p.url == u
+            >>>
+            >>> u = "git@github.com:cpython/cpython"
+            >>> p = GitUrl.parse(u)
+            >>> p.host, p.owner, p.repo, p.protocol
+            ('github.com', 'cpython', 'cpython', 'ssh')
+            >>> assert p.normalized == u + ".git"
+            >>> assert p.url == u
+            >>>
+            >>> u = "https://domain.com/cpython/cpython"
+            >>> p = GitUrl.parse(u)
+            >>> p.host, p.owner, p.repo, p.protocol
+            ('domain.com', 'cpython', 'cpython', 'https')
+            >>> assert p.normalized == u + ".git"
+            >>> assert p.url == u
+            >>>
+            >>> u = "git+https://domain.com/cpython/cpython"
+            >>> p = GitUrl.parse(u)
+            >>> p.host, p.owner, p.repo, p.protocol
+            ('domain.com', 'cpython', 'cpython', 'git+https')
+            >>> assert p.normalized == u + ".git"
+            >>> assert p.url == u
+            >>>
+            >>> u = "git+ssh://git@domain.com/cpython/cpython"
+            >>> p = GitUrl.parse(u)
+            >>> p.host, p.owner, p.repo, p.protocol
+            ('domain.com', 'cpython', 'cpython', 'git+ssh')
+            >>> assert p.normalized == u + ".git"
+            >>> assert p.url == u
+            >>>
+            >>> u = "git@domain.com:cpython/cpython"
+            >>> p = GitUrl.parse(u)
+            >>> p.host, p.owner, p.repo, p.protocol
+            ('domain.com', 'cpython', 'cpython', 'ssh')
+            >>> assert p.normalized == u + ".git"
+            >>> assert p.url == u
+            >>>
+            >>> u = "git+file:///tmp/cpython.git"
+            >>> p = GitUrl.parse(u)
+            >>> p.host, p.owner, p.repo, p.protocol
+            ('', '', '/tmp/cpython.git', 'git+file')
+            >>> p = GitUrl.parse("git+file:///tmp/cpython")
+            >>> p.host, p.owner, p.repo, p.protocol
+            ('', '', '/tmp/cpython.git', 'git+file')
+            >>> assert p.normalized == u
+            >>> assert p.url == u
+
+        Args:
+            data: user (when repo is provided, default GIT), url,
+                path to get from git config if exists, default None for cwd.
+            repo: repo to parse url from repo and get user from data
+            check_domain: check domain
+        """
+        # Values are None by default
+        parsed_info = collections.defaultdict(lambda: None)
+        parsed_info["port"] = cast(None, "")
+        parsed_info["path_raw"] = cast(None, "")
+        parsed_info["groups_path"] = cast(None, "")
+        parsed_info["owner"] = cast(None, "")
+
+        # Defaults to all attributes
+        map(parsed_info.setdefault, [f.name for f in dataclasses.fields(cls) if f.init is False])
+
+        path = None
+        if repo:
+            data = f"https://github.com/{data or GIT}/{repo}"
+        elif data is None:
+            path = Path.cwd()
+        elif (_path := Path(data)).exists():
+            path = _path.to_parent()
+
+        url = stdout(f"git -C {path} config --get remote.origin.url") if path else data
+
+        # git+file is special case
+        protocol = "git+file"
+        start = f"{protocol}://"
+        if url.startswith(start):
+            url = url if url.endswith(".git") else f"{url}.git"
+            parsed_info["url"] = cast(None, url)
+            parsed_info["protocol"] = cast(None, protocol)
+            parsed_info["repo"] = cast(None, url.removeprefix(start))
+            return cls(parsed_info)
+
+        for name, plat in PLATFORMS:
+            for protocol, regex in plat.COMPILED_PATTERNS.items():
+                # Match current regex against URL
+                match = regex.match(url)
+
+                # Skip if not matched
+                if not match:
+                    continue
+
+                # Skip if domain is bad
+                domain = match.group("domain")
+                # print('[%s] DOMAIN = %s' % (url, domain,))
+                if check_domain:
+                    if plat.DOMAINS and domain not in plat.DOMAINS:
+                        continue
+                    if plat.SKIP_DOMAINS and domain in plat.SKIP_DOMAINS:
+                        continue
+
+                # add in platform defaults
+                parsed_info.update(plat.DEFAULTS)
+
+                # Get matches as dictionary
+                matches = plat.clean_data(match.groupdict(default=""))
+
+                # Update info with matches
+                parsed_info.update(matches)
+
+                # Update info with platform info
+                parsed_info.update(
+                    {
+                        "url": url.removesuffix(".git") if protocol != "git+file" else url,
+                        "platform": name,
+                        "protocol": protocol,
+                        "ownerrepo": f"{parsed_info['owner']}/{parsed_info['repo']}",
+                    }
+                )
+                return cls(parsed_info)
+
+        # Empty if none matched
+        return cls(parsed_info)
+
+    @classmethod
+    def validate(cls, data: str | Path | None = None, repo: str | None = None, check_domain: bool = True):
+        """Validate url.
+
+        Examples:
+            >>> from nodeps import GitUrl
+            >>>
+            >>> u = 'git@bitbucket.org:AaronO/some-repo.git'
+            >>> p = GitUrl.parse(u)
+            >>> p.host, p.owner, p.repo
+            ('bitbucket.org', 'AaronO', 'some-repo')
+            >>> assert p.valid is True
+            >>> assert GitUrl.validate(u) is True
+
+        Args:
+            data: user (when repo is provided, default GIT), url,
+                path to get from git config if exists, default None for cwd.
+            repo: repo to parse url from repo and get user from data
+            check_domain: check domain
+        """
+        return cls.parse(data=data, repo=repo, check_domain=check_domain).valid
+
+
+@dataclasses.dataclass
+class GroupUser:
+    """GroupUser class."""
+
+    group: int | str
+    user: int | str
 
 
 class InvalidArgumentError(_NoDepsBaseError):
@@ -2006,118 +2608,6 @@ class Noset:
     def __str__(self):
         """Str."""
         return f"<{self.name}>"
-
-
-@dataclasses.dataclass
-class OwnerRepo:
-    """Owner Repo and Url Parser Class.
-
-    if scheme is "git+file" will only use repo argument as the path and must be absolute path
-
-    furl:
-        - url.query: after "?", i.e. ?ref=master&foo=bar
-        - url.args: query args dict, i.e. {'ref': 'master', 'foo': 'bar'}
-        - url.fragment: after "#", i.e. #two/directories?one=argument
-        - url.fragment.path.segments: i.e. ['two', 'directories']
-        - url.fragment.args: i.e. {'one': 'argument'}
-
-
-    Examples:
-        >>> import os
-        >>> import pytest
-        >>> import nodeps
-        >>> from nodeps import OwnerRepo
-        >>>
-        >>> r = OwnerRepo()
-        >>> r.url # doctest: +ELLIPSIS
-        'https://github.com/.../nodeps'
-        >>> assert r.url == OwnerRepo(nodeps.__file__).url
-        >>> OwnerRepo(repo="test").url # doctest: +ELLIPSIS
-        'https://github.com/.../test'
-        >>> OwnerRepo("cpython", "cpython").url
-        'https://github.com/cpython/cpython'
-        >>> OwnerRepo(repo="/tmp/cpython", scheme="git+file").url
-        'git+file:///tmp/cpython.git'
-        >>> OwnerRepo("cpython", "cpython", scheme="git+https").url
-        'git+https://github.com/cpython/cpython'
-        >>> OwnerRepo("cpython", "cpython", scheme="git+ssh").url
-        'git+ssh://git@github.com/cpython/cpython'
-        >>> OwnerRepo("cpython", "cpython", scheme="ssh").url
-        'git@github.com:cpython/cpython'
-        >>> OwnerRepo("cpython", "cpython", scheme="https").url
-        'https://github.com/cpython/cpython'
-
-    Args:
-        owner: repo owner
-        repo: repo name or repo path for git+file scheme
-        scheme: Git URL scheme
-        data: url or path to get remote url
-
-    Raises:
-        InvalidArgumentError: if invalid argument to get URL
-    """
-
-    owner: str = dataclasses.field(default=GIT)
-    repo: str = dataclasses.field(default=None)
-    scheme: str = dataclasses.field(default=GIT_DEFAULT_SCHEME)
-    data: ParseResult | Path | str = dataclasses.field(default=None)
-    parsed: ParseResult = dataclasses.field(default=None, init=False)
-    path: Path = dataclasses.field(default=None, init=False)
-    """Url path"""
-
-    def __post_init__(self):
-        """Post Init."""
-        u = None
-        if self.repo:
-            if self.scheme == "git+file":
-                if not self.repo.startswith("/"):
-                    msg = f"Repo must be an absolute file for '{self.scheme}': {self.repo}"
-                    raise ValueError(msg)
-                self.owner = ""
-            u = GITHUB_URL[self.scheme] + self.owner_repo
-        elif isinstance(self.data, Path) or self.data is None:
-            u = self.remote()
-        elif isinstance(self.data, (str | ParseResult)):
-            u = self.data
-
-        if u is None:
-            msg = f"Invalid repository path or remote url in repository: {self.data}"
-            raise InvalidArgumentError(msg)
-
-        self.parsed = urllib.parse.urlparse(u) if isinstance(u, str) else u
-        self.path = Path(self.parsed.path.removeprefix("/"))
-        if self.parsed.scheme == "git+file" and self.path.suffix == "":
-            u = self.parsed.geturl() + ".git"
-        elif self.parsed.scheme != "git+file" and self.path.suffix == ".git":
-            u = self.parsed.geturl().removesuffix(".git")
-
-        if isinstance(u, str):
-            self.parsed = urllib.parse.urlparse(u)
-        if self.repo is None:
-            self.scheme = self.parsed.scheme
-            self.owner = self.path.parts[0]
-            self.repo = self.path.parts[1]
-
-    @property
-    def owner_repo(self) -> str:
-        """Get owner/repo."""
-        return f"{self.owner + '/' if self.owner else ''}{self.repo}"
-
-    def remote(self) -> str | None:
-        """Get remote url."""
-        path = self.data.to_parent() if isinstance(self.data, Path) else Path.cwd() if self.data is None else None
-        if path:
-            self.data = path
-            return stdout(f"git -C {path} config --get remote.origin.url")
-        return None
-
-    @property
-    def url(self) -> str:
-        """Url."""
-        rv = self.parsed.geturl()
-        if self.scheme == "git+file":
-            rv = rv.replace(":/", ":///")
-        return rv
 
 
 @dataclasses.dataclass
@@ -2965,9 +3455,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             ) == self.__class__("/"):
                 return None
 
-    def find_up(
-        self, uppermost: bool = False
-    ) -> Path | None:
+    def find_up(self, uppermost: bool = False) -> Path | None:
         """Find file or dir up.
 
         Examples:
@@ -3927,6 +4415,7 @@ class Project:
     """Parent of data if data is a file or None if it is a name (one word)"""
     docsdir: Path | None = dataclasses.field(default=None, init=False)
     """Docs directory"""
+    gh: Gh = dataclasses.field(default=None, init=False)
     git: str = dataclasses.field(default="git", init=False)
     """git -C directory if self.directory is not None"""
     installed: bool = dataclasses.field(default=False, init=False)
@@ -4006,6 +4495,7 @@ class Project:
                 self.profile = pr if (pr := self.data_dir / "profile.d").is_dir() else None
         if self.root:
             self.docsdir = doc if (doc := self.root / "docs").is_dir() else None
+            self.gh = Gh(data=self.root)
         self.log = ColorLogger.logger(__name__)
 
     def info(self, msg: str):
@@ -4287,22 +4777,6 @@ class Project:
         if as_list:
             return sorted({extra for item in e.values() for extra in item})
         return e
-
-    def github(
-        self,
-    ) -> dict[str, str | list | dict[str, str | list | dict[str, str | list]]]:
-        """GitHub repo api.
-
-        Examples:
-            >>> from nodeps import Project
-            >>> from nodeps import NODEPS_PROJECT_NAME
-            >>>
-            >>> assert Project(NODEPS_PROJECT_NAME).github()["name"] == NODEPS_PROJECT_NAME
-
-        Returns:
-            dict: pypi information
-        """
-        return urljson(f"https://api.github.com/repos/{GIT}/{self.name}")
 
     def latest(self) -> str:
         """Latest tag: git {c} describe --abbrev=0 --tags."""
@@ -4758,7 +5232,7 @@ class Project:
         """Updates pyproject.toml and docs conf.py."""
         if self.pyproject_toml.file:
             original_project = copy.deepcopy(self.pyproject_toml.config.get("project", {}))
-            github = self.github()
+            github = self.gh.github()
             project = {
                 "name": github["name"],
                 "authors": [
@@ -5052,7 +5526,7 @@ async def aioclone(
     if not path.exists():
         if not path.parent.exists():
             path.parent.mkdir()
-        await aiocmd("git", "clone", OwnerRepo(owner, repository, scheme).url, path)
+        await aiocmd("git", "clone", Gh(owner, repository, scheme).url, path)
     return path
 
 
@@ -5380,7 +5854,7 @@ def clone(
     if not path.exists():
         if not path.parent.exists():
             path.parent.mkdir()
-        cmd("git", "clone", OwnerRepo(owner, repository, scheme).url, path)
+        cmd("git", "clone", Gh(owner, repository, scheme).url, path)
     return path
 
 
@@ -6205,8 +6679,7 @@ def iscoro(data: Any) -> bool:
 
 
 def load_ipython_extension(  # noqa: PLR0912, PLR0915
-        ipython: InteractiveShell | None = None,
-        magic: bool = False
+    ipython: InteractiveShell | None = None, magic: bool = False
 ) -> Config | None:
     """IPython extension.
 
@@ -6250,6 +6723,7 @@ def load_ipython_extension(  # noqa: PLR0912, PLR0915
             @magics_class
             class NodepsMagic(Magics):
                 """Nodeps magic class."""
+
                 @line_magic
                 def nodeps(self, _):
                     """Nodeps magic."""
@@ -6261,9 +6735,17 @@ def load_ipython_extension(  # noqa: PLR0912, PLR0915
                 import rich.console  # type: ignore[attr-defined]
                 import rich.pretty  # type: ignore[attr-defined]
                 import rich.traceback  # type: ignore[attr-defined]
+
                 console = rich.console.Console(force_terminal=True, color_system="256")
                 rich.pretty.install(console, expand_all=True)
-                rich.traceback.install(show_locals=True, suppress={"click", "_pytest", "rich", })
+                rich.traceback.install(
+                    show_locals=True,
+                    suppress={
+                        "click",
+                        "_pytest",
+                        "rich",
+                    },
+                )
             except ModuleNotFoundError:
                 pass
 
@@ -6277,6 +6759,7 @@ def load_ipython_extension(  # noqa: PLR0912, PLR0915
             config = get_config()  # type: ignore[attr-defined]
         except NameError:
             from traitlets.config import Config
+
             config = Config()
 
         config.TerminalIPythonApp.extensions = IPYTHON_EXTENSIONS
@@ -6289,7 +6772,7 @@ def load_ipython_extension(  # noqa: PLR0912, PLR0915
     config.InteractiveShell.banner2 = ""
     config.InteractiveShell.sphinxify_docstring = True
     config.TerminalInteractiveShell.auto_match = True
-    config.TerminalInteractiveShell.autoformatter = 'black'
+    config.TerminalInteractiveShell.autoformatter = "black"
     config.TerminalInteractiveShell.banner1 = ""
     config.TerminalInteractiveShell.banner2 = ""
     config.TerminalInteractiveShell.confirm_exit = False
@@ -6300,7 +6783,7 @@ def load_ipython_extension(  # noqa: PLR0912, PLR0915
     config.Completer.auto_close_dict_keys = True
     config.StoreMagics.autorestore = True
     config.InteractiveShell.color_info = True
-    config.InteractiveShell.colors = 'Linux'
+    config.InteractiveShell.colors = "Linux"
     config.TerminalInteractiveShell.true_color = True
 
     if from_pycharm_console:
@@ -6402,7 +6885,7 @@ def parent(path: StrOrBytesPath = __file__, none: bool = True) -> Path | None:
 
 def parse_str(  # noqa: PLR0911
     data: Any | None = None,
-) -> bool | Path | ParseResult | IPv4Address | IPv6Address | int | str | None:
+) -> bool | GitUrl | Path | ParseResult | IPv4Address | IPv6Address | int | str | None:
     """Parses str or data.__str__().
 
     Parses:
@@ -6427,8 +6910,14 @@ def parse_str(  # noqa: PLR0911
         >>> assert parse_str("TrUe") is True
         >>> assert parse_str("OFF") is False
         >>>
-        >>> assert parse_str("https://github.com").geturl() == "https://github.com"
-        >>> assert parse_str("git@github.com").geturl() == "git@github.com"
+        >>> u = "https://github.com/user/repo"
+        >>> assert parse_str(u).url == u
+        >>> u = "git@github.com:user/repo"
+        >>> assert parse_str(u).url == u
+        >>> u = "https://github.com"
+        >>> assert parse_str(u).geturl() == u
+        >>> u = "git@github.com"
+        >>> assert parse_str(u).geturl() == u
         >>>
         >>> assert parse_str("~/foo") == Path('~/foo')
         >>> assert parse_str("/foo") == Path('/foo')
@@ -6457,7 +6946,7 @@ def parse_str(  # noqa: PLR0911
         if data.lower() in ["0", "false", "no", "off"]:
             return False
         if "://" in data or "@" in data:
-            return urllib.parse.urlparse(data)
+            return p if (p := GitUrl.parse(data)).valid else urllib.parse.urlparse(data)
         if (
             (
                 data and data[0] in ["/", "~"] or (len(data) >= 2 and f"{data[0]}{data[1]}" == "./")  # noqa: PLR2004
