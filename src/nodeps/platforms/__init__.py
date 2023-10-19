@@ -1,3 +1,4 @@
+"""Platforms module."""
 from .assembla import AssemblaPlatform
 from .base import BasePlatform
 from .bitbucket import BitbucketPlatform
