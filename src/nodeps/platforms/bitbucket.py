@@ -1,8 +1,11 @@
 """Bitbucket Platform."""
+import dataclasses
 from typing import ClassVar
 
 from .base import BasePlatform
 
+
+@dataclasses.dataclass
 class BitbucketPlatform(BasePlatform):
     """Bitbucket platform."""
     PATTERNS: ClassVar[dict[str, str]] = {

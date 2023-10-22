@@ -157,6 +157,7 @@
           <option value="setuptools.build_meta._BuildMetaLegacyBackend" />
           <option value="openai.APIConnectionError" />
           <option value="loguru.Logger._core" />
+          <option value="nodeps.extras._repo.Repo.init" />
         </list>
       </option>
     </inspection_tool>

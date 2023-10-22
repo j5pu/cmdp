@@ -1,6 +1,6 @@
 import unittest
 
-from nodeps.giturl import GitUrl
+from nodeps import GitUrl
 
 # Test data
 REWRITE_URLS = (
@@ -11,14 +11,20 @@ REWRITE_URLS = (
     ("git@github.com/Org/Repo/", "ssh", "git@github.com:Org/Repo.git"),
     ("git@github.com:Org/Repo.git", "https", "https://github.com/Org/Repo.git"),
     ("git@github.com:Org/Repo.git", "git", "git://github.com/Org/Repo.git"),
+    ("git@github.com:Org/Repo.git", "git+https", "git+https://github.com/Org/Repo.git"),
+    ("git@github.com:Org/Repo.git", "git+ssh", "git+ssh://git@github.com/Org/Repo.git"),
     # GitHub HTTPS
     ("https://github.com/Org/Repo.git", "ssh", "git@github.com:Org/Repo.git"),
     ("https://github.com/Org/Repo.git", "https", "https://github.com/Org/Repo.git"),
     ("https://github.com/Org/Repo.git", "git", "git://github.com/Org/Repo.git"),
+    ("https://github.com/Org/Repo.git", "git+https", "git+https://github.com/Org/Repo.git"),
+    ("https://github.com/Org/Repo.git", "git+ssh", "git+ssh://git@github.com/Org/Repo.git"),
     # GitHub GIT
     ("git://github.com/Org/Repo.git", "ssh", "git@github.com:Org/Repo.git"),
     ("git://github.com/Org/Repo.git", "https", "https://github.com/Org/Repo.git"),
     ("git://github.com/Org/Repo.git", "git", "git://github.com/Org/Repo.git"),
+    ("git://github.com/Org/Repo.git", "git+https", "git+https://github.com/Org/Repo.git"),
+    ("git://github.com/Org/Repo.git", "git+ssh", "git+ssh://git@github.com/Org/Repo.git"),
     (
         "git://github.com/Org/Repo/blob/master/dir/subdir/path",
         "git",
@@ -41,15 +47,21 @@ REWRITE_URLS = (
     # Generic
     ("git://git.buildroot.net/buildroot", "https", "https://git.buildroot.net/buildroot.git"),
     ("https://git.buildroot.net/buildroot", "git", "git://git.buildroot.net/buildroot.git"),
+    ("https://git.buildroot.net/buildroot", "git+https", "git+https://git.buildroot.net/buildroot.git"),
+    ("https://git.buildroot.net/buildroot", "git+ssh", "git+ssh://git@git.buildroot.net/buildroot.git"),
     ("https://git.buildroot.net/buildroot", "ssh", "git@git.buildroot.net:buildroot.git"),
     # Gitlab SSH
     ("git@host.org:Org/Repo.git", "ssh", "git@host.org:Org/Repo.git"),
     ("git@host.org:9999/Org/Repo.git", "ssh", "git@host.org:9999/Org/Repo.git"),
     ("git@host.org:Org/Repo.git", "https", "https://host.org/Org/Repo.git"),
     ("git@host.org:9999/Org/Repo.git", "https", "https://host.org/Org/Repo.git"),
+    ("git@host.org:9999/Org/Repo.git", "git+https", "git+https://host.org/Org/Repo.git"),
+    ("git@host.org:9999/Org/Repo.git", "git+ssh", "git+ssh://git@host.org/Org/Repo.git"),
     # Gitlab HTTPS
     ("https://host.org/Org/Repo.git", "ssh", "git@host.org:Org/Repo.git"),
     ("https://host.org/Org/Repo.git", "https", "https://host.org/Org/Repo.git"),
+    ("https://host.org/Org/Repo.git", "git+https", "git+https://host.org/Org/Repo.git"),
+    ("https://host.org/Org/Repo.git", "git+ssh", "git+ssh://git@host.org/Org/Repo.git"),
     ("https://host.org/Org/Group/Repo.git", "ssh", "git@host.org:Org/Group/Repo.git"),
     (
         "https://host.org/Org/Group/Repo/-/blob/master/file.py",
@@ -73,9 +85,9 @@ INVALID_PARSE_URLS = (
 
 class UrlRewriteTestCase(unittest.TestCase):
     def _test_rewrite(self, source, protocol, expected):
-        parsed = GitUrl.parse(source)
+        parsed = GitUrl(source)
         self.assertTrue(parsed.valid, "Invalid Url: %s" % source)
-        return self.assertEqual(GitUrl.parse(source).format(protocol), expected)
+        return self.assertEqual(GitUrl(source).format(protocol), expected)
 
     def test_rewrites(self):
         for data in REWRITE_URLS:

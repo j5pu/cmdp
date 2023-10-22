@@ -1,6 +1,8 @@
 import pytest
 from typer.testing import CliRunner
 
+from nodeps.fixtures import *
+
 runner = CliRunner(mix_stderr=False)
 
 

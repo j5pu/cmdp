@@ -1,28 +1,16 @@
 """Gitlab URL."""
+import dataclasses
 from typing import ClassVar
 
 from .base import BasePlatform
 
 
+@dataclasses.dataclass
 class GitLabPlatform(BasePlatform):
     """GitLab platform."""
     PATTERNS: ClassVar[dict[str, str]] = {
         "git": (
             r"(?P<protocols>(?P<protocol>git))://(?P<domain>[^:/]+):?(?P<port>[0-9]+)?(?(port))?"
-            r"(?P<pathname>/(?P<owner>[^/]+?)/"
-            r"(?P<groups_path>.*?)?(?(groups_path)/)?(?P<repo>[^/]+?)(?:(\.git)?(/)?)"
-            r"(?P<path_raw>(/blob/|/-/blob/|/-/tree/).+)?)$"
-        ),
-        "git+https": (
-            r"(?P<protocols>(git\+)(?P<protocol>https))://"
-            r"(?P<domain>[^:/]+):?(?P<port>[0-9]+)?(?(port))?"
-            r"(?P<pathname>/(?P<owner>[^/]+?)/"
-            r"(?P<groups_path>.*?)?(?(groups_path)/)?(?P<repo>[^/]+?)(?:(\.git)?(/)?)"
-            r"(?P<path_raw>(/blob/|/-/blob/|/-/tree/).+)?)$"
-        ),
-        "git+ssh": (
-            r"(?P<protocols>(git\+)?(?P<protocol>ssh))://"
-            r"(?P<_user>.+)@(?P<domain>[^/]+?):?(?P<port>[0-9]+)?(?(port))?"
             r"(?P<pathname>/(?P<owner>[^/]+?)/"
             r"(?P<groups_path>.*?)?(?(groups_path)/)?(?P<repo>[^/]+?)(?:(\.git)?(/)?)"
             r"(?P<path_raw>(/blob/|/-/blob/|/-/tree/).+)?)$"

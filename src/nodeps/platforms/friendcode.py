@@ -1,9 +1,11 @@
 """FriendCode Platform."""
+import dataclasses
 from typing import ClassVar
 
 from .base import BasePlatform
 
 
+@dataclasses.dataclass
 class FriendCodePlatform(BasePlatform):
     """FriendCode platform."""
     DOMAINS = ("friendco.de",)

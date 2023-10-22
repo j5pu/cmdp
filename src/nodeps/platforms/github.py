@@ -1,9 +1,11 @@
 """GitHub platform."""
+import dataclasses
 from typing import ClassVar
 
 from .base import BasePlatform
 
 
+@dataclasses.dataclass
 class GitHubPlatform(BasePlatform):
     """GitHub platform."""
     PATTERNS: ClassVar[dict[str, str]] = {
@@ -11,16 +13,6 @@ class GitHubPlatform(BasePlatform):
             r"(?P<protocols>(?P<protocol>git))://(?P<domain>.+?)"
             r"(?P<pathname>/(?P<owner>[^/]+)/(?P<repo>[^/]+?)(?:(\.git)?(/)?)"
             r"(?P<path_raw>(/blob/|/tree/).+)?)$"
-        ),
-        "git+https": (
-            r"(?P<protocols>(git\+)(?P<protocol>https))://"
-            r"((?P<username>[^/]+?):(?P<access_token>[^/]+?)@)?(?P<domain>[^/]+?)"
-            r"(?P<pathname>/(?P<owner>[^/]+?)/(?P<repo>[^/]+?)(?:(\.git)?(/)?)(?P<path_raw>(/blob/|/tree/).+)?)$"
-        ),
-        "git+ssh": (
-            r"(?P<protocols>(git\+)?(?P<protocol>ssh))://"
-            r"(?P<_user>.+)@(?P<domain>[^/]+?)"
-            r"(?P<pathname>/(?P<owner>[^/]+?)/(?P<repo>[^/]+?)(?:(\.git)?(/)?)(?P<path_raw>(/blob/|/tree/).+)?)$"
         ),
         "https": (
             r"(?P<protocols>(git\+)?(?P<protocol>https))://"

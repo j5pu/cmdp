@@ -1,11 +1,11 @@
 # Usage
 
 ```{eval-rst}
-.. click:: nodeps.__main__:app_click
+.. click:: nodeps.__main__:project_p_click
     :prog: p
     :nested: full
 
-.. click:: nodeps.__main__:g_click
+.. click:: nodeps.__main__:gh_g_click
     :prog: g
     :nested: full
 

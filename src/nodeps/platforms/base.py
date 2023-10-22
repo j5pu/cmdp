@@ -1,12 +1,15 @@
 """Base platform."""
+import dataclasses
 import itertools
 import re
 from typing import ClassVar
 
 
+@dataclasses.dataclass
 class BasePlatform:
     """Base platform."""
     FORMATS: ClassVar[dict[str, str]] = {
+        "file": r"git+file://%(domain)s/%(repo)s%(dot_git)s%(path_raw)s",
         "git": r"git://%(domain)s/%(repo)s%(dot_git)s%(path_raw)s",
         "git+https": r"git+https://%(domain)s/%(repo)s%(dot_git)s",
         "git+ssh": r"git+ssh://git@%(domain)s/%(repo)s%(dot_git)s%(path_raw)s",
@@ -15,10 +18,9 @@ class BasePlatform:
     }
 
     PATTERNS: ClassVar[dict[str, str]] = {
+        "file": r"(?P<protocols>(git\+)?(?P<protocol>file))://(?P<domain>.+?)"
+                r"(?P<pathname>/(?P<repo>.+?)(?:\.git)?)$",
         "git": r"(?P<protocols>(?P<protocol>git))://(?P<domain>[^/]+?)/(?P<repo>.+)(?:(\.git)?(/)?)",
-        "git+https": r"(?P<protocols>(?P<protocol>git+https))://(?P<domain>[^/]+?)/(?P<repo>.+)(?:(\.git)?(/)?)",
-        "git+ssh":
-            r"(?P<protocols>(?P<protocol>git+https))://(?P<_user>.+)@(?P<domain>[^/]+?)/(?P<repo>.+)(?:(\.git)?(/)?)",
         "http": r"(?P<protocols>(?P<protocol>http))://(?P<domain>[^/]+?)/(?P<repo>.+)(?:(\.git)?(/)?)",
         "https": r"(?P<protocols>(?P<protocol>https))://(?P<domain>[^/]+?)/(?P<repo>.+)(?:(\.git)?(/)?)",
         "ssh": r"(?P<_user>.+)@(?P<domain>[^/]+?):(?P<repo>.+)(?:(\.git)?(/)?)",
@@ -29,13 +31,13 @@ class BasePlatform:
     SKIP_DOMAINS = None
     DEFAULTS: ClassVar[dict[str, str]] = {}
 
-    def __init__(self):
+    def __post_init__(self):
         """Initialize platform."""
         # Precompile PATTERNS
         self.COMPILED_PATTERNS = {proto: re.compile(regex, re.IGNORECASE) for proto, regex in self.PATTERNS.items()}
 
         # Supported protocols
-        self.PROTOCOLS = self.PATTERNS.keys()
+        self.PROTOCOLS = list(self.FORMATS.keys())
 
         if self.__class__ == BasePlatform:
             sub = [subclass.SKIP_DOMAINS for subclass in self.__class__.__subclasses__() if subclass.SKIP_DOMAINS]

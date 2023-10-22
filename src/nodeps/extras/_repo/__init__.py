@@ -175,5 +175,4 @@ class Repo(GitRepo):
     @property
     def top(self) -> pathlib.Path:
         """Repo Top Directory Path."""
-        path = pathlib.Path(self.working_dir)
-        return pathlib.Path(path.parent if ".git" in path else path)
+        return pathlib.Path(self.working_dir)

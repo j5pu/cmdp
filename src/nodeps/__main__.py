@@ -46,7 +46,6 @@ from typing import Annotated
 
 from . import (
     GIT,
-    GIT_DEFAULT_SCHEME,
     GITHUB_URL,
     IPYTHONDIR,
     NODEPS_EXECUTABLE,
@@ -65,7 +64,7 @@ from . import (
 )
 
 with pipmetapathfinder():
-    import typer
+    import typer.completion
 
 
 def _scheme_completions(ctx: typer.Context, args: list[str], incomplete: str):
@@ -85,13 +84,15 @@ def _scheme_completions(ctx: typer.Context, args: list[str], incomplete: str):
 def _repos_completions(ctx: typer.Context, args: list[str], incomplete: str):
     from rich.console import Console
     console = Console(stderr=True)
+
     if args:
         console.print(f"{args}")
 
-    r = Project().repos(ProjectRepos.DICT)
-    valid = list(r.keys()) + [str(item) for item in r.values()]
     provided = ctx.params.get("name") or []
-    for item in valid:
+
+    # r = Project().repos(ProjectRepos.DICT)
+    # valid = list(r.keys()) + [str(item) for item in r.values()]
+    for item in Project().repos():
         if item.startswith(incomplete) and item not in provided:
             yield item
 
@@ -110,65 +111,82 @@ def _versions_completions(ctx: typer.Context, args: list[str], incomplete: str):
 
 
 _cwd = Path.cwd()
-app = typer.Typer(add_completion=False, no_args_is_help=True, context_settings={"help_option_names": ["-h", "--help"]},
-                  name=NODEPS_EXECUTABLE)
-g = typer.Typer(add_completion=False, no_args_is_help=True, context_settings={"help_option_names": ["-h", "--help"]},
-                name="g")
+_typer_options = {"add_completion": False, "context_settings": {"help_option_names": ["-h", "--help"]}}
 
-_branch = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="branch",)
-_browser = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="browser",)
-_build = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="build",)
-_builds = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="builds",)
-_buildrequires = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="buildrequires",)
-_clean = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="clean",)
-_commit = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="commit",)
-_completions = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="completions",)
-_dependencies = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="dependencies",)
-_dirty = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="dirty",)
-_distribution = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="distribution",)
-_diverge = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="diverge",)
-_docs = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="docs",)
-_extras = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="extras",)
-_ipythondir = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="ipythondir",)
-_latest = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="latest",)
-_mip = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="mip",)
-_needpull = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="needpull",)
-_needpush = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="needpush",)
-_next = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="next",)
-_publish = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="publish",)
-_pull = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="pull",)
-_push = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="push",)
-_pypi = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="pypi",)
-_pytests = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="pytests",)
-_pythonstartup = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="pythonstartup",)
-_remote = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="remote",)
-_repos = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="repos",)
-_requirement = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="requirement",)
-_requirements = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="requirements",)
-_secrets = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="secrets",)
-_sha = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="sha",)
-_superproject = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="superproject",)
-_tests = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="tests",)
-_version = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="version",)
-_venv = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="venv",)
-_venvs = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]}, name="venvs",)
+project_p = typer.Typer(no_args_is_help=True, **_typer_options, name=NODEPS_EXECUTABLE)
+gh_g = typer.Typer(no_args_is_help=True,  **_typer_options, name="g")
+
+_branch = typer.Typer(**_typer_options, name="branch",)
+_browser = typer.Typer(**_typer_options, name="browser",)
+_build = typer.Typer(**_typer_options, name="build",)
+_builds = typer.Typer(**_typer_options, name="builds",)
+_buildrequires = typer.Typer(**_typer_options, name="buildrequires",)
+_clean = typer.Typer(**_typer_options, name="clean",)
+_commit = typer.Typer(**_typer_options, name="commit",)
+_completions = typer.Typer(**_typer_options, name="completions",)
+_dependencies = typer.Typer(**_typer_options, name="dependencies",)
+_dirty = typer.Typer(**_typer_options, name="dirty",)
+_distribution = typer.Typer(**_typer_options, name="distribution",)
+_diverge = typer.Typer(**_typer_options, name="diverge",)
+_docs = typer.Typer(**_typer_options, name="docs",)
+_extras = typer.Typer(**_typer_options, name="extras",)
+_ipythondir = typer.Typer(**_typer_options, name="ipythondir",)
+_latest = typer.Typer(**_typer_options, name="latest",)
+_mip = typer.Typer(**_typer_options, name="mip",)
+_needpull = typer.Typer(**_typer_options, name="needpull",)
+_needpush = typer.Typer(**_typer_options, name="needpush",)
+_next = typer.Typer(**_typer_options, name="next",)
+_publish = typer.Typer(**_typer_options, name="publish",)
+_pull = typer.Typer(**_typer_options, name="pull",)
+_push = typer.Typer(**_typer_options, name="push",)
+_pypi = typer.Typer(**_typer_options, name="pypi",)
+_pytests = typer.Typer(**_typer_options, name="pytests",)
+_pythonstartup = typer.Typer(**_typer_options, name="pythonstartup",)
+_remote = typer.Typer(**_typer_options, name="remote",)
+_repos = typer.Typer(**_typer_options, name="repos",)
+_requirement = typer.Typer(**_typer_options, name="requirement",)
+_requirements = typer.Typer(**_typer_options, name="requirements",)
+_secrets = typer.Typer(**_typer_options, name="secrets",)
+_sha = typer.Typer(**_typer_options, name="sha",)
+_superproject = typer.Typer(**_typer_options, name="superproject",)
+_tests = typer.Typer(**_typer_options, name="tests",)
+_version = typer.Typer(**_typer_options, name="version",)
+_venv = typer.Typer(**_typer_options, name="venv",)
+_venvs = typer.Typer(**_typer_options, name="venvs",)
 
 
-@app.command
-@g.command()
-def admin(
-    owner: str = typer.Option(GIT, help="Repo owner or path"),
-    repo: str = typer.Option(None, help="Repo name. If repo is None uses cwd"),
-    scheme: str = typer.Option(GIT_DEFAULT_SCHEME, help="url scheme", autocompletion=_scheme_completions),
-    data: str = typer.Option(None, help="path or url, if data and repo is None uses cwd"),
+@gh_g.command(name="admin")
+def admin_gh_g(
+    url: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
+                                        "if not None, otherwise $GIT."),
     user: str = typer.Option(GIT, help="user name to check if admin"),
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Can user admin repository."""
-    print(int(not Gh(owner=owner, repo=repo, scheme=scheme, data=data).admin(user=user)))
-    sys.exit(int(not Gh(owner=owner, repo=repo, scheme=scheme, data=data).admin(user=user)))
+    sys.exit(int(not Gh(url=url, repo=repo).admin(user=user, rm=rm)))
 
 
-@app.command()
+@project_p.command(name="admin")
+def admin_project_p(
+    data: Annotated[
+        Path,
+        typer.Argument(
+            help="Path/file to project or name of project",
+            autocompletion=_repos_completions,
+        ),
+    ] = _cwd,
+    user: str = typer.Option(GIT, help="user name to check if admin"),
+    rm: bool = typer.Option(False, help="Remove cache"),
+):
+    """Can user admin repository."""
+    sys.exit(int(not Project(data, rm=rm).gh.admin(user=user, rm=rm)))
+
+
+@project_p.command()
 @_branch.command()
 def branch(
     data: Annotated[
@@ -178,12 +196,13 @@ def branch(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Current branch."""
-    print(Project(data).branch())
+    print(Project(data, rm=rm).branch())
 
 
-@app.command()
+@project_p.command()
 def brew(
     data: Annotated[
         Path,
@@ -193,12 +212,13 @@ def brew(
         ),
     ] = _cwd,
     command: str = typer.Option("", help="Command to check in order to run brew"),
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Clean project."""
-    Project(data).brew(command if command else None)
+    Project(data, rm=rm).brew(command if command else None)
 
 
-@app.command()
+@project_p.command()
 @_browser.command()
 def browser(
     data: Annotated[
@@ -211,12 +231,13 @@ def browser(
     version: Annotated[str, typer.Option(help="python major and minor version",
                                          autocompletion=_versions_completions)] = PYTHON_DEFAULT_VERSION,
     quiet: bool = True,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Build and serve the documentation with live reloading on file changes."""
-    Project(data).browser(version=version, quiet=quiet)
+    Project(data, rm=rm).browser(version=version, quiet=quiet)
 
 
-@app.command()
+@project_p.command()
 @_build.command()
 def build(
     data: Annotated[
@@ -229,12 +250,13 @@ def build(
     version: Annotated[str, typer.Option(help="python major and minor version",
                                          autocompletion=_versions_completions)] = PYTHON_DEFAULT_VERSION,
     quiet: bool = True,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Build a project `venv`, `completions`, `docs` and `clean`."""
-    Project(data).build(version=version, quiet=quiet)
+    Project(data, rm=rm).build(version=version, quiet=quiet, rm=rm)
 
 
-@app.command()
+@project_p.command()
 @_builds.command()
 def builds(
     data: Annotated[
@@ -245,12 +267,13 @@ def builds(
         ),
     ] = _cwd,
     quiet: bool = True,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Build a project `venv`, `completions`, `docs` and `clean` for all versions."""
-    Project(data).builds(quiet=quiet)
+    Project(data, rm=rm).builds(quiet=quiet, rm=rm)
 
 
-@app.command()
+@project_p.command()
 @_buildrequires.command()
 def buildrequires(
     data: Annotated[
@@ -260,13 +283,14 @@ def buildrequires(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Build requirements."""
-    for item in Project(data).buildrequires():
+    for item in Project(data, rm=rm).buildrequires():
         print(item)
 
 
-@app.command()
+@project_p.command()
 @_clean.command()
 def clean(
     data: Annotated[
@@ -276,12 +300,13 @@ def clean(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Clean project."""
-    Project(data).clean()
+    Project(data, rm=rm).clean()
 
 
-@app.command()
+@project_p.command()
 @_commit.command()
 def commit(
     data: Annotated[
@@ -297,7 +322,7 @@ def commit(
     Project(data).commit(msg if msg else None)
 
 
-@app.command()
+@project_p.command()
 @_completions.command()
 def completions(
     data: Annotated[
@@ -307,12 +332,13 @@ def completions(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Generate completions to /usr/local/etc/bash_completion.d."""
-    Project(data).completions()
+    Project(data, rm=rm).completions()
 
 
-@app.command()
+@project_p.command()
 def coverage(
     data: Annotated[
         Path,
@@ -321,12 +347,13 @@ def coverage(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Project coverage."""
-    Project(data).coverage()
+    Project(data, rm=rm).coverage()
 
 
-@app.command()
+@project_p.command()
 @_dependencies.command()
 def dependencies(
     data: Annotated[
@@ -336,13 +363,14 @@ def dependencies(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Project dependencies from path or name."""
-    for item in Project(data).dependencies():
+    for item in Project(data, rm=rm).dependencies():
         print(item)
 
 
-@app.command()
+@project_p.command()
 @_dirty.command()
 def dirty(
     data: Annotated[
@@ -360,7 +388,7 @@ def dirty(
         sys.exit(1)
 
 
-@app.command()
+@project_p.command()
 @_distribution.command()
 def distribution(
     data: Annotated[
@@ -370,12 +398,13 @@ def distribution(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Clean project."""
-    print(Project(data).distribution())
+    print(Project(data, rm=rm).distribution())
 
 
-@app.command()
+@project_p.command()
 @_diverge.command()
 def diverge(
     data: Annotated[
@@ -393,7 +422,7 @@ def diverge(
         sys.exit(1)
 
 
-@app.command()
+@project_p.command()
 @_docs.command()
 def docs(
     data: Annotated[
@@ -406,12 +435,13 @@ def docs(
     version: Annotated[str, typer.Option(help="python major and minor version",
                                          autocompletion=_versions_completions)] = PYTHON_DEFAULT_VERSION,
     quiet: bool = True,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Build the documentation."""
-    Project(data).docs(version=version, quiet=quiet)
+    Project(data, rm=rm).docs(version=version, quiet=quiet)
 
 
-@app.command()
+@project_p.command()
 def executable(
     data: Annotated[
         Path,
@@ -422,12 +452,13 @@ def executable(
     ] = _cwd,
     version: Annotated[str, typer.Option(help="python major and minor version",
                                          autocompletion=_versions_completions)] = PYTHON_DEFAULT_VERSION,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Shows executable being used."""
-    print(Project(data).executable(version=version))
+    print(Project(data, rm=rm).executable(version=version))
 
 
-@app.command()
+@project_p.command()
 @_extras.command()
 def extras(
     data: Annotated[
@@ -437,14 +468,30 @@ def extras(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Project extras."""
-    for item in Project(data).extras(as_list=True):
+    for item in Project(data, rm=rm).extras(as_list=True):
         print(item)
 
 
-@app.command()
-def github(
+@gh_g.command(name="github")
+def github_gh_g(
+    url: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
+                                        "if not None, otherwise $GIT."),
+    rm: bool = typer.Option(False, help="Remove cache"),
+):
+    """GitHub repos API."""
+    from rich import print_json
+    print_json(data=Gh(url=url, repo=repo).github(rm=rm))
+
+
+@project_p.command(name="github")
+def github_project_p(
     data: Annotated[
         Path,
         typer.Argument(
@@ -452,20 +499,21 @@ def github(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
-    """GitHub repo api."""
+    """GitHub repos API."""
     from rich import print_json
-    print_json(data=Project(data).gh.github())
+    print_json(data=Project(data, rm=rm).gh.github(rm=rm))
 
 
-@app.command()
+@project_p.command()
 @_ipythondir.command()
 def ipythondir():
     """IPython Profile :mod:`ipython_profile.profile_default.ipython_config`: `export IPYTHONDIR="$(ipythondir)"`."""
     print(IPYTHONDIR)
 
 
-@app.command()
+@project_p.command()
 @_latest.command()
 def latest(
     data: Annotated[
@@ -480,14 +528,14 @@ def latest(
     print(Project(data).latest())
 
 
-@app.command(name="mip")
+@project_p.command(name="mip")
 @_mip.command(name="mip")
 def __mip():
     """Public IP."""
     print(mip())
 
 
-@app.command()
+@project_p.command()
 @_needpull.command()
 def needpull(
     data: Annotated[
@@ -505,7 +553,7 @@ def needpull(
         sys.exit(1)
 
 
-@app.command()
+@project_p.command()
 @_needpush.command()
 def needpush(
     data: Annotated[
@@ -523,7 +571,7 @@ def needpush(
         sys.exit(1)
 
 
-@app.command(name="next")
+@project_p.command(name="next")
 @_next.command(name="next")
 def __next(
     data: Annotated[
@@ -535,12 +583,42 @@ def __next(
     ] = _cwd,
     part: Annotated[Bump, typer.Option(help="part to increase if force")] = Bump.PATCH,
     force: Annotated[bool, typer.Option(help="force bump")] = False,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Show next version based on fix: feat: or BREAKING CHANGE:."""
-    print(Project(data).next(part, force))
+    print(Project(data, rm=rm).next(part, force))
 
 
-@app.command()
+@gh_g.command(name="public")
+def public_gh_g(
+    url: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
+                                        "if not None, otherwise $GIT."),
+    rm: bool = typer.Option(False, help="Remove cache"),
+):
+    """Is repository public?."""
+    sys.exit(int(not Gh(url=url, repo=repo).public(rm=rm)))
+
+
+@project_p.command(name="public")
+def public_project_p(
+    data: Annotated[
+        Path,
+        typer.Argument(
+            help="Path/file to project or name of project",
+            autocompletion=_repos_completions,
+        ),
+    ] = _cwd,
+    rm: bool = typer.Option(False, help="Remove cache"),
+):
+    """Is repository public?"""
+    sys.exit(int(not Project(data, rm=rm).gh.public(rm=rm)))
+
+
+@project_p.command()
 @_publish.command()
 def publish(
     data: Annotated[
@@ -555,12 +633,13 @@ def publish(
     ruff: Annotated[bool, typer.Option(help="run ruff")] = True,
     tox: Annotated[bool, typer.Option(help="run tox")] = False,
     quiet: bool = True,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Publish runs runs `tests`, `commit`, `tag`, `push`, `twine` and `clean`."""
-    Project(data).publish(part=part, force=force, ruff=ruff, tox=tox, quiet=quiet)
+    Project(data, rm=rm).publish(part=part, force=force, ruff=ruff, tox=tox, quiet=quiet, rm=rm)
 
 
-@app.command()
+@project_p.command()
 @_pull.command()
 def pull(
     data: Annotated[
@@ -575,7 +654,7 @@ def pull(
     Project(data).pull()
 
 
-@app.command()
+@project_p.command()
 @_push.command()
 def push(
     data: Annotated[
@@ -590,7 +669,7 @@ def push(
     Project(data).push()
 
 
-@app.command()
+@project_p.command()
 @_pypi.command()
 def pypi(
     data: Annotated[
@@ -600,12 +679,13 @@ def pypi(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Pypi information for a package."""
-    print(Project(data).pypi())
+    print(Project(data, rm=rm).pypi(rm=rm))
 
 
-@app.command()
+@project_p.command()
 def pytest(
     data: Annotated[
         Path,
@@ -616,12 +696,13 @@ def pytest(
     ] = _cwd,
     version: Annotated[str, typer.Option(help="python major and minor version",
                                          autocompletion=_versions_completions)] = PYTHON_DEFAULT_VERSION,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Run pytest."""
-    sys.exit(Project(data).pytest(version=version))
+    sys.exit(Project(data, rm=rm).pytest(version=version))
 
 
-@app.command()
+@project_p.command()
 @_pytests.command()
 def pytests(
     data: Annotated[
@@ -631,19 +712,20 @@ def pytests(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Run pytest for all versions."""
-    sys.exit(Project(data).pytests())
+    sys.exit(Project(data, rm=rm).pytests())
 
 
-@app.command()
+@project_p.command()
 @_pythonstartup.command()
 def pythonstartup():
     """Python Startup :mod:`python_startup.__init__`: `export PYTHONSTARTUP="$(pythonstartup)"`."""
     print(PYTHONSTARTUP)
 
 
-@app.command()
+@project_p.command()
 @_remote.command()
 def remote(
     data: Annotated[
@@ -658,7 +740,7 @@ def remote(
     print(Project(data).remote())
 
 
-@app.command()
+@project_p.command()
 @_repos.command()
 def repos(
     data: Annotated[
@@ -672,9 +754,10 @@ def repos(
     py: Annotated[bool, typer.Option(help="return only python projects instances")] = False,
     sync: Annotated[bool, typer.Option(help="push or pull all repos")] = False,
     archive: Annotated[bool, typer.Option(help="look for repos under ~/Archive")] = False,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Manage repos and projects under HOME and HOME/Archive."""
-    rv = Project(data).repos(ret=ret, py=py, sync=sync, archive=archive)
+    rv = Project(data, rm=rm).repos(ret=ret, py=py, sync=sync, archive=archive, rm=rm)
     if sync is False:
         if ret == ProjectRepos.PATHS:
             for repo in rv:
@@ -684,7 +767,7 @@ def repos(
                 print(repo)
 
 
-@app.command()
+@project_p.command()
 @_requirement.command()
 def requirement(
     data: Annotated[
@@ -699,16 +782,17 @@ def requirement(
     install: Annotated[bool, typer.Option(help="install requirements, dependencies and extras")] = False,
     upgrade: Annotated[bool, typer.Option(help="upgrade requirements, dependencies and extras")] = False,
     quiet: bool = True,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Requirements for package."""
-    rv = Project(data).requirement(version=version, install=install, upgrade=upgrade, quiet=quiet)
+    rv = Project(data, rm=rm).requirement(version=version, install=install, upgrade=upgrade, quiet=quiet)
     if install or upgrade:
         return
     for item in rv:
         print(item)
 
 
-@app.command()
+@project_p.command()
 @_requirements.command()
 def requirements(
     data: Annotated[
@@ -720,12 +804,13 @@ def requirements(
     ] = _cwd,
     upgrade: Annotated[bool, typer.Option(help="upgrade requirements, dependencies and extras")] = False,
     quiet: bool = True,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Install requirements for all python versions."""
-    Project(data).requirements(upgrade=upgrade, quiet=quiet)
+    Project(data, rm=rm).requirements(upgrade=upgrade, quiet=quiet)
 
 
-@app.command(name="ruff")
+@project_p.command(name="ruff")
 def _ruff(
     data: Annotated[
         Path,
@@ -741,7 +826,7 @@ def _ruff(
     sys.exit(Project(data).ruff(version=version))
 
 
-@app.command()
+@project_p.command()
 @_secrets.command()
 def secrets(
     data: Annotated[
@@ -751,12 +836,13 @@ def secrets(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Update GitHub repository secrets."""
-    Project(data).secrets()
+    Project(data, rm=rm).secrets()
 
 
-@app.command()
+@project_p.command()
 @_sha.command()
 def sha(
     data: Annotated[
@@ -772,7 +858,7 @@ def sha(
     print(Project(data).sha(ref))
 
 
-@app.command()
+@project_p.command()
 @_superproject.command()
 def superproject(
     data: Annotated[
@@ -787,7 +873,7 @@ def superproject(
     print(Project(data).superproject())
 
 
-@app.command(name="sync")
+@project_p.command(name="sync")
 def __sync(
     data: Annotated[
         Path,
@@ -796,12 +882,13 @@ def __sync(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Sync repo."""
-    Project(data).sync()
+    Project(data, rm=rm).sync()
 
 
-@app.command("tag")
+@project_p.command("tag")
 def __tag(
     tag: str,
     data: Annotated[
@@ -816,7 +903,7 @@ def __tag(
     Project(data).tag(tag)
 
 
-@app.command(name="test")
+@project_p.command(name="test")
 def test(
     data: Annotated[
         Path,
@@ -830,12 +917,13 @@ def test(
     ruff: Annotated[bool, typer.Option(help="run ruff")] = True,
     tox: Annotated[bool, typer.Option(help="run tox")] = False,
     quiet: bool = True,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Test project, runs `build`, `ruff`, `pytest` and `tox`."""
-    sys.exit(Project(data).test(version=version, ruff=ruff, tox=tox, quiet=quiet))
+    sys.exit(Project(data, rm=rm).test(version=version, ruff=ruff, tox=tox, quiet=quiet))
 
 
-@app.command(name="tests")
+@project_p.command(name="tests")
 @_tests.command(name="tests")
 def tests(
     data: Annotated[
@@ -848,12 +936,13 @@ def tests(
     ruff: Annotated[bool, typer.Option(help="run ruff")] = True,
     tox: Annotated[bool, typer.Option(help="run tox")] = False,
     quiet: bool = True,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Test project, runs `build`, `ruff`, `pytest` and `tox`."""
-    sys.exit(Project(data).tests(ruff=ruff, tox=tox, quiet=quiet))
+    sys.exit(Project(data, rm=rm).tests(ruff=ruff, tox=tox, quiet=quiet))
 
 
-@app.command()
+@project_p.command()
 def top(
     data: Annotated[
         Path,
@@ -867,7 +956,7 @@ def top(
     print(Project(data).top())
 
 
-@app.command(name="tox")
+@project_p.command(name="tox")
 def _tox(
     data: Annotated[
         Path,
@@ -881,7 +970,7 @@ def _tox(
     sys.exit(Project(data).tox())
 
 
-@app.command()
+@project_p.command()
 def twine(
     data: Annotated[
         Path,
@@ -892,12 +981,13 @@ def twine(
     ] = _cwd,
     part: Annotated[Bump, typer.Option(help="part to increase if force")] = Bump.PATCH,
     force: Annotated[bool, typer.Option(help="force bump")] = False,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Run twine."""
-    sys.exit(Project(data).twine(part, force))
+    sys.exit(Project(data, rm=rm).twine(part=part, force=force, rm=rm))
 
 
-@app.command(name="version")
+@project_p.command(name="version")
 @_version.command(name="version")
 def __version(
     data: Annotated[
@@ -907,12 +997,13 @@ def __version(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    rm: bool = typer.Option(True, help="Remove cache"),
 ):
     """Project version from pyproject.toml, tag, distribution or pypi."""
-    print(Project(data).version())
+    print(Project(data, rm=rm).version(rm=rm))
 
 
-@app.command()
+@project_p.command()
 @_venv.command()
 def venv(
     data: Annotated[
@@ -927,12 +1018,13 @@ def venv(
     clear: Annotated[bool, typer.Option(help="force removal of venv before")] = False,
     upgrade: Annotated[bool, typer.Option(help="upgrade all dependencies")] = False,
     quiet: bool = True,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Creates venv, runs: `write` and `requirements`."""
-    Project(data).venv(version=version, clear=clear, upgrade=upgrade, quiet=quiet)
+    Project(data, rm=rm).venv(version=version, clear=clear, upgrade=upgrade, quiet=quiet, rm=rm)
 
 
-@app.command()
+@project_p.command()
 @_venvs.command()
 def venvs(
     data: Annotated[
@@ -944,12 +1036,13 @@ def venvs(
     ] = _cwd,
     upgrade: Annotated[bool, typer.Option(help="upgrade all dependencies")] = False,
     quiet: bool = True,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Creates venv, runs: `write` and `requirements`."""
-    Project(data).venvs(upgrade=upgrade, quiet=quiet)
+    Project(data, rm=rm).venvs(upgrade=upgrade, quiet=quiet, rm=rm)
 
 
-@app.command()
+@project_p.command()
 def write(
     data: Annotated[
         Path,
@@ -958,9 +1051,10 @@ def write(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Updates pyproject.toml and docs conf.py."""
-    Project(data).write()
+    Project(data, rm=rm).write(rm=rm)
 
 
 if "sphinx" in sys.modules and __name__ != "__main__":
@@ -976,7 +1070,6 @@ if "sphinx" in sys.modules and __name__ != "__main__":
     file = root / "docs/usage.md"
     if file.exists():
         original = file.read_text()
-        # TODO: escribir el pyproject.toml poner global para el nombre del programa
         with Path.open(pyproject_toml, "rb") as f:
             toml = tomlkit.load(f)
 
@@ -1000,12 +1093,12 @@ if "sphinx" in sys.modules and __name__ != "__main__":
                 tomlkit.dump(new, f)
                 print(f"{pyproject_toml}: updated!")
 
+# https://github.com/tiangolo/typer/issues/498
+typer.completion.completion_init()
+
 if __name__ == "__main__":
-    import typer.completion
     try:
-        # https://github.com/tiangolo/typer/issues/498
-        typer.completion.completion_init()
-        sys.exit(app())
+        sys.exit(project_p())
     except KeyboardInterrupt:
         print("Aborted!")
         sys.exit(1)
