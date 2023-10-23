@@ -177,7 +177,6 @@ __all__ = (
     "request_x_api_key_json",
     "EXECUTABLE",
     "EXECUTABLE_SITE",
-    "NODEPS_CACHE",
     "NOSET",
 )
 
@@ -2003,10 +2002,12 @@ class GitUrl:
     """Path from __post_init__ method when path is provided in url argument."""
     _user: str = dataclasses.field(default="", init=False)
     access_token: str = dataclasses.field(default="", init=False)
+    branch: str = dataclasses.field(default="", init=False)
     domain: str = dataclasses.field(default="", init=False)
     groups_path: str = dataclasses.field(default="", init=False)
     owner: str = dataclasses.field(default="", hash=True, init=False)
     ownerrepo: str = dataclasses.field(default="", init=False)
+    path: str = dataclasses.field(default="", init=False)
     pathname: str = dataclasses.field(default="", init=False)
     path_raw: str = dataclasses.field(default="", init=False)
     platform: str = dataclasses.field(default="", init=False)
@@ -2127,6 +2128,23 @@ class GitUrl:
             if err.code == 403 and err.reason == "Forbidden":  # noqa: PLR2004
                 return False
             raise
+
+    def default(self, rm: bool = False) -> str:
+        """Default remote branch.
+
+        Examples:
+            >>> import nodeps
+            >>> from nodeps import GitUrl
+            >>>
+            >>> assert GitUrl(nodeps.__file__).default() == "main"
+
+        Args:
+            rm: remove cache
+
+        Returns:
+            bool
+        """
+        return self.github(rm=rm)["default_branch"]
 
     def format(self, protocol):  # noqa: A003
         """Reformat URL to protocol."""
@@ -2400,6 +2418,16 @@ class Gh(GitUrl):
 
         self.git = f"git -C '{self._path}'"
 
+    def actual(self) -> str:
+        """Current branch.
+
+        Examples:
+            >>> from nodeps import Gh
+            >>>
+            >>> assert Gh().actual() == 'main'
+        """
+        return self.git_stdout("branch --show-current") or ""
+
     def git_check_call(self, line: str):
         """Runs git command and raises exception if error (stdout is not captured and shown).
 
@@ -2494,7 +2522,7 @@ class MyPrompt(Prompts):
             (Token.OutPrompt, pathlib.Path().absolute().stem),
             (Token, " "),
             (Token.Generic, "↪"),
-            (Token.Generic, self.project.branch()),
+            (Token.Generic, self.project.gh.actual()),
             *((Token, " "), (Token.Prompt, "©") if os.environ.get("VIRTUAL_ENV") else (Token, "")),
             (Token, " "),
             (Token.Name.Class, "v" + platform.python_version()),
@@ -4555,16 +4583,6 @@ class Project:
             version: python version
         """
         return Path(self.executable(version=version)).parent / executable if executable else ""
-
-    def branch(self) -> str:
-        """Current branch.
-
-        Examples:
-            >>> from nodeps import Project
-            >>>
-            >>> assert Project.nodeps().branch() == 'main'
-        """
-        return stdout(f"{self.git} branch --show-current") or ""
 
     def brew(self, c: str | None = None) -> int:
         """Runs brew bundle."""
@@ -7642,7 +7660,6 @@ def yield_last(data: Any, split: str = " ") -> Iterator[tuple[bool, Any, None]]:
 
 EXECUTABLE = Path(sys.executable)
 EXECUTABLE_SITE = Path(EXECUTABLE).resolve()
-NODEPS_CACHE = Path().home() / f".{NODEPS_PROJECT_NAME}"
 NOSET = Noset()
 
 subprocess.CalledProcessError = CalledProcessError

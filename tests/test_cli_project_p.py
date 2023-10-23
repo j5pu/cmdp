@@ -6,6 +6,12 @@ from nodeps.__main__ import project_p
 from nodeps import NODEPS_PROJECT_NAME
 
 
+@pytest.mark.parametrize("invoke", [[project_p, "actual"]], indirect=True)
+def test_actual(invoke):
+    assert invoke.exit_code == 0
+    assert invoke.stdout == "main\n"
+
+
 @pytest.mark.parametrize("invoke", [[project_p, "admin"]], indirect=True)
 def test_admin(invoke):
     assert invoke.exit_code == 0
@@ -19,7 +25,7 @@ def test_admin_foo(invoke):
 @pytest.mark.parametrize("invoke", [[project_p, "branch"]], indirect=True)
 def test_branch(invoke):
     assert invoke.exit_code == 0
-    assert invoke.stdout
+    assert invoke.stdout == "main\n"
 
 
 @pytest.mark.parametrize("invoke", [[project_p, "build"]], indirect=True)
@@ -52,6 +58,12 @@ def test_commit(invoke):
     assert invoke.exit_code == 0
 
 
+@pytest.mark.parametrize("invoke", [[project_p, "default"]], indirect=True)
+def test_default(invoke):
+    assert invoke.exit_code == 0
+    assert invoke.stdout == "main\n"
+
+
 @pytest.mark.parametrize("invoke", [[project_p, "dependencies"]], indirect=True)
 def test_dependencies(invoke):
     assert invoke.exit_code == 0
@@ -65,6 +77,12 @@ def test_dependencies(invoke):
 @pytest.mark.parametrize("invoke", [[project_p, "extras"]], indirect=True)
 def test_extras(invoke):
     assert invoke.exit_code == 0
+
+
+@pytest.mark.parametrize("invoke", [[project_p, "github"]], indirect=True)
+def test_github(invoke):
+    assert invoke.exit_code == 0
+    assert invoke.stdout
 
 
 @pytest.mark.parametrize("invoke", [[project_p, "ipythondir"]], indirect=True)

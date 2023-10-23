@@ -9,7 +9,7 @@ from nodeps import NODEPS_PROJECT_NAME
 @pytest.mark.parametrize("invoke", [[_branch]], indirect=True)
 def test_branch(invoke):
     assert invoke.exit_code == 0
-    assert invoke.stdout
+    assert invoke.stdout == "main\n"
 
 
 @pytest.mark.parametrize("invoke", [[_build]], indirect=True)

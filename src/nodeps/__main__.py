@@ -55,6 +55,7 @@ from . import (
     PYTHONSTARTUP,
     Bump,
     Gh,
+    GitUrl,
     GitSHA,
     Project,
     ProjectRepos,
@@ -155,6 +156,34 @@ _venv = typer.Typer(**_typer_options, name="venv",)
 _venvs = typer.Typer(**_typer_options, name="venvs",)
 
 
+@gh_g.command(name="actual")
+def actual_gh_g(
+    url: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
+                                        "if not None, otherwise $GIT."),
+):
+    """Current branch."""
+    print(Gh(url=url, repo=repo).actual())
+
+
+@project_p.command("actual")
+def actual_project_p(
+    data: Annotated[
+        Path,
+        typer.Argument(
+            help="Path/file to project or name of project",
+            autocompletion=_repos_completions,
+        ),
+    ] = _cwd,
+    rm: bool = typer.Option(False, help="Remove cache"),
+):
+    """Current branch."""
+    print(Project(data, rm=rm).gh.actual())
+
+
 @gh_g.command(name="admin")
 def admin_gh_g(
     url: Annotated[
@@ -167,7 +196,7 @@ def admin_gh_g(
     rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Can user admin repository."""
-    sys.exit(int(not Gh(url=url, repo=repo).admin(user=user, rm=rm)))
+    sys.exit(int(not GitUrl(url=url, repo=repo).admin(user=user, rm=rm)))
 
 
 @project_p.command(name="admin")
@@ -186,9 +215,22 @@ def admin_project_p(
     sys.exit(int(not Project(data, rm=rm).gh.admin(user=user, rm=rm)))
 
 
-@project_p.command()
+@gh_g.command(name="branch")
 @_branch.command()
-def branch(
+def branch_gh_g(
+    url: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
+                                        "if not None, otherwise $GIT."),
+):
+    """Current branch."""
+    print(Gh(url=url, repo=repo).actual())
+
+
+@project_p.command("branch")
+def branch_project_p(
     data: Annotated[
         Path,
         typer.Argument(
@@ -199,7 +241,7 @@ def branch(
     rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Current branch."""
-    print(Project(data, rm=rm).branch())
+    print(Project(data, rm=rm).gh.actual())
 
 
 @project_p.command()
@@ -288,6 +330,35 @@ def buildrequires(
     """Build requirements."""
     for item in Project(data, rm=rm).buildrequires():
         print(item)
+
+
+@gh_g.command(name="default")
+def default_gh_g(
+    url: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
+                                        "if not None, otherwise $GIT."),
+    rm: bool = typer.Option(False, help="Remove cache"),
+):
+    """Default branch."""
+    print(GitUrl(url=url, repo=repo).default(rm=rm))
+
+
+@project_p.command(name="default")
+def default_project_p(
+    data: Annotated[
+        Path,
+        typer.Argument(
+            help="Path/file to project or name of project",
+            autocompletion=_repos_completions,
+        ),
+    ] = _cwd,
+    rm: bool = typer.Option(False, help="Remove cache"),
+):
+    """Default branch."""
+    print(Project(data, rm=rm).gh.default(rm=rm))
 
 
 @project_p.command()
@@ -487,7 +558,7 @@ def github_gh_g(
 ):
     """GitHub repos API."""
     from rich import print_json
-    print_json(data=Gh(url=url, repo=repo).github(rm=rm))
+    print_json(data=GitUrl(url=url, repo=repo).github(rm=rm))
 
 
 @project_p.command(name="github")
@@ -600,7 +671,7 @@ def public_gh_g(
     rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Is repository public?."""
-    sys.exit(int(not Gh(url=url, repo=repo).public(rm=rm)))
+    sys.exit(int(not GitUrl(url=url, repo=repo).public(rm=rm)))
 
 
 @project_p.command(name="public")

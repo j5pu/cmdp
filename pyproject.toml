@@ -16,6 +16,9 @@ email = "63794670+j5pu@users.noreply.github.com"
 [project.license]
 text = "MIT"
 
+[project.entry-points.pytest11]
+git-pytest = "nodeps.fixtures"
+
 [project.optional-dependencies]
 ansi = [
     "strip-ansi >=0.1.1, <1",
