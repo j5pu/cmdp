@@ -2013,6 +2013,7 @@ class GitUrl:
     protocols: list[str] = dataclasses.field(default_factory=list, init=False)
     port: str = dataclasses.field(default="", init=False)
     username: str = dataclasses.field(default="", init=False)
+    api_repos_url: ClassVar[str] = f"{GITHUB_URL['api']}/repos"
 
     def __post_init__(self):  # noqa: PLR0912
         """Post Init."""
@@ -2103,11 +2104,11 @@ class GitUrl:
 
         Examples:
             >>> import nodeps
-            >>> from nodeps import Gh
+            >>> from nodeps import GitUrl
             >>> from nodeps import NODEPS_PROJECT_NAME
             >>>
-            >>> assert Gh(nodeps.__file__).admin() is True
-            >>> assert Gh(nodeps.__file__).admin("foo") is False
+            >>> assert GitUrl(nodeps.__file__).admin() is True
+            >>> assert GitUrl(nodeps.__file__).admin("foo") is False
 
         Arguments:
             user: default $GIT
@@ -2141,10 +2142,10 @@ class GitUrl:
         """GitHub repos api.
 
         Examples:
-            >>> from nodeps import Gh
+            >>> from nodeps import GitUrl
             >>> from nodeps import NODEPS_PROJECT_NAME
             >>>
-            >>> assert Gh().github()["name"] == NODEPS_PROJECT_NAME
+            >>> assert GitUrl().github()["name"] == NODEPS_PROJECT_NAME
 
         Returns:
             dict: pypi information
@@ -2204,11 +2205,10 @@ class GitUrl:
 
         Examples:
             >>> import nodeps
-            >>> from nodeps import Gh
-            >>> from nodeps import NODEPS_PROJECT_NAME
+            >>> from nodeps import GitUrl
             >>>
-            >>> assert Gh(nodeps.__file__).public() is True
-            >>> assert Gh(repo="pdf").public() is False
+            >>> assert GitUrl(nodeps.__file__).public() is True
+            >>> assert GitUrl(repo="pdf").public() is False
 
         Args:
             rm: remove cache
@@ -2389,8 +2389,6 @@ class Gh(GitUrl):
     Raises:
         InvalidArgumentError: if GitUrl is not initialized with path
     """
-
-    api_repos_url: ClassVar[str] = f"{GITHUB_URL['api']}/repos"
 
     def __post_init__(self):
         """Post Init."""
@@ -5615,7 +5613,7 @@ async def aioclone(
     if not path.exists():
         if not path.parent.exists():
             path.parent.mkdir()
-        await aiocmd("git", "clone", Gh(owner, repository).url, path)
+        await aiocmd("git", "clone", GitUrl(owner, repository).url, path)
     return path
 
 
@@ -5941,7 +5939,7 @@ def clone(
     if not path.exists():
         if not path.parent.exists():
             path.parent.mkdir()
-        cmd("git", "clone", Gh(owner, repository).url, path)
+        cmd("git", "clone", GitUrl(owner, repository).url, path)
     return path
 
 
