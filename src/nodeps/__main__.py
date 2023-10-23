@@ -751,13 +751,12 @@ def repos(
         ),
     ] = _cwd,
     ret: Annotated[ProjectRepos, typer.Option(help="return names, paths, dict or instances")] = ProjectRepos.NAMES,
-    py: Annotated[bool, typer.Option(help="return only python projects instances")] = False,
     sync: Annotated[bool, typer.Option(help="push or pull all repos")] = False,
     archive: Annotated[bool, typer.Option(help="look for repos under ~/Archive")] = False,
     rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Manage repos and projects under HOME and HOME/Archive."""
-    rv = Project(data, rm=rm).repos(ret=ret, py=py, sync=sync, archive=archive, rm=rm)
+    rv = Project(data, rm=rm).repos(ret=ret, sync=sync, archive=archive, rm=rm)
     if sync is False:
         if ret == ProjectRepos.PATHS:
             for repo in rv:

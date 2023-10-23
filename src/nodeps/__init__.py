@@ -2098,6 +2098,34 @@ class GitUrl:
                 self._platform_obj = plat
                 break
 
+    def admin(self, user: str = GIT, rm: bool = False) -> bool:
+        """Check if user has admin permissions.
+
+        Examples:
+            >>> import nodeps
+            >>> from nodeps import Gh
+            >>> from nodeps import NODEPS_PROJECT_NAME
+            >>>
+            >>> assert Gh(nodeps.__file__).admin() is True
+            >>> assert Gh(nodeps.__file__).admin("foo") is False
+
+        Arguments:
+            user: default $GIT
+            rm: use pickle cache or remove it before
+
+        Returns:
+            bool
+        """
+        try:
+            return (
+                urljson(f"{self.api_repos_url}/{self.ownerrepo}/collaborators/{user}/permission", rm=rm)["permission"]
+                == "admin"
+            )
+        except urllib.error.HTTPError as err:
+            if err.code == 403 and err.reason == "Forbidden":  # noqa: PLR2004
+                return False
+            raise
+
     def format(self, protocol):  # noqa: A003
         """Reformat URL to protocol."""
         items = dataclasses.asdict(self)
@@ -2105,6 +2133,24 @@ class GitUrl:
         items["groups_slash"] = f"{self.groups_path}/" if self.groups_path else ""
         items["dot_git"] = "" if items["repo"].endswith(".git") else ".git"
         return self._platform_obj.FORMATS[protocol] % items
+
+    def github(
+        self,
+        rm: bool = False,
+    ) -> dict[str, str | list | dict[str, str | list | dict[str, str | list]]]:
+        """GitHub repos api.
+
+        Examples:
+            >>> from nodeps import Gh
+            >>> from nodeps import NODEPS_PROJECT_NAME
+            >>>
+            >>> assert Gh().github()["name"] == NODEPS_PROJECT_NAME
+
+        Returns:
+            dict: pypi information
+            rm: use pickle cache or remove it.
+        """
+        return urljson(f"{self.api_repos_url}/{self.ownerrepo}", rm=rm)
 
     @property
     def groups(self):
@@ -2152,6 +2198,25 @@ class GitUrl:
     def normalized(self):
         """Normalize URL with .git."""
         return self.format(self.protocol)
+
+    def public(self, rm: bool = False) -> bool:
+        """Check if repo ius public.
+
+        Examples:
+            >>> import nodeps
+            >>> from nodeps import Gh
+            >>> from nodeps import NODEPS_PROJECT_NAME
+            >>>
+            >>> assert Gh(nodeps.__file__).public() is True
+            >>> assert Gh(repo="pdf").public() is False
+
+        Args:
+            rm: remove cache
+
+        Returns:
+            bool
+        """
+        return self.github(rm=rm)["visibility"] == "public"
 
     @property
     def resource(self):
@@ -2336,52 +2401,6 @@ class Gh(GitUrl):
 
         self.git = f"git -C '{self._path}'"
 
-    def admin(self, user: str = GIT, rm: bool = False) -> bool:
-        """Check if user has admin permissions.
-
-        Examples:
-            >>> import nodeps
-            >>> from nodeps import Gh
-            >>> from nodeps import NODEPS_PROJECT_NAME
-            >>>
-            >>> assert Gh(nodeps.__file__).admin() is True
-            >>> assert Gh(nodeps.__file__).admin("foo") is False
-
-        Arguments:
-            user: default $GIT
-            rm: use pickle cache or remove it before
-
-        Returns:
-            bool
-        """
-        try:
-            return (
-                urljson(f"{self.api_repos_url}/{self.ownerrepo}/collaborators/{user}/permission", rm=rm)["permission"]
-                == "admin"
-            )
-        except urllib.error.HTTPError as err:
-            if err.code == 403 and err.reason == "Forbidden":  # noqa: PLR2004
-                return False
-            raise
-
-    def github(
-        self,
-        rm: bool = False,
-    ) -> dict[str, str | list | dict[str, str | list | dict[str, str | list]]]:
-        """GitHub repos api.
-
-        Examples:
-            >>> from nodeps import Gh
-            >>> from nodeps import NODEPS_PROJECT_NAME
-            >>>
-            >>> assert Gh().github()["name"] == NODEPS_PROJECT_NAME
-
-        Returns:
-            dict: pypi information
-            rm: use pickle cache or remove it.
-        """
-        return urljson(f"{self.api_repos_url}/{self.ownerrepo}", rm=rm)
-
     def git_check_call(self, line: str):
         """Runs git command and raises exception if error (stdout is not captured and shown).
 
@@ -2402,25 +2421,6 @@ class Gh(GitUrl):
             >>> assert Gh().git_stdout("rev-parse --abbrev-ref HEAD") == "main"
         """
         return stdout(f"{self.git} {line}")
-
-    def public(self, rm: bool = False) -> bool:
-        """Check if repo ius public.
-
-        Examples:
-            >>> import nodeps
-            >>> from nodeps import Gh
-            >>> from nodeps import NODEPS_PROJECT_NAME
-            >>>
-            >>> assert Gh(nodeps.__file__).public() is True
-            >>> assert Gh(repo="pdf").public() is False
-
-        Args:
-            rm: remove cache
-
-        Returns:
-            bool
-        """
-        return self.github(rm=rm)["visibility"] == "public"
 
 
 @dataclasses.dataclass
@@ -5003,7 +5003,7 @@ class Project:
         sync: bool = False,
         archive: bool = False,
         rm: bool = False,
-    ) -> list[Path] | list[str] | dict[str, Project | str]:
+    ) -> list[Path] | list[str] | dict[str, Project | str] | None:
         """Repo paths, names or Project instances under home and Archive.
 
         Examples:
@@ -5049,8 +5049,8 @@ class Project:
         if sync:
             for item in rv[ProjectRepos.INSTANCES].values():
                 item.sync()
-        else:
-            return rv[ret]
+            return None
+        return rv[ret]
 
     def requirement(
         self,
@@ -5244,6 +5244,8 @@ class Project:
             rc = subprocess.run(c, shell=True).returncode
             if rc != 0:
                 return rc
+
+        return 0
 
     def version(self, rm: bool = True) -> str:
         """Version from pyproject.toml, tag, distribution or pypi.
