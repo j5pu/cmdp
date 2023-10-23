@@ -4434,7 +4434,7 @@ class PipMetaPathFinder(importlib.abc.MetaPathFinder):
     Examples:
         >>> from nodeps import PipMetaPathFinder
         >>>
-        >>> sys.meta_path.append(PipMetaPathFinder)
+        >>> sys.meta_path.append(PipMetaPathFinder)  # doctest: +SKIP
         >>> # noinspection PyUnresolvedReferences
         >>> import simplejson  # doctest: +SKIP
     """
@@ -4528,7 +4528,6 @@ class Project:
             msg = f"Invalid argument: {self.data=}"
             raise InvalidArgumentError(msg)
 
-        LOGGER.debug(sys.meta_path)
         if self.directory:
             self.git = f"git -C '{self.directory}'"
             if ((path := findup(self.directory, name="pyproject.toml", uppermost=True))
@@ -4554,7 +4553,6 @@ class Project:
             self.name = str(self.data)
 
         try:
-            LOGGER.debug(sys.meta_path)
             if self.name and ((spec := importlib.util.find_spec(self.name)) and spec.origin):
                 self.source = Path(spec.origin).parent if "__init__.py" in spec.origin else Path(spec.origin)
                 self.installed = True
