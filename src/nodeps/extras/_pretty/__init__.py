@@ -236,4 +236,5 @@ if IS_REPL:
 if "rich.pretty" in sys.modules:
     # noinspection PyUnboundLocalVariable
     rich.pretty.install(CONSOLE, expand_all=True)  # type: ignore[attr-defined]
-    rich.traceback.install(show_locals=True, suppress={"click", "_pytest", "rich", })  # type: ignore[attr-defined]
+    rich.traceback.install(show_locals=True,  # type: ignore[attr-defined]
+                           suppress={"click", "_pytest", "pluggy", "rich", })
