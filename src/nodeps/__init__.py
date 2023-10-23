@@ -349,6 +349,8 @@ if TYPE_CHECKING:
     from pip._internal.cli.base_command import Command
     from traitlets.config import Config
 
+LOGGER = logging.getLogger(__name__)
+
 _NODEPS_PIP_POST_INSTALL = {}
 """Holds the context with wheels installed and paths to package installed to be used in post install"""
 AUTHOR = "José Antonio Puértolas Montañés"
@@ -4526,6 +4528,7 @@ class Project:
             msg = f"Invalid argument: {self.data=}"
             raise InvalidArgumentError(msg)
 
+        LOGGER.debug(sys.meta_path)
         if self.directory:
             self.git = f"git -C '{self.directory}'"
             if ((path := findup(self.directory, name="pyproject.toml", uppermost=True))
@@ -4551,6 +4554,7 @@ class Project:
             self.name = str(self.data)
 
         try:
+            LOGGER.debug(sys.meta_path)
             if self.name and ((spec := importlib.util.find_spec(self.name)) and spec.origin):
                 self.source = Path(spec.origin).parent if "__init__.py" in spec.origin else Path(spec.origin)
                 self.installed = True
@@ -7079,7 +7083,7 @@ def pipmetapathfinder():
     try:
         yield
     finally:
-        sys.meta_path.pop()
+        sys.meta_path.remove(PipMetaPathFinder)
 
 
 def returncode(c: str | list[str], shell: bool = True) -> int:

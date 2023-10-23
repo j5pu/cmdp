@@ -25,7 +25,7 @@ def teardown_module():
 
 @pytest.mark.skipif(nodeps.in_tox(), reason="in tox")
 def test_pipmetapathfinder() -> None:
-    with nodeps.pipmetapathfinder():  # doctest: +SKIP
+    with nodeps.pipmetapathfinder():
         import simplejson  # type: ignore[attr-defined]
         assert simplejson.__name__ == PACKAGE
         assert PACKAGE in sys.modules
