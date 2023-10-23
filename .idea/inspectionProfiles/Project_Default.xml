@@ -158,6 +158,7 @@
           <option value="openai.APIConnectionError" />
           <option value="loguru.Logger._core" />
           <option value="nodeps.extras._repo.Repo.init" />
+          <option value="nodeps.extras._repo.Repo.remote" />
         </list>
       </option>
     </inspection_tool>

@@ -34,7 +34,7 @@ __all__ = (
     "_requirement",
     "_requirements",
     "_secrets",
-    "_sha",
+    "_status",
     "_superproject",
     "_tests",
     "_version",
@@ -43,6 +43,7 @@ __all__ = (
 )
 
 import copy
+import dataclasses
 import sys
 from pathlib import Path
 from typing import Annotated
@@ -58,7 +59,6 @@ from . import (
     PYTHONSTARTUP,
     Bump,
     Gh,
-    GitSHA,
     GitUrl,
     Project,
     ProjectRepos,
@@ -152,7 +152,7 @@ _repos = typer.Typer(**_typer_options, name="repos",)
 _requirement = typer.Typer(**_typer_options, name="requirement",)
 _requirements = typer.Typer(**_typer_options, name="requirements",)
 _secrets = typer.Typer(**_typer_options, name="secrets",)
-_sha = typer.Typer(**_typer_options, name="sha",)
+_status = typer.Typer(**_typer_options, name="_status",)
 _superproject = typer.Typer(**_typer_options, name="superproject",)
 _tests = typer.Typer(**_typer_options, name="tests",)
 _version = typer.Typer(**_typer_options, name="version",)
@@ -454,9 +454,10 @@ def dirty_gh_g(
     ] = None,
     repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
                                         "if not None, otherwise $GIT."),
+    quiet: bool = True,
 ):
     """Is the repo dirty?: 0 if dirty."""
-    if Gh(data=data, repo=repo).dirty():
+    if Gh(data=data, repo=repo).status(quiet=quiet).dirty:
         sys.exit(0)
     else:
         sys.exit(1)
@@ -472,9 +473,10 @@ def dirty(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    quiet: bool = True,
 ):
     """Is the repo dirty?: 0 if dirty."""
-    if Project(data).gh.dirty():
+    if Project(data).gh.status(quiet=quiet).dirty:
         sys.exit(0)
     else:
         sys.exit(1)
@@ -496,6 +498,23 @@ def distribution(
     print(Project(data, rm=rm).distribution())
 
 
+@gh_g.command(name="diverge")
+def diverge_gh_g(
+    data: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
+                                        "if not None, otherwise $GIT."),
+    quiet: bool = True,
+):
+    """Does the repo diverge, dirty or need push and needpull?: 0: if diverge."""
+    if Gh(data=data, repo=repo).status(quiet=quiet).diverge:
+        sys.exit(0)
+    else:
+        sys.exit(1)
+
+
 @project_p.command()
 @_diverge.command()
 def diverge(
@@ -506,9 +525,10 @@ def diverge(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    quiet: bool = True,
 ):
-    """Does the repo diverge?: 0: if diverge."""
-    if Project(data).diverge():
+    """Does the repo diverge, dirty or need push and needpull?: 0: if diverge."""
+    if Project(data).gh.status(quiet=quiet).diverge:
         sys.exit(0)
     else:
         sys.exit(1)
@@ -627,6 +647,23 @@ def __mip():
     print(mip())
 
 
+@gh_g.command(name="needpull")
+def needpull_gh_g(
+    data: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
+                                        "if not None, otherwise $GIT."),
+    quiet: bool = True,
+):
+    """Does the repo need to be pulled?: 0 if needs pull."""
+    if Gh(data=data, repo=repo).status(quiet=quiet).pull:
+        sys.exit(0)
+    else:
+        sys.exit(1)
+
+
 @project_p.command()
 @_needpull.command()
 def needpull(
@@ -637,9 +674,27 @@ def needpull(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    quiet: bool = True,
 ):
     """Does the repo need to be pulled?: 0 if needs pull."""
-    if Project(data).needpull():
+    if Project(data).gh.status(quiet=quiet).pull:
+        sys.exit(0)
+    else:
+        sys.exit(1)
+
+
+@gh_g.command(name="needpush")
+def needpush_gh_g(
+    data: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
+                                        "if not None, otherwise $GIT."),
+    quiet: bool = True,
+):
+    """Does the repo need to be pushed?: 0 if needs push."""
+    if Gh(data=data, repo=repo).status(quiet=quiet).push:
         sys.exit(0)
     else:
         sys.exit(1)
@@ -655,9 +710,10 @@ def needpush(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    quiet: bool = True,
 ):
     """Does the repo need to be pushed?: 0 if needs push."""
-    if Project(data).needpush():
+    if Project(data).gh.status(quiet=quiet).push:
         sys.exit(0)
     else:
         sys.exit(1)
@@ -933,9 +989,24 @@ def secrets(
     Project(data, rm=rm).secrets()
 
 
+@gh_g.command(name="status")
+def status_git_g(
+    data: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
+                                        "if not None, otherwise $GIT."),
+    quiet: bool = True,
+):
+    """Git status for a project."""
+    from rich import print_json
+    print_json(data=dataclasses.asdict(Gh(data=data, repo=repo).status(quiet=quiet)))
+
+
 @project_p.command()
-@_sha.command()
-def sha(
+@_status.command()
+def status(
     data: Annotated[
         Path,
         typer.Argument(
@@ -943,10 +1014,11 @@ def sha(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
-    ref: Annotated[GitSHA, typer.Option(help="local, base or remote")] = GitSHA.LOCAL,
+    quiet: bool = True,
 ):
-    """SHA for local, base or remote."""
-    print(Project(data).sha(ref))
+    """Git status for a project."""
+    from rich import print_json
+    print_json(data=dataclasses.asdict(Project(data).gh.status(quiet=quiet)))
 
 
 @project_p.command()

@@ -48,7 +48,7 @@ __all__ = (
     "FrameSimple",
     "getter",
     "Gh",
-    "GitSHA",
+    "GitStatus",
     "GitUrl",
     "GroupUser",
     "InvalidArgumentError",
@@ -1849,12 +1849,26 @@ class getter(Callable[[Any], Any | tuple[Any, ...]]):  # noqa: N801
         return self.__class__.__name__ + "(" + ",".join(f"{i}={getattr(self, i)!r}" for i in self._attrs) + ")"
 
 
-class GitSHA(str, enum.Enum):
-    """Git SHA options."""
+@dataclasses.dataclass
+class GitStatus:
+    """Git SHA and status.
 
-    BASE = enum.auto()
-    LOCAL = enum.auto()
-    REMOTE = enum.auto()
+    Attributes:
+        base: base SHA
+        dirty: is repository dirty including untracked files
+        diverge: need push and pull. It considers is dirty.
+        local: local SHA
+        pull: needs pull
+        push: needs push
+        remote: remote SHA
+    """
+    base: str = ""
+    dirty: bool = False
+    diverge: bool = False
+    local: str = ""
+    pull: bool = False
+    push: bool = False
+    remote: str = ""
 
 
 @dataclasses.dataclass
@@ -2429,10 +2443,6 @@ class Gh(GitUrl):
         """
         return self.git_stdout("branch --show-current") or ""
 
-    def dirty(self) -> bool:
-        """Is repository dirty including untracked files."""
-        return bool(self.git_stdout("status -s"))
-
     def git_check_call(self, line: str):
         """Runs git command and raises exception if error (stdout is not captured and shown).
 
@@ -2453,6 +2463,27 @@ class Gh(GitUrl):
             >>> assert Gh().git_stdout("rev-parse --abbrev-ref HEAD") == "main"
         """
         return stdout(f"{self.git} {line}")
+
+    def status(self, quiet: bool = True) -> GitStatus:
+        """Git status instance and fetch if necessary."""
+        diverge = pull = push = False
+        local = self.git_stdout("rev-parse @")
+        base = remote = self.git_stdout("ls-remote origin HEAD | awk '{ print $1 }'")
+
+        dirty = bool(self.git_stdout("status -s"))
+        if local != remote:
+            self.git_check_call(f"fetch --all --tags --prune {'--quiet' if quiet else ''}")
+            base = self.git_stdout("merge-base @ @{u}")
+            if local == base:
+                pull = True
+                diverge = dirty
+            elif remote == base:
+                push = True
+            else:
+                diverge = True
+                pull = True
+                push = True
+        return GitStatus(base=base, dirty=dirty, diverge=diverge, local=local, pull=pull, push=push, remote=remote)
 
 
 @dataclasses.dataclass
@@ -4757,10 +4788,6 @@ class Project:
         """Distribution."""
         return suppress(importlib.metadata.Distribution.from_name, self.name)
 
-    def diverge(self) -> bool:
-        """Diverge."""
-        return (self.gh.dirty() or self.needpush()) and self.needpull()
-
     def docs(self, version: str = PYTHON_DEFAULT_VERSION, quiet: bool = True) -> int:
         """Build the documentation.
 
@@ -4849,18 +4876,6 @@ class Project:
             self.commit()
             self._tag(latest)
         return latest
-
-    def needpull(self) -> bool:
-        """Needs pull."""
-        return (self.sha() != self.sha(GitSHA.REMOTE)) and (self.sha() == self.sha(GitSHA.BASE))
-
-    def needpush(self) -> bool:
-        """Needs push, commits not been pushed already."""
-        return (
-            (self.sha() != self.sha(GitSHA.REMOTE))
-            and (self.sha() != self.sha(GitSHA.BASE))
-            and (self.sha(GitSHA.REMOTE) == self.sha(GitSHA.BASE))
-        )
 
     def _next(self, part: Bump = Bump.PATCH) -> str:
         latest = self.latest()
@@ -5131,19 +5146,6 @@ class Project:
                 )
                 self.info(self.secrets.__name__)
         return 0
-
-    def sha(self, ref: GitSHA = GitSHA.LOCAL) -> str:
-        """Sha for local, base or remote."""
-        if ref is GitSHA.LOCAL:
-            args = "rev-parse @"
-        elif ref is GitSHA.BASE:
-            args = "merge-base @ @{u}"
-        elif ref is GitSHA.REMOTE:
-            args = "rev-parse @{u}"
-        else:
-            msg = f"Invalid argument: {ref=}"
-            raise InvalidArgumentError(msg)
-        return stdout(f"{self.git} {args}")
 
     def sync(self):
         """Sync repository."""

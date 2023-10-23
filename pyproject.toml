@@ -14,8 +14,12 @@ email = "63794670+j5pu@users.noreply.github.com"
 
 
 
+
+
 [project.entry-points.pytest11]
 git-pytest = "nodeps.fixtures"
+
+
 
 
 [project.license]
@@ -113,8 +117,8 @@ full = [
 ]
 
 [project.scripts]
-p = "nodeps.__main__:project_p"
 g = "nodeps.__main__:gh_g"
+p = "nodeps.__main__:project_p"
 branch = "nodeps.__main__:_branch"
 browser = "nodeps.__main__:_browser"
 build = "nodeps.__main__:_build"
@@ -147,7 +151,7 @@ repos = "nodeps.__main__:_repos"
 requirement = "nodeps.__main__:_requirement"
 requirements = "nodeps.__main__:_requirements"
 secrets = "nodeps.__main__:_secrets"
-sha = "nodeps.__main__:_sha"
+_status = "nodeps.__main__:_status"
 superproject = "nodeps.__main__:_superproject"
 tests = "nodeps.__main__:_tests"
 version = "nodeps.__main__:_version"
@@ -157,6 +161,8 @@ venvs = "nodeps.__main__:_venvs"
 [project.urls]
 Homepage = "https://github.com/j5pu/nodeps"
 Documentation = "https://nodeps.readthedocs.io"
+
+
 
 
 

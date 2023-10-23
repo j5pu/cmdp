@@ -137,8 +137,8 @@
     :prog: secrets
     :nested: full
 
-.. click:: nodeps.__main__:_sha_click
-    :prog: sha
+.. click:: nodeps.__main__:_status_click
+    :prog: _status
     :nested: full
 
 .. click:: nodeps.__main__:_superproject_click
