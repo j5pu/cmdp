@@ -1869,6 +1869,7 @@ class GitUrl:
             >>> from nodeps import GitUrl
             >>> from nodeps import Path
             >>> from nodeps import NODEPS_PROJECT_NAME
+            >>> from nodeps import NODEPS_PATH
             >>>
             >>> p = GitUrl()
             >>> p1 = GitUrl(nodeps.__file__)
@@ -1876,8 +1877,7 @@ class GitUrl:
             >>> p.host, p.owner, p.repo, p.protocol, p.protocols, p.platform, p.pathname, p.ownerrepo
             ('github.com', 'j5pu', 'nodeps', 'https', ['https'], 'github', '/j5pu/nodeps', 'j5pu/nodeps')
             >>> assert p2.url == p1.url == p.url == "https://github.com/j5pu/nodeps"
-            >>> Path(nodeps.__file__).parent, p._path, p1._path
-            >>> assert Path(nodeps.__file__).parent == p._path == p1._path
+            >>> assert NODEPS_PATH == p1._path
             >>>
             >>> u = 'git@bitbucket.org:AaronO/some-repo.git'
             >>> p = GitUrl(u)
