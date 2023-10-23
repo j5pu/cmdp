@@ -1,0 +1,38 @@
+#!/bin/sh
+
+set -eu
+
+#######################################
+# add, commit and push top repositories found under path/s if gh logged user is admin
+# Arguments:
+#   1   [path|...]
+# Returns:
+#   1   if no .git directories found
+#######################################
+main() {
+  test $# -ge 1 || set -- "${PWD}"
+
+  case "$1" in
+    -h|--help|help)
+    printf "%s\n"  "usage: ${0##*/} [path]" "" \
+      "add/commit/push top repositories found under path/s if gh logged user is admin"
+    exit
+    ;;
+  esac
+
+  PATH="$(cd "$(dirname "$0}")" || return 1; pwd -P):${PATH}"
+
+  git tops-can-admin "$@" | while read -r top; do
+    cd "${top}"
+
+    case "${PWD}" in
+      */Taps/*) continue ;;
+    esac
+
+    git add -A
+    test -z "$(git status --porcelain)" || { git commit --quiet -m "auto" && echo "==> ${top}"; }
+    git push --quiet
+  done
+}
+
+main "$@"

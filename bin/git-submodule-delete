@@ -1,0 +1,24 @@
+#!/bin/sh
+
+set -eu
+
+: git-submodule
+
+#######################################
+# delete a submodule
+# Arguments:
+#   1  submodule path (key in .gitmodules)
+#######################################
+main() {
+  case "${1-}" in
+    -h|--help|help) printf "%s\n"  "usage: ${0##*/} <path>" "" "delete a submodule"; exit;;
+  esac
+  cd "$(git rev-parse --show-toplevel)"
+  git submodule deinit --quiet "$1"
+  git rm -rf --quiet "$1"
+  rm -rf ".git/modules/$1"
+  git add .gitmodules
+  git commit --quiet -m "delete submodule $1" .gitmodules "$1"
+}
+
+main "$@"

@@ -1,0 +1,20 @@
+#!/bin/sh
+set -e
+
+#######################################
+# updates GitHub default branch (default: main)
+# Arguments:
+#   1  <owner>/<repo>
+#   2  [branch]
+#######################################
+main() {
+  case "${1-}" in
+    -h|--help|help)
+    printf "%s\n"  "usage: ${0##*/} <owner>/<repo> [branch]" "" "updates GitHub default branch"
+    exit
+    ;;
+  esac
+  gh api "repos/${1}" --method PATCH --field "default_branch=${2:-main}" | jq .
+}
+
+main "$@"

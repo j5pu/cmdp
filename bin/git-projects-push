@@ -1,0 +1,28 @@
+#!/bin/sh
+
+set -eu
+
+#######################################
+# add, commit and push top repositories found under $HOME and /Users/Shared if gh logged user is admin
+# Arguments:
+#   None
+# Returns:
+#   1   if no .git directories found
+#######################################
+main() {
+  test $# -ge 1 || set -- "${PWD}"
+
+  case "$1" in
+    -h|--help|help)
+    printf "%s\n"  "usage: ${0##*/}" "" \
+      "add, commit and push top repositories found under \$HOME and /Users/Shared if gh logged user is admin"
+    exit
+    ;;
+  esac
+
+  PATH="$(cd "$(dirname "$0}")" || return 1; pwd -P):${PATH}"
+
+  git tops-push "${HOME}" /Users/Shared
+}
+
+main "$@"

@@ -1,0 +1,19 @@
+#!/bin/sh
+
+set -eu
+
+#######################################
+# show all submodule urls in .gitmodules
+# Arguments:
+#   None
+#######################################
+main() {
+  case "${1-}" in
+    -h|--help|help) printf "%s\n"  "usage: ${0##*/}" "" "show all submodule urls in .gitmodules"; exit ;;
+  esac
+  file="$(git rev-parse --show-toplevel)/.gitmodules"
+  test -f "${file}" || exit 0
+  awk -F "[ =]" '/.*url =/ { print $4 }' "${file}"
+}
+
+main "$@"

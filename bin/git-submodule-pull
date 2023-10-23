@@ -1,0 +1,18 @@
+#!/bin/sh
+
+set -eu
+
+#######################################
+# pull all submodules
+# Arguments:
+#   None
+#######################################
+main() {
+  case "${1-}" in
+    -h|--help|help) printf "%s\n"  "usage: ${0##*/}" "" "pull all submodules"; exit;;
+  esac
+  cd "$(git rev-parse --show-toplevel)"
+  git submodule foreach --quiet 'git pull --quiet --tags'
+}
+
+main "$@"

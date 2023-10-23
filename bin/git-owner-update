@@ -1,0 +1,29 @@
+#!/bin/sh
+
+set -eu
+
+#######################################
+# update remote.origin.url owner
+# Arguments:
+#   1   current git owner
+#   2   new git owner
+#######################################
+main() {
+  case "${1-}" in
+    -h|--help|help) printf "%s\n"  "usage: ${0##*/} <current> <new>" "" "update remote.origin.url owner"; exit ;;
+  esac
+  if url="$(git remote get-url origin 2>/dev/null)"; then
+    for separator in : /; do
+      anchor="github.com${separator}"
+      new="$(echo "${url}"| sed "s|${anchor}${1}/|${anchor}${2}/|g")"
+      if [ "${url}" != "${new}" ]; then
+        echo "$(git rev-parse --show-toplevel): ${url} => ${new}"
+        git remote set-url origin "${new}"
+        break
+      fi
+    done
+  fi
+}
+
+main "$@"
+

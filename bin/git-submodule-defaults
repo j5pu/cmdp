@@ -1,0 +1,34 @@
+#!/bin/sh
+
+set -eu
+#######################################
+# set submodules .git/config defaults, update=merge and fetchRecurseSubmodules
+# Arguments:
+#   None
+#######################################
+main() {
+  case "${1-}" in
+    -h | --help | help)
+      printf "%s\n" "usage: ${0##*/} <path>" "" \
+        "set submodules .git/config defaults, update=merge and fetchRecurseSubmodules"
+      exit
+      ;;
+  esac
+
+  git config --local diff.submodule log
+  git config --local push.recurseSubmodules on-demand
+  git config --local status.submoduleSummary 1
+  git config --local submodule.recurse true
+  git config --local core.hooksPath .githooks/
+
+  git config alias.sdiff '!'"git diff && git submodule foreach 'git diff'"
+  git config alias.spush 'push --recurse-submodules=on-demand'
+  git config alias.supdate 'submodule update --remote --merge'
+
+  git submodule--helper list | awk '{ print $4 }' | while read -r path; do
+    git submodule--helper config "submodule.${path}.update" merge
+    git submodule--helper config "submodule.${path}.fetchRecurseSubmodules" true
+  done
+}
+
+main "$#"

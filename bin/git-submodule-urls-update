@@ -1,0 +1,35 @@
+#!/bin/sh
+
+set -eu
+
+#######################################
+# update all submodule urls
+# Arguments:
+#   1  <owner/repo>
+#   2  <new_owner/new_repo>
+#######################################
+main() {
+  case "${1-}" in
+    -h|--help|help)
+    printf "%s\n"  "usage: ${0##*/} <owner/repo> <new_owner/new_repo>" "" "update all submodule urls";
+    exit ;;
+  esac
+
+  file="$(git rev-parse --show-toplevel)/.gitmodules"
+  top="$(git rev-parse --show-toplevel)"
+  cd "${top}"
+  git submodule-paths | while read -r path; do
+    [ "${path-}" ] || continue
+    url="$(git config "submodule.${path}.url" || { >&2 echo "${0##*/}: ${top}: submodule ${path} no url"; exit 1; })"
+    [ "${url-}" ] || { >&2 echo "${0##*/}: ${top}: submodule ${path} has no url"; exit 1; }
+    new="$(echo "${url}"| sed "s|${1}|${2}|g")"
+    if [ "${url}" != "${new}" ]; then
+      echo "${top} [${path}]: $1 => $2 ${url} => ${new}"
+      git submodule sync --quiet
+      test -z "$(git status --porcelain)" || { git commit -q -m "update submodule ${path} url" "${file}"; git push -q; }
+      git submodule set-url --quiet "${path}" "${new}"
+    fi
+  done
+}
+
+main "$@"

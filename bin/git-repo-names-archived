@@ -1,0 +1,21 @@
+#!/bin/sh
+
+set -eu
+
+#######################################
+# archived user repository names from GitHub
+# Arguments:
+#   1   [owner]
+#######################################
+main() {
+  case "${1-}" in
+    -h|--help|help)
+    printf "%s\n"  "usage: ${0##*/} [owner]" "" "archived user repository names from GitHub"; exit;;
+  esac
+
+  PATH="$(cd "$(dirname "$0}")" || return 1; pwd -P):${PATH}"
+
+  git repo-names --archived "$@"
+}
+
+main "$@"

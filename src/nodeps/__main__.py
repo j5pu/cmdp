@@ -1,5 +1,7 @@
 """CLI for nodeps."""
 __all__ = (
+    "gh_g",
+    "project_p",
     "_branch",
     "_browser",
     "_build",
@@ -115,8 +117,8 @@ def _versions_completions(ctx: typer.Context, args: list[str], incomplete: str):
 _cwd = Path.cwd()
 _typer_options = {"add_completion": False, "context_settings": {"help_option_names": ["-h", "--help"]}}
 
-project_p = typer.Typer(no_args_is_help=True, **_typer_options, name=NODEPS_EXECUTABLE)
 gh_g = typer.Typer(no_args_is_help=True,  **_typer_options, name="g")
+project_p = typer.Typer(no_args_is_help=True, **_typer_options, name=NODEPS_EXECUTABLE)
 
 _branch = typer.Typer(**_typer_options, name="branch",)
 _browser = typer.Typer(**_typer_options, name="browser",)
@@ -160,7 +162,7 @@ _venvs = typer.Typer(**_typer_options, name="venvs",)
 
 @gh_g.command(name="admin")
 def admin_gh_g(
-    url: Annotated[
+    data: Annotated[
         Path,  # noqa: RUF013
         typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
     ] = None,
@@ -170,7 +172,7 @@ def admin_gh_g(
     rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Can user admin repository."""
-    sys.exit(int(not GitUrl(url=url, repo=repo).admin(user=user, rm=rm)))
+    sys.exit(int(not GitUrl(data=data, repo=repo).admin(user=user, rm=rm)))
 
 
 @project_p.command(name="admin")
@@ -192,7 +194,7 @@ def admin_project_p(
 @gh_g.command(name="branch")
 @_branch.command(name="branch")
 def branch_gh_g(
-    url: Annotated[
+    data: Annotated[
         Path,  # noqa: RUF013
         typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
     ] = None,
@@ -200,7 +202,7 @@ def branch_gh_g(
                                         "if not None, otherwise $GIT."),
 ):
     """Current branch."""
-    print(Gh(url=url, repo=repo).current())
+    print(Gh(data=data, repo=repo).current())
 
 
 @project_p.command("branch")
@@ -309,7 +311,7 @@ def buildrequires(
 @gh_g.command(name="current")
 @_current.command(name="current")
 def current_gh_g(
-    url: Annotated[
+    data: Annotated[
         Path,  # noqa: RUF013
         typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
     ] = None,
@@ -317,7 +319,7 @@ def current_gh_g(
                                         "if not None, otherwise $GIT."),
 ):
     """Current branch."""
-    print(Gh(url=url, repo=repo).current())
+    print(Gh(data=data, repo=repo).current())
 
 
 @project_p.command("current")
@@ -337,7 +339,7 @@ def current_project_p(
 
 @gh_g.command(name="default")
 def default_gh_g(
-    url: Annotated[
+    data: Annotated[
         Path,  # noqa: RUF013
         typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
     ] = None,
@@ -346,7 +348,7 @@ def default_gh_g(
     rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Default branch."""
-    print(GitUrl(url=url, repo=repo).default(rm=rm))
+    print(GitUrl(data=data, repo=repo).default(rm=rm))
 
 
 @project_p.command(name="default")
@@ -444,6 +446,22 @@ def dependencies(
         print(item)
 
 
+@gh_g.command(name="dirty")
+def dirty_gh_g(
+    data: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
+                                        "if not None, otherwise $GIT."),
+):
+    """Is the repo dirty?: 0 if dirty."""
+    if Gh(data=data, repo=repo).dirty():
+        sys.exit(0)
+    else:
+        sys.exit(1)
+
+
 @project_p.command()
 @_dirty.command()
 def dirty(
@@ -456,7 +474,7 @@ def dirty(
     ] = _cwd,
 ):
     """Is the repo dirty?: 0 if dirty."""
-    if Project(data).dirty():
+    if Project(data).gh.dirty():
         sys.exit(0)
     else:
         sys.exit(1)
@@ -551,7 +569,7 @@ def extras(
 
 @gh_g.command(name="github")
 def github_gh_g(
-    url: Annotated[
+    data: Annotated[
         Path,  # noqa: RUF013
         typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
     ] = None,
@@ -561,7 +579,7 @@ def github_gh_g(
 ):
     """GitHub repos API."""
     from rich import print_json
-    print_json(data=GitUrl(url=url, repo=repo).github(rm=rm))
+    print_json(data=GitUrl(data=data, repo=repo).github(rm=rm))
 
 
 @project_p.command(name="github")
@@ -665,7 +683,7 @@ def __next(
 
 @gh_g.command(name="public")
 def public_gh_g(
-    url: Annotated[
+    data: Annotated[
         Path,  # noqa: RUF013
         typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
     ] = None,
@@ -674,7 +692,7 @@ def public_gh_g(
     rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Is repository public?."""
-    sys.exit(int(not GitUrl(url=url, repo=repo).public(rm=rm)))
+    sys.exit(int(not GitUrl(data=data, repo=repo).public(rm=rm)))
 
 
 @project_p.command(name="public")

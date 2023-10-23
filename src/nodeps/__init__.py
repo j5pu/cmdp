@@ -1860,7 +1860,7 @@ class GitUrl:
     """Parsed Git URL Helper Class.
 
     Attributes:
-        url: Url, path or user (to be used with name), default None for cwd. Does not have .git unless is git+file
+        data: Url, path or user (to be used with name), default None for cwd. Does not have .git unless is git+file
         repo: Repo name. If not None it will use data as the owner if not None, otherwise $GIT.
 
     Examples:
@@ -1894,7 +1894,7 @@ class GitUrl:
             >>> assert p.normalized == u + ".git"
             >>> assert p.url == u
             >>>
-            >>> p1 = GitUrl(url="cpython", repo="cpython")
+            >>> p1 = GitUrl(data="cpython", repo="cpython")
             >>> assert p == p1
             >>>
             >>> u = "git+https://github.com/cpython/cpython"
@@ -1989,8 +1989,7 @@ class GitUrl:
             >>> assert p.normalized == u
             >>> assert p.url == u
     """
-
-    url: str | Path = dataclasses.field(default="", hash=True)
+    data: dataclasses.InitVar[str | Path | None] = ""
     """Url, path or user (to be used with name), default None for cwd. Does not have .git unless is git+file"""
     repo: str = dataclasses.field(default="", hash=True)
     """Repo name. If not None it will use data as the owner if not None, otherwise $GIT."""
@@ -2014,13 +2013,13 @@ class GitUrl:
     protocol: str = dataclasses.field(default="", init=False)
     protocols: list[str] = dataclasses.field(default_factory=list, init=False)
     port: str = dataclasses.field(default="", init=False)
+    url: str | Path = dataclasses.field(default="", hash=True, init=False)
     username: str = dataclasses.field(default="", init=False)
     api_repos_url: ClassVar[str] = f"{GITHUB_URL['api']}/repos"
 
-    def __post_init__(self):  # noqa: PLR0912
+    def __post_init__(self, data: str | Path | None):  # noqa: PLR0912
         """Post Init."""
-        url = self.url
-        self.url = "" if self.url is None else str(self.url)  # because of CLI
+        self.url = "" if data is None else str(data)  # because of CLI g default Path is None
         parsed_info = collections.defaultdict(lambda: "")
         parsed_info["protocols"] = cast(str, [])
         self._path = None
@@ -2035,7 +2034,7 @@ class GitUrl:
         self.url = stdout(f"git -C {self._path} config --get remote.origin.url") if self._path else self.url
 
         if self.url is None:
-            msg = f"Invalid argument: {url=}, {self.repo=}"
+            msg = f"Invalid argument: {data=}, {self.repo=}"
             raise InvalidArgumentError(msg)
 
         found = False
@@ -2073,7 +2072,7 @@ class GitUrl:
                     parsed_info["protocols"].append(protocol)
 
                 if protocol == "file" and not domain.startswith("/"):
-                    msg = f"Invalid argument, git+file should have an absolute path: {url=}, {self.repo=}"
+                    msg = f"Invalid argument, git+file should have an absolute path: {data=}, {self.repo=}"
                     raise InvalidArgumentError(msg)
 
                 parsed_info.update(
@@ -2366,7 +2365,7 @@ class GitUrl:
         )
 
     @classmethod
-    def validate(cls, url: str | Path | None = None, repo: str | None = None):
+    def validate(cls, data: str | Path | None = None, repo: str | None = None):
         """Validate url.
 
         Examples:
@@ -2380,11 +2379,11 @@ class GitUrl:
             >>> assert GitUrl.validate(u) is True
 
         Args:
-            url: user (when repo is provided, default GIT), url,
+            data: user (when repo is provided, default GIT), url,
                 path to get from git config if exists, default None for cwd.
             repo: repo to parse url from repo and get user from data
         """
-        return cls(url=url, repo=repo).valid
+        return cls(data=data, repo=repo).valid
 
 
 @dataclasses.dataclass
@@ -2409,11 +2408,11 @@ class Gh(GitUrl):
         InvalidArgumentError: if GitUrl is not initialized with path
     """
 
-    def __post_init__(self):
+    def __post_init__(self, data: str | Path | None = None):
         """Post Init."""
-        super().__post_init__()
+        super().__post_init__(data=data)
         if not self._path:
-            msg = f"Path must be provided when initializing {self.__class__.__name__}: {self.url=}, {self.repo=}"
+            msg = f"Path must be provided when initializing {self.__class__.__name__}: {data=}, {self.repo=}"
             raise InvalidArgumentError(msg)
 
         self.git = f"git -C '{self._path}'"
@@ -2427,6 +2426,10 @@ class Gh(GitUrl):
             >>> assert Gh().current() == 'main'
         """
         return self.git_stdout("branch --show-current") or ""
+
+    def dirty(self) -> bool:
+        """Is repository dirty including untracked files."""
+        return bool(self.git_stdout("status -s"))
 
     def git_check_call(self, line: str):
         """Runs git command and raises exception if error (stdout is not captured and shown).
@@ -4702,7 +4705,7 @@ class Project:
             CalledProcessError: if  fails
             RuntimeError: if diverged or dirty
         """
-        if self.dirty():
+        if self.gh.dirty():
             if self.needpull():
                 msg = f"Diverged: {self.name=}"
                 raise RuntimeError(msg)
@@ -4748,17 +4751,13 @@ class Project:
         msg = f"Dependencies not found for {self.name=}"
         raise RuntimeWarning(msg)
 
-    def dirty(self) -> bool:
-        """Is repository dirty  including untracked files."""
-        return bool(stdout(f"{self.git} status -s"))
-
     def distribution(self) -> importlib.metadata.Distribution | None:
         """Distribution."""
         return suppress(importlib.metadata.Distribution.from_name, self.name)
 
     def diverge(self) -> bool:
         """Diverge."""
-        return (self.dirty() or self.needpush()) and self.needpull()
+        return (self.gh.dirty() or self.needpush()) and self.needpull()
 
     def docs(self, version: str = PYTHON_DEFAULT_VERSION, quiet: bool = True) -> int:
         """Build the documentation.

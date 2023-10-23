@@ -1,0 +1,26 @@
+#!/bin/sh
+# shellcheck disable=SC2016
+
+set -eu
+
+: git-submodule
+
+#######################################
+# set submodules to track branch in .gitmodules or default branch
+# Arguments:
+#   None
+#######################################
+main() {
+  case "${1-}" in
+    -h|--help|help)
+    printf "%s\n"  "usage: ${0##*/} <path>" "" "set submodules to track branch from .gitmodules or default branch"
+    exit
+    ;;
+  esac
+  cd "$(git rev-parse --show-toplevel)"
+  # bashsupport disable=LongLine
+  git submodule foreach -q --recursive \
+    'git fetch -q && git checkout $(git config -f $toplevel/.gitmodules submodule.$name.branch|| basename "$(git rev-parse --abbrev-ref origin/HEAD)") --'
+}
+
+main "$@"

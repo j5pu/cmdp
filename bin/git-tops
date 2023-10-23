@@ -1,0 +1,36 @@
+#!/bin/sh
+
+set -eu
+
+#######################################
+# top repositories found under path/s
+# Arguments:
+#   1   [path|...]
+# Returns:
+#   1   if no .git directories found
+#######################################
+main() {
+  test $# -ge 1 || set -- "${PWD}"
+
+  case "$1" in
+    -h|--help|help)
+    printf "%s\n"  "usage: ${0##*/} [path|...]" "" "top repositories found under path/s (rc: 1)"
+    exit
+    ;;
+  esac
+
+  tmp="$(mktemp)"
+  for arg; do
+    cd "${arg}"
+    find "$(pwd -P)" -type d -name ".git" >> "${tmp}"
+  done
+
+  while read -r git_dir; do
+    cd "$(dirname "${git_dir}")"
+    git rev-parse --show-toplevel
+  done < "${tmp}"
+
+  test -s "${tmp}" || { echo "${0##*/}: $*: .git directories not found"; exit 1; }
+}
+
+main "$@"

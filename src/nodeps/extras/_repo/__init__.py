@@ -8,7 +8,6 @@ __all__ = (
 import dataclasses
 import os
 import pathlib
-import tempfile
 import urllib
 import urllib.parse
 from typing import IO, AnyStr, TypeAlias
@@ -114,23 +113,6 @@ class Repo(GitRepo):
             odbt=odbt,
             search_parent_directories=search_parent_directories,
         )
-
-    @classmethod
-    def bare(cls, name: str | None = None, repo: Repo = None) -> Repo:
-        """Create a bare repository in a temporary directory, to manage global/system config or as a remote for testing.
-
-        Args:
-            name: the path of the bare repository
-            repo: Repo instance to update git config with remote url of the new bare repository (default: None)
-
-        Returns:
-            Repo: Repo instance
-        """
-        with tempfile.TemporaryDirectory(suffix=".git") as tmpdir:
-            bare = cls.init(pathlib.Path(tmpdir) / (f"{name}.git" if name else ""), bare=True)
-            if repo:
-                repo.config_writer().set_value("remote.origin.url", repo.git_dir).release()
-            return bare
 
     @property
     def git_config(self) -> GitConfigParser:

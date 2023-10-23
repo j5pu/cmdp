@@ -1,0 +1,23 @@
+#!/bin/sh
+
+set -eu
+
+#######################################
+# gh logged user can admin repository (rc: 1 if not)
+# Arguments:
+#   None
+# Returns:
+#   0 if user can admin repository
+#   1 if user can't admin repository
+#######################################
+main() {
+  case "${1-}" in
+    -h|--help|help)
+    printf "%s\n"  "usage: ${0##*/} [owner]" "" "gh logged user can admin repository (rc: 1 if not)"
+    exit
+    ;;
+  esac
+  gh repo view --jq .viewerCanAdminister --json viewerCanAdminister 2>/dev/null | grep -q true
+}
+
+main "$@"

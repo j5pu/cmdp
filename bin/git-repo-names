@@ -1,0 +1,20 @@
+#!/bin/sh
+
+set -eu
+
+#######################################
+# user repository names from GitHub
+# Arguments:
+#   1   [owner]
+#######################################
+main() {
+  case "${1-}" in
+    -h|--help|help)
+    printf "%s\n"  "usage: ${0##*/} [owner]" "" "user repository names from GitHub (gh flags can be passed but -L)";
+    exit ;;
+  esac
+  # shellcheck disable=SC2086
+  gh repo list --jq .[].name --json name "$@" -L 200 | sort -f
+}
+
+main "$@"

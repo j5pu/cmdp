@@ -1,0 +1,29 @@
+#!/bin/sh
+
+set -eu
+
+#######################################
+# top repositories found under path/s if gh logged user is admin
+# Arguments:
+#   1   [path|...]
+#######################################
+main() {
+  test $# -ge 1 || set -- "${PWD}"
+
+  case "$1" in
+    -h|--help|help)
+    printf "%s\n"  "usage: ${0##*/} [path|...]" "" "top repositories found under path/s if gh logged user is admin"
+    exit
+    ;;
+  esac
+
+  PATH="$(cd "$(dirname "$0}")" || return 1; pwd -P):${PATH}"
+
+  git tops "$@" | while read -r top; do
+    cd "${top}"
+    git can-admin || continue
+    pwd -P
+  done
+}
+
+main "$@"

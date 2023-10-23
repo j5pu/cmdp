@@ -45,8 +45,12 @@ def repos(tmp_path: Path) -> Generator[Repos]:
     local.git.commit("-a", "-m", "First commit.")
     local.git.push("--set-upstream", "origin", "main")
     origin.push()
+    clone = remote.clone(tmp / "clone")
 
+    LOGGER.debug(f"clone: {clone.top}")  # noqa: G004
     LOGGER.debug(f"local: {top}")  # noqa: G004
     LOGGER.debug(f"remote: {remote.top}")  # noqa: G004
-    yield Repos(local, remote)
+
+    yield Repos(clone=clone, local=local, remote=remote)
+
     shutil.rmtree(tmp, ignore_errors=True)
