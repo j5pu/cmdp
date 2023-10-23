@@ -19,7 +19,14 @@ LOGGER = logging.getLogger(__name__)
 
 @dataclasses.dataclass
 class Repos:
-    """Local and remote fixture class."""
+    """Local and remote fixture class.
+
+    Attributes:
+        clone: A clone of the remote repository
+        local: A local repository pushed to remote repository
+        remote: A remote repository
+    """
+    clone: Repo
     local: Repo
     remote: Repo
 

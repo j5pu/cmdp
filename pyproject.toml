@@ -13,11 +13,13 @@ email = "63794670+j5pu@users.noreply.github.com"
 
 
 
-[project.license]
-text = "MIT"
 
 [project.entry-points.pytest11]
 git-pytest = "nodeps.fixtures"
+
+
+[project.license]
+text = "MIT"
 
 [project.optional-dependencies]
 ansi = [
@@ -121,6 +123,7 @@ buildrequires = "nodeps.__main__:_buildrequires"
 clean = "nodeps.__main__:_clean"
 commit = "nodeps.__main__:_commit"
 completions = "nodeps.__main__:_completions"
+current = "nodeps.__main__:_current"
 dependencies = "nodeps.__main__:_dependencies"
 dirty = "nodeps.__main__:_dirty"
 distribution = "nodeps.__main__:_distribution"
@@ -154,6 +157,7 @@ venvs = "nodeps.__main__:_venvs"
 [project.urls]
 Homepage = "https://github.com/j5pu/nodeps"
 Documentation = "https://nodeps.readthedocs.io"
+
 
 
 

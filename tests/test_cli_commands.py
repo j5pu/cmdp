@@ -42,6 +42,12 @@ def test_commit(invoke):
     assert invoke.exit_code == 0
 
 
+@pytest.mark.parametrize("invoke", [[_current]], indirect=True)
+def test_commit(invoke):
+    assert invoke.exit_code == 0
+    assert invoke.stdout == "main\n"
+
+
 @pytest.mark.parametrize("invoke", [[_dependencies]], indirect=True)
 def test_dependencies(invoke):
     assert invoke.exit_code == 0

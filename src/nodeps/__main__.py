@@ -8,6 +8,7 @@ __all__ = (
     "_clean",
     "_commit",
     "_completions",
+    "_current",
     "_dependencies",
     "_dirty",
     "_distribution",
@@ -55,8 +56,8 @@ from . import (
     PYTHONSTARTUP,
     Bump,
     Gh,
-    GitUrl,
     GitSHA,
+    GitUrl,
     Project,
     ProjectRepos,
     dict_sort,
@@ -125,6 +126,7 @@ _buildrequires = typer.Typer(**_typer_options, name="buildrequires",)
 _clean = typer.Typer(**_typer_options, name="clean",)
 _commit = typer.Typer(**_typer_options, name="commit",)
 _completions = typer.Typer(**_typer_options, name="completions",)
+_current = typer.Typer(**_typer_options, name="current",)
 _dependencies = typer.Typer(**_typer_options, name="dependencies",)
 _dirty = typer.Typer(**_typer_options, name="dirty",)
 _distribution = typer.Typer(**_typer_options, name="distribution",)
@@ -154,34 +156,6 @@ _tests = typer.Typer(**_typer_options, name="tests",)
 _version = typer.Typer(**_typer_options, name="version",)
 _venv = typer.Typer(**_typer_options, name="venv",)
 _venvs = typer.Typer(**_typer_options, name="venvs",)
-
-
-@gh_g.command(name="actual")
-def actual_gh_g(
-    url: Annotated[
-        Path,  # noqa: RUF013
-        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
-    ] = None,
-    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
-                                        "if not None, otherwise $GIT."),
-):
-    """Current branch."""
-    print(Gh(url=url, repo=repo).actual())
-
-
-@project_p.command("actual")
-def actual_project_p(
-    data: Annotated[
-        Path,
-        typer.Argument(
-            help="Path/file to project or name of project",
-            autocompletion=_repos_completions,
-        ),
-    ] = _cwd,
-    rm: bool = typer.Option(False, help="Remove cache"),
-):
-    """Current branch."""
-    print(Project(data, rm=rm).gh.actual())
 
 
 @gh_g.command(name="admin")
@@ -216,7 +190,7 @@ def admin_project_p(
 
 
 @gh_g.command(name="branch")
-@_branch.command()
+@_branch.command(name="branch")
 def branch_gh_g(
     url: Annotated[
         Path,  # noqa: RUF013
@@ -226,7 +200,7 @@ def branch_gh_g(
                                         "if not None, otherwise $GIT."),
 ):
     """Current branch."""
-    print(Gh(url=url, repo=repo).actual())
+    print(Gh(url=url, repo=repo).current())
 
 
 @project_p.command("branch")
@@ -241,7 +215,7 @@ def branch_project_p(
     rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Current branch."""
-    print(Project(data, rm=rm).gh.actual())
+    print(Project(data, rm=rm).gh.current())
 
 
 @project_p.command()
@@ -330,6 +304,35 @@ def buildrequires(
     """Build requirements."""
     for item in Project(data, rm=rm).buildrequires():
         print(item)
+
+
+@gh_g.command(name="current")
+@_current.command(name="current")
+def current_gh_g(
+    url: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
+                                        "if not None, otherwise $GIT."),
+):
+    """Current branch."""
+    print(Gh(url=url, repo=repo).current())
+
+
+@project_p.command("current")
+def current_project_p(
+    data: Annotated[
+        Path,
+        typer.Argument(
+            help="Path/file to project or name of project",
+            autocompletion=_repos_completions,
+        ),
+    ] = _cwd,
+    rm: bool = typer.Option(False, help="Remove cache"),
+):
+    """Current branch."""
+    print(Project(data, rm=rm).gh.current())
 
 
 @gh_g.command(name="default")

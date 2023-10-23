@@ -3,12 +3,6 @@ import pytest
 from nodeps.__main__ import gh_g
 
 
-@pytest.mark.parametrize("invoke", [[gh_g, "actual"]], indirect=True)
-def test_actual(invoke):
-    assert invoke.exit_code == 0
-    assert invoke.stdout == "main\n"
-
-
 @pytest.mark.parametrize("invoke", [[gh_g, "admin"]], indirect=True)
 def test_admin(invoke):
     assert invoke.exit_code == 0
@@ -21,6 +15,12 @@ def test_admin_foo(invoke):
 
 @pytest.mark.parametrize("invoke", [[gh_g, "branch"]], indirect=True)
 def test_branch(invoke):
+    assert invoke.exit_code == 0
+    assert invoke.stdout == "main\n"
+
+
+@pytest.mark.parametrize("invoke", [[gh_g, "current"]], indirect=True)
+def test_current(invoke):
     assert invoke.exit_code == 0
     assert invoke.stdout == "main\n"
 

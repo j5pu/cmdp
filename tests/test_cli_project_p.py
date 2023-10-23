@@ -6,12 +6,6 @@ from nodeps.__main__ import project_p
 from nodeps import NODEPS_PROJECT_NAME
 
 
-@pytest.mark.parametrize("invoke", [[project_p, "actual"]], indirect=True)
-def test_actual(invoke):
-    assert invoke.exit_code == 0
-    assert invoke.stdout == "main\n"
-
-
 @pytest.mark.parametrize("invoke", [[project_p, "admin"]], indirect=True)
 def test_admin(invoke):
     assert invoke.exit_code == 0
@@ -56,6 +50,12 @@ def test_buildrequires(invoke):
 @pytest.mark.parametrize("invoke", [[project_p, "commit"]], indirect=True)
 def test_commit(invoke):
     assert invoke.exit_code == 0
+
+
+@pytest.mark.parametrize("invoke", [[project_p, "current"]], indirect=True)
+def test_current(invoke):
+    assert invoke.exit_code == 0
+    assert invoke.stdout == "main\n"
 
 
 @pytest.mark.parametrize("invoke", [[project_p, "default"]], indirect=True)

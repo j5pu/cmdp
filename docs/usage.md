@@ -41,6 +41,10 @@
     :prog: completions
     :nested: full
 
+.. click:: nodeps.__main__:_current_click
+    :prog: current
+    :nested: full
+
 .. click:: nodeps.__main__:_dependencies_click
     :prog: dependencies
     :nested: full

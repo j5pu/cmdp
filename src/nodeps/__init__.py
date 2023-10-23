@@ -2418,13 +2418,13 @@ class Gh(GitUrl):
 
         self.git = f"git -C '{self._path}'"
 
-    def actual(self) -> str:
+    def current(self) -> str:
         """Current branch.
 
         Examples:
             >>> from nodeps import Gh
             >>>
-            >>> assert Gh().actual() == 'main'
+            >>> assert Gh().current() == 'main'
         """
         return self.git_stdout("branch --show-current") or ""
 
@@ -2522,7 +2522,7 @@ class MyPrompt(Prompts):
             (Token.OutPrompt, pathlib.Path().absolute().stem),
             (Token, " "),
             (Token.Generic, "↪"),
-            (Token.Generic, self.project.gh.actual()),
+            (Token.Generic, self.project.gh.current()),
             *((Token, " "), (Token.Prompt, "©") if os.environ.get("VIRTUAL_ENV") else (Token, "")),
             (Token, " "),
             (Token.Name.Class, "v" + platform.python_version()),
