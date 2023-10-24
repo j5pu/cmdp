@@ -34,6 +34,7 @@ __all__ = (
     "_requirement",
     "_requirements",
     "_secrets",
+    "_secrets_names",
     "_status",
     "_superproject",
     "_tests",
@@ -152,6 +153,7 @@ _repos = typer.Typer(**_typer_options, name="repos",)
 _requirement = typer.Typer(**_typer_options, name="requirement",)
 _requirements = typer.Typer(**_typer_options, name="requirements",)
 _secrets = typer.Typer(**_typer_options, name="secrets",)
+_secrets_names = typer.Typer(**_typer_options, name="secrets-names",)
 _status = typer.Typer(**_typer_options, name="_status",)
 _superproject = typer.Typer(**_typer_options, name="superproject",)
 _tests = typer.Typer(**_typer_options, name="tests",)
@@ -382,6 +384,22 @@ def clean(
     Project(data, rm=rm).clean()
 
 
+@gh_g.command(name="commit")
+def commit_gh_g(
+    data: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
+                                        "if not None, otherwise $GIT."),
+    msg: str = typer.Option("", "-m", "--message", "--msg", help="Commit message"),
+    quiet: bool = True,
+    force: bool = typer.Option(False, help="Force commit if diverged"),
+):
+    """Commit a project from path or name."""
+    Gh(data=data, repo=repo).commit(msg if msg else None, force=force, quiet=quiet)
+
+
 @project_p.command()
 @_commit.command()
 def commit(
@@ -393,9 +411,11 @@ def commit(
         ),
     ] = _cwd,
     msg: str = typer.Option("", "-m", "--message", "--msg", help="Commit message"),
+    force: bool = typer.Option(False, help="Force commit if diverged"),
+    quiet: bool = True,
 ):
     """Commit a project from path or name."""
-    Project(data).commit(msg if msg else None)
+    Project(data).gh.commit(msg if msg else None, force=force, quiet=quiet)
 
 
 @project_p.command()
@@ -625,6 +645,19 @@ def ipythondir():
     print(IPYTHONDIR)
 
 
+@gh_g.command(name="latest")
+def latest_gh_g(
+    data: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
+                                        "if not None, otherwise $GIT."),
+):
+    """Latest tag."""
+    print(Gh(data=data, repo=repo).latest())
+
+
 @project_p.command()
 @_latest.command()
 def latest(
@@ -637,7 +670,7 @@ def latest(
     ] = _cwd,
 ):
     """Latest tag."""
-    print(Project(data).latest())
+    print(Project(data).gh.latest())
 
 
 @project_p.command(name="mip")
@@ -719,6 +752,21 @@ def needpush(
         sys.exit(1)
 
 
+@gh_g.command(name="next")
+def next_gh_g(
+    data: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
+                                        "if not None, otherwise $GIT."),
+    part: Annotated[Bump, typer.Option(help="part to increase if force")] = Bump.PATCH,
+    force: Annotated[bool, typer.Option(help="force bump")] = False,
+):
+    """Show next version based on fix: feat: or BREAKING CHANGE:."""
+    print(Gh(data=data, repo=repo).next(part=part, force=force))
+
+
 @project_p.command(name="next")
 @_next.command(name="next")
 def __next(
@@ -731,10 +779,9 @@ def __next(
     ] = _cwd,
     part: Annotated[Bump, typer.Option(help="part to increase if force")] = Bump.PATCH,
     force: Annotated[bool, typer.Option(help="force bump")] = False,
-    rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Show next version based on fix: feat: or BREAKING CHANGE:."""
-    print(Project(data, rm=rm).next(part, force))
+    print(Project(data=data).gh.next(part=part, force=force))
 
 
 @gh_g.command(name="public")
@@ -787,6 +834,21 @@ def publish(
     Project(data, rm=rm).publish(part=part, force=force, ruff=ruff, tox=tox, quiet=quiet, rm=rm)
 
 
+@gh_g.command(name="pull")
+def pull_gh_g(
+    data: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
+                                        "if not None, otherwise $GIT."),
+    force: bool = typer.Option(False, help="Force commit if diverged"),
+    quiet: bool = True,
+):
+    """Pull repo."""
+    Gh(data=data, repo=repo).pull(force=force, quiet=quiet)
+
+
 @project_p.command()
 @_pull.command()
 def pull(
@@ -797,9 +859,26 @@ def pull(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    force: bool = typer.Option(False, help="Force commit if diverged"),
+    quiet: bool = True,
 ):
     """Pull repo."""
-    Project(data).pull()
+    Project(data).gh.pull(force=force, quiet=quiet)
+
+
+@gh_g.command(name="push")
+def push_gh_g(
+    data: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
+                                        "if not None, otherwise $GIT."),
+    force: bool = typer.Option(False, help="Force push"),
+    quiet: bool = True,
+):
+    """Push repo."""
+    Gh(data=data, repo=repo).push(force=force, quiet=quiet)
 
 
 @project_p.command()
@@ -812,9 +891,11 @@ def push(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    force: bool = typer.Option(False, help="Force push"),
+    quiet: bool = True,
 ):
     """Push repo."""
-    Project(data).push()
+    Project(data).gh.push(force=force, quiet=quiet)
 
 
 @project_p.command()
@@ -873,6 +954,19 @@ def pythonstartup():
     print(PYTHONSTARTUP)
 
 
+@gh_g.command(name="remote")
+def remote_gh_g(
+    data: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
+                                        "if not None, otherwise $GIT."),
+):
+    """Remote url."""
+    print(Gh(data=data, repo=repo).url)
+
+
 @project_p.command()
 @_remote.command()
 def remote(
@@ -885,7 +979,7 @@ def remote(
     ] = _cwd,
 ):
     """Remote url."""
-    print(Project(data).remote())
+    print(Project(data).gh.url)
 
 
 @project_p.command()
@@ -973,6 +1067,20 @@ def _ruff(
     sys.exit(Project(data).ruff(version=version))
 
 
+@gh_g.command(name="secrets")
+def secrets_gh_g(
+    data: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
+                                        "if not None, otherwise $GIT."),
+    force: bool = typer.Option(False, help="For update secrets, otherwise update if empty."),
+):
+    """Update GitHub repository secrets."""
+    Gh(data=data, repo=repo).secrets(force=force)
+
+
 @project_p.command()
 @_secrets.command()
 def secrets(
@@ -983,10 +1091,40 @@ def secrets(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
-    rm: bool = typer.Option(False, help="Remove cache"),
+    force: bool = typer.Option(False, help="For update secrets, otherwise update if empty."),
 ):
     """Update GitHub repository secrets."""
-    Project(data, rm=rm).secrets()
+    Project(data).gh.secrets(force=force)
+
+
+@gh_g.command(name="secrets-names")
+def secrets_names_gh_g(
+    data: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
+                                        "if not None, otherwise $GIT."),
+):
+    """List GitHub repository secrets names."""
+    for item in Gh(data=data, repo=repo).secrets_names():
+        print(item)
+
+
+@project_p.command(name="secrets-names")
+@_secrets_names.command(name="secrets-names")
+def secrets_names(
+    data: Annotated[
+        Path,
+        typer.Argument(
+            help="Path/file to project or name of project",
+            autocompletion=_repos_completions,
+        ),
+    ] = _cwd,
+):
+    """List GitHub repository secrets names."""
+    for item in Project(data).gh.secrets_names():
+        print(item)
 
 
 @gh_g.command(name="status")
@@ -1021,6 +1159,18 @@ def status(
     print_json(data=dataclasses.asdict(Project(data).gh.status(quiet=quiet)))
 
 
+@gh_g.command(name="superproject")
+def superproject_gh_g(
+    data: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.", ),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner"),
+):
+    """Superproject path."""
+    print(Gh(data=data, repo=repo).superproject())
+
+
 @project_p.command()
 @_superproject.command()
 def superproject(
@@ -1033,7 +1183,20 @@ def superproject(
     ] = _cwd,
 ):
     """Superproject path."""
-    print(Project(data).superproject())
+    print(Project(data).gh.superproject())
+
+
+@gh_g.command(name="sync")
+def sync_gh_g(
+    data: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
+                                        "if not None, otherwise $GIT."),
+):
+    """Sync repo."""
+    Gh(data=data, repo=repo).sync()
 
 
 @project_p.command(name="sync")
@@ -1048,7 +1211,22 @@ def __sync(
     rm: bool = typer.Option(False, help="Remove cache"),
 ):
     """Sync repo."""
-    Project(data, rm=rm).sync()
+    Project(data, rm=rm).gh.sync()
+
+
+@gh_g.command(name="tag")
+def tag_gh_g(
+    tag: str,
+    data: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.",),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
+                                        "if not None, otherwise $GIT."),
+    quiet: bool = True,
+):
+    """Latest tag."""
+    print(Gh(data=data, repo=repo).tag(tag=tag, quiet=quiet))
 
 
 @project_p.command("tag")
@@ -1061,9 +1239,10 @@ def __tag(
             autocompletion=_repos_completions,
         ),
     ] = _cwd,
+    quiet: bool = True,
 ):
     """Tag repo."""
-    Project(data).tag(tag)
+    Project(data).gh.tag(tag=tag, quiet=quiet)
 
 
 @project_p.command(name="test")
@@ -1105,6 +1284,18 @@ def tests(
     sys.exit(Project(data, rm=rm).tests(ruff=ruff, tox=tox, quiet=quiet))
 
 
+@gh_g.command(name="top")
+def top_gh_g(
+    data: Annotated[
+        Path,  # noqa: RUF013
+        typer.Argument(help="Url, path or user (to be used with name), default None for cwd.", ),
+    ] = None,
+    repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner"),
+):
+    """Top path."""
+    print(Gh(data=data, repo=repo).top())
+
+
 @project_p.command()
 def top(
     data: Annotated[
@@ -1116,7 +1307,7 @@ def top(
     ] = _cwd,
 ):
     """Top path."""
-    print(Project(data).top())
+    print(Project(data).gh.top())
 
 
 @project_p.command(name="tox")

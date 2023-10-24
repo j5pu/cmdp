@@ -137,6 +137,10 @@
     :prog: secrets
     :nested: full
 
+.. click:: nodeps.__main__:_secrets_names_click
+    :prog: secrets-names
+    :nested: full
+
 .. click:: nodeps.__main__:_status_click
     :prog: _status
     :nested: full

@@ -102,11 +102,6 @@ def test_repos(invoke):
     assert invoke.exit_code == 0
 
 
-@pytest.mark.parametrize("invoke", [[_sha]], indirect=True)
-def test_sha(invoke):
-    assert invoke.exit_code == 0
-
-
 @pytest.mark.parametrize("invoke", [[_superproject]], indirect=True)
 def test_superproject(invoke):
     assert invoke.exit_code == 0

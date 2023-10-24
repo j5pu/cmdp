@@ -1,8 +1,6 @@
-brew "coreutils"
+brew "gh"
 brew "git"
 
 if RUBY_PLATFORM[/darwin/]
-  tap "caarlos0/tap"
-
-  brew "caarlos0/tap/svu"
+  brew "coreutils"
 end

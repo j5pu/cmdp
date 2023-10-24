@@ -433,10 +433,9 @@ class _NoDepsBaseError(Exception):
 
 class Bump(str, enum.Enum):
     """Bump class."""
-
-    MAJOR = enum.auto()
-    MINOR = enum.auto()
-    PATCH = enum.auto()
+    MAJOR = "MAJOR"
+    MINOR = "MINOR"
+    PATCH = "PATCH"
 
 
 class CalledProcessError(subprocess.SubprocessError):
@@ -2116,6 +2115,9 @@ class GitUrl:
                 self._platform_obj = plat
                 break
 
+        if not self.repo and self._path:
+            self.repo = self._path.name
+
     def admin(self, user: str = GIT, rm: bool = False) -> bool:
         """Check if user has admin permissions.
 
@@ -2432,6 +2434,33 @@ class Gh(GitUrl):
             raise InvalidArgumentError(msg)
 
         self.git = f"git -C '{self._path}'"
+        self.log = ColorLogger.logger(self.__class__.__qualname__)
+
+    def info(self, msg: str):
+        """Logger info."""
+        self.log.info(msg, extra={"extra": self.repo})
+
+    def warning(self, msg: str):
+        """Logger warning."""
+        self.log.warning(msg, extra={"extra": self.repo})
+
+    def commit(self, msg: str | None = None, force: bool = False, quiet: bool = True) -> None:
+        """commit.
+
+        Raises:
+            CalledProcessError: if  fails
+            RuntimeError: if diverged or dirty
+        """
+        status = self.status(quiet=quiet)
+        if status.dirty:
+            if status.diverge and not force:
+                msg = f"Diverged: {status=}, {self.repo=}"
+                raise RuntimeError(msg)
+            if msg is None or msg == "":
+                msg = "fix: "
+            self.git_check_call("add -A")
+            self.git_check_call(f"commit -a {'--quiet' if quiet else ''} -m '{msg}'")
+            self.info(self.commit.__name__)
 
     def current(self) -> str:
         """Current branch.
@@ -2443,7 +2472,7 @@ class Gh(GitUrl):
         """
         return self.git_stdout("branch --show-current") or ""
 
-    def git_check_call(self, line: str):
+    def gh_check_call(self, line: str):
         """Runs git command and raises exception if error (stdout is not captured and shown).
 
         Examples:
@@ -2452,7 +2481,29 @@ class Gh(GitUrl):
             >>> assert Gh().git_check_call("rev-parse --abbrev-ref HEAD") is None
 
         """
-        subprocess.check_call(f"{self.git} {line}", shell=True)
+        return subprocess.check_call(f"gh {line}", shell=True, cwd=self._path)
+
+    def gh_stdout(self, line: str):
+        """Runs git command and returns stdout.
+
+        Examples:
+            >>> from nodeps import Gh
+            >>>
+            >>> assert Gh().git_stdout("rev-parse --abbrev-ref HEAD") == "main"
+        """
+        return stdout(f"gh {line}", cwd=self._path)
+
+    def git_check_call(self, line: str):
+        """Runs git command and raises exception if error (stdout is not captured and shown).
+
+        Examples:
+            >>> from nodeps import Gh
+            >>>
+            >>> Gh().git_check_call("rev-parse --abbrev-ref HEAD")
+            >>> assert Gh().git_check_call("rev-parse --abbrev-ref HEAD") == "main"
+
+        """
+        return subprocess.check_call(f"{self.git} {line}", shell=True)
 
     def git_stdout(self, line: str):
         """Runs git command and returns stdout.
@@ -2463,6 +2514,99 @@ class Gh(GitUrl):
             >>> assert Gh().git_stdout("rev-parse --abbrev-ref HEAD") == "main"
         """
         return stdout(f"{self.git} {line}")
+
+    def latest(self) -> str:
+        """Latest tag: git {c} describe --abbrev=0 --tags."""
+        latest = self.git_stdout("tag | sort -V | tail -1") or ""
+        if not latest:
+            latest = "0.0.0"
+            self.commit(msg=f"{self.latest.__name__}: {latest}")
+            self._tag(latest)
+        return latest
+
+    def _next(self, part: Bump = Bump.PATCH) -> str:
+        latest = self.latest()
+        v = "v" if latest.startswith("v") else ""
+        version = latest.replace(v, "").split(".")
+        match part:
+            case Bump.MAJOR:
+                index = 0
+            case Bump.MINOR:
+                index = 1
+            case _:
+                index = 2
+        version[index] = str(int(version[index]) + 1)
+        return f"{v}{'.'.join(version)}"
+
+    def next(self, part: Bump = Bump.PATCH, force: bool = False) -> str:  # noqa: A003
+        """Show next version based on fix: feat: or BREAKING CHANGE:.
+
+        Args:
+            part: part to increase if force
+            force: force bump
+        """
+        latest = self.latest()
+        out = self.git_stdout(f"log --pretty=format:'%s' {latest}..@")
+        if force:
+            return self._next(part)
+        if out:
+            if "breaking change:" in out.lower():
+                return self._next(Bump.MAJOR)
+            if "feat:" in out.lower():
+                return self._next(Bump.MINOR)
+            if "fix:" in out.lower():
+                return self._next()
+        return latest
+
+    def pull(self, force: bool = False, quiet: bool = True) -> None:
+        """pull.
+
+        Raises:
+            CalledProcessError: if pull fails
+            RuntimeError: if diverged or dirty
+        """
+        status = self.status(quiet=quiet)
+        if status.diverge and not force:
+            msg = f"Diverged: {status=}, {self.repo=}"
+            raise RuntimeError(msg)
+        if status.pull:
+            self.git_check_call(f"pull {'--force' if force else ''} {'--quiet' if quiet else ''}")
+            self.info(self.pull.__name__)
+
+    def push(self, force: bool = False, quiet: bool = True) -> None:
+        """push.
+
+        Raises:
+            CalledProcessError: if push fails
+            RuntimeError: if diverged
+        """
+        self.commit(force=force, quiet=quiet)
+        status = self.status(quiet=quiet)
+        if status.push:
+            if status.pull and not force:
+                msg = f"Diverged: {status=}, {self.repo=}"
+                raise RuntimeError(msg)
+            self.git_check_call(f"push {'--force' if force else ''} {'--quiet' if quiet else ''}")
+            self.info(self.push.__name__)
+
+    def secrets(self, force: bool = False) -> int:
+        """Update GitHub repository secrets."""
+        if os.environ.get("CI") is not None:
+            return 0
+        if not self.secrets_names() or force:
+            self.gh_check_call(f"secret set GH_TOKEN --body {GITHUB_TOKEN}")
+            if (secrets := Path.home() / "secrets/profile.d/secrets.sh").is_file():
+                with tempfile.NamedTemporaryFile() as tmp:
+                    subprocess.check_call(
+                        f"grep -v GITHUB_ {secrets} > {tmp.name} && cd {self._path} && gh secret set -f {tmp.name}",
+                        shell=True,
+                    )
+                    self.info(self.secrets.__name__)
+        return 0
+
+    def secrets_names(self):
+        """List GitHub repository secrets names."""
+        return self.gh_stdout("secret list --jq .[].name  --json name").splitlines()
 
     def status(self, quiet: bool = True) -> GitStatus:
         """Git status instance and fetch if necessary."""
@@ -2484,6 +2628,35 @@ class Gh(GitUrl):
                 pull = True
                 push = True
         return GitStatus(base=base, dirty=dirty, diverge=diverge, local=local, pull=pull, push=push, remote=remote)
+
+    def superproject(self) -> Path | None:
+        """Git rev-parse --show-superproject-working-tree --show-toplevel."""
+        if v := self.git_stdout("rev-parse --show-superproject-working-tree --show-toplevel"):
+            return Path(v[0])
+        return None
+
+    def _tag(self, tag: str, quiet: bool = True) -> None:
+        self.git_check_call(f"tag {tag}")
+        self.git_check_call(f"push origin {tag} {'--quiet' if quiet else ''}")
+        self.info(f"{self.tag.__name__}: {tag}")
+
+    def tag(self, tag: str, quiet: bool = True) -> str | None:
+        """Git tag."""
+        if self.latest() == tag:
+            self.warning(f"{self.tag.__name__}: {tag} -> nothing to do")
+            return
+        self._tag(tag, quiet=quiet)
+
+    def sync(self):
+        """Sync repository."""
+        self.push()
+        self.pull()
+
+    def top(self) -> Path | None:
+        """Git rev-parse --show-toplevel."""
+        if v := self.git_stdout("rev-parse --show-toplevel"):
+            return Path(v)
+        return None
 
 
 @dataclasses.dataclass
@@ -2563,7 +2736,7 @@ class MyPrompt(Prompts):
             (Token, " "),
             (Token.Name.Class, "v" + platform.python_version()),
             (Token, " "),
-            (Token.Name.Entity, self.project.latest()),
+            (Token.Name.Entity, self.project.gh.latest()),
             (Token, " "),
             (Token.Prompt, "["),
             (Token.PromptNum, str(self.shell.execution_count)),
@@ -4570,8 +4743,14 @@ class Project:
                     self.pyproject_toml = FileConfig(path, tomlkit.load(f))
                 self.name = self.pyproject_toml.config.get("project", {}).get("name")
                 self.root = path.parent
+            elif ((path := findup(self.directory, name=".git", kind="exists", uppermost=True))
+                    and (path.parent / ".git").exists()):
+                self.root = path.parent
+                self.name = self.root.name
 
-            self.repo = self.top() or self.superproject()
+            if self.root:
+                self.gh = Gh(self.root)
+                self.repo = self.gh.top() or self.gh.superproject()
             purelib = sysconfig.get_paths()["purelib"]
             if root := self.root or self.repo:
                 self.root = root.absolute()
@@ -4600,7 +4779,8 @@ class Project:
                 self.profile = pr if (pr := self.data_dir / "profile.d").is_dir() else None
         if self.root:
             self.docsdir = doc if (doc := self.root / "docs").is_dir() else None
-            self.gh = Gh(self.root)
+            if self.gh is None and (self.root / ".git").exists():
+                self.gh = Gh(self.root)
         self.log = ColorLogger.logger(__name__)
 
     def info(self, msg: str):
@@ -4731,23 +4911,6 @@ class Project:
                 except FileNotFoundError:
                     pass
 
-    def commit(self, msg: str | None = None) -> None:
-        """commit.
-
-        Raises:
-            CalledProcessError: if  fails
-            RuntimeError: if diverged or dirty
-        """
-        if self.gh.dirty():
-            if self.needpull():
-                msg = f"Diverged: {self.name=}"
-                raise RuntimeError(msg)
-            if msg is None or msg == "":
-                msg = "fix: "
-            subprocess.check_call(f"{self.git} add -A", shell=True)
-            subprocess.check_call(f"{self.git} commit -a --quiet -m '{msg}'", shell=True)
-            self.info(self.commit.__name__)
-
     def completions(self, uninstall: bool = False):
         """Generate completions to /usr/local/etc/bash_completion.d."""
         value = []
@@ -4868,49 +5031,6 @@ class Project:
             return sorted({extra for item in e.values() for extra in item})
         return e
 
-    def latest(self) -> str:
-        """Latest tag: git {c} describe --abbrev=0 --tags."""
-        latest = stdout(f"{self.git} tag | sort -V | tail -1") or ""
-        if not latest:
-            latest = "0.0.0"
-            self.commit()
-            self._tag(latest)
-        return latest
-
-    def _next(self, part: Bump = Bump.PATCH) -> str:
-        latest = self.latest()
-        v = "v" if latest.startswith("v") else ""
-        version = latest.replace(v, "").split(".")
-        match part:
-            case Bump.MAJOR:
-                index = 0
-            case Bump.MINOR:
-                index = 1
-            case _:
-                index = 2
-        version[index] = str(int(version[index]) + 1)
-        return f"{v}{'.'.join(version)}"
-
-    def next(self, part: Bump = Bump.PATCH, force: bool = False) -> str:  # noqa: A003
-        """Show next version based on fix: feat: or BREAKING CHANGE:.
-
-        Args:
-            part: part to increase if force
-            force: force bump
-        """
-        latest = self.latest()
-        out = stdout(f"git log --pretty=format:'%s' {latest}..@")
-        if force:
-            return self._next(part)
-        if out:
-            if "BREAKING CHANGE:" in out:
-                return self._next(Bump.MAJOR)
-            if "feat:" in out:
-                return self._next(Bump.MINOR)
-            if "fix:" in out:
-                return self._next()
-        return latest
-
     @classmethod
     def nodeps(cls) -> Project:
         """Project Instance of nodeps."""
@@ -4939,10 +5059,10 @@ class Project:
         NODEPS_QUIET = quiet
 
         self.tests(ruff=ruff, tox=tox, quiet=quiet)
-        self.commit()
-        if (n := self.next(part=part, force=force)) != (l := self.latest()):
-            self.tag(n)
-            self.push()
+        self.gh.commit()
+        if (n := self.gh.next(part=part, force=force)) != (l := self.gh.latest()):
+            self.gh.tag(n)
+            self.gh.push()
             if rc := self.twine(rm=rm) != 0:
                 sys.exit(rc)
             self.info(f"{self.publish.__name__}: {l} -> {n}")
@@ -4950,36 +5070,6 @@ class Project:
             self.warning(f"{self.publish.__name__}: {n} -> nothing to do")
 
         self.clean()
-
-    def pull(self) -> None:
-        """pull.
-
-        Raises:
-            CalledProcessError: if pull fails
-            RuntimeError: if diverged or dirty
-        """
-        if self.diverge():
-            msg = f"Diverged: {self.diverge()} or dirty: {self.diverge()} - {self.name=}"
-            raise RuntimeError(msg)
-        if self.needpull():
-            subprocess.check_call(f"{self.git} fetch --all  --tags --quiet", shell=True)
-            subprocess.check_call(f"{self.git} pull --quiet", shell=True)
-            self.info(self.pull.__name__)
-
-    def push(self) -> None:
-        """push.
-
-        Raises:
-            CalledProcessError: if push fails
-            RuntimeError: if diverged
-        """
-        self.commit()
-        if self.needpush():
-            if self.needpull():
-                msg = f"Diverged: {self.name=}"
-                raise RuntimeError(msg)
-            subprocess.check_call(f"{self.git} push --quiet", shell=True)
-            self.info(self.push.__name__)
 
     def pypi(
         self,
@@ -5018,16 +5108,6 @@ class Project:
                 if rc != 0:
                     sys.exit(rc)
         return rc
-
-    def remote(self) -> str:
-        """Remote url.
-
-        Examples:
-            >>> from nodeps import Project
-            >>>
-            >>> assert Project.nodeps().remote() == 'https://github.com/j5pu/nodeps'
-        """
-        return stdout(f"{self.git} config --get remote.origin.url") or ""
 
     @classmethod
     def repos(
@@ -5131,52 +5211,6 @@ class Project:
             return rv
         return 0
 
-    def secrets(self) -> int:
-        """Runs ruff."""
-        if os.environ.get("CI"):
-            return 0
-        if (
-            subprocess.check_call("gh secret set GH_TOKEN --body $GITHUB_TOKEN", shell=True) == 0
-            and (secrets := Path.home() / "secrets/profile.d/secrets.sh").is_file()
-        ):
-            with tempfile.NamedTemporaryFile() as tmp:
-                subprocess.check_call(
-                    f"grep -v GITHUB_ {secrets} > {tmp.name} && gh secret set -f {tmp.name}",
-                    shell=True,
-                )
-                self.info(self.secrets.__name__)
-        return 0
-
-    def sync(self):
-        """Sync repository."""
-        self.push()
-        self.pull()
-
-    def superproject(self) -> Path | None:
-        """Git rev-parse --show-superproject-working-tree --show-toplevel."""
-        if v := stdout(
-            f"{self.git} rev-parse --show-superproject-working-tree --show-toplevel",
-            split=True,
-        ):
-            return Path(v[0])
-        return None
-
-    def _tag(self, tag: str) -> None:
-        subprocess.check_call(f"{self.git} tag {tag}", shell=True)
-        subprocess.check_call(f"{self.git} push origin {tag} --quiet", shell=True)
-        self.info(f"{self.tag.__name__}: {tag}")
-
-    def tag(self, tag: str) -> None:
-        """tag.
-
-        Raises:
-            CalledProcessError: if push fails
-        """
-        if self.latest() == tag:
-            self.warning(f"{self.tag.__name__}: {tag} -> nothing to do")
-            return
-        self._tag(tag)
-
     # TODO: delete all tags and pypi versions
 
     def test(
@@ -5226,12 +5260,6 @@ class Project:
                     sys.exit(rc)
         return rc
 
-    def top(self) -> Path | None:
-        """Git rev-parse --show-toplevel."""
-        if v := stdout(f"{self.git} rev-parse --show-toplevel"):
-            return Path(v)
-        return None
-
     def tox(self) -> int:
         """Runs tox."""
         if self.pyproject_toml.file:
@@ -5257,7 +5285,7 @@ class Project:
 
         if (
             self.pyproject_toml.file
-            and (pypi != self.next(part=part, force=force))
+            and (pypi != self.gh.next(part=part, force=force))
             and "Private :: Do Not Upload" not in self.pyproject_toml.config.get("project", {}).get("classifiers", [])
         ):
             c = f"{self.executable()} -m twine upload -u __token__  {self.build(rm=rm).parent}/*"
@@ -5273,7 +5301,9 @@ class Project:
         Args:
             rm: remove cache
         """
-        if (v := self.pyproject_toml.config.get("project", {}).get("version")) or (self.top and (v := self.latest())):
+        if v := self.pyproject_toml.config.get("project", {}).get("version"):
+            return v
+        if self.gh.top() and (v := self.gh.latest()):
             return v
         if d := self.distribution():
             return d.version
@@ -6884,7 +6914,8 @@ def load_ipython_extension(  # noqa: PLR0912, PLR0915
     config.TerminalInteractiveShell.banner2 = ""
     config.TerminalInteractiveShell.confirm_exit = False
     config.TerminalInteractiveShell.highlighting_style = "monokai"
-    config.TerminalInteractiveShell.prompts_class = MyPrompt
+    if not from_pycharm_console and not magic:  # debug in console goes thu Prompt
+        config.TerminalInteractiveShell.prompts_class = MyPrompt
     config.TerminalInteractiveShell.term_title = True
     config.PlainTextFormatter.max_seq_length = 0
     config.Completer.auto_close_dict_keys = True
@@ -6895,6 +6926,9 @@ def load_ipython_extension(  # noqa: PLR0912, PLR0915
 
     if from_pycharm_console:
         load_ipython_extension(ipython, magic=True)
+
+    import asyncio.base_events
+    asyncio.base_events.BaseEventLoop.slow_callback_duration = 1
 
     if ipython is None:
         return config
@@ -7165,7 +7199,12 @@ def split_pairs(text):
     return list(zip(text[0::2], text[1::2], strict=True))
 
 
-def stdout(shell: AnyStr, keepends: bool = False, split: bool = False) -> list[str] | str | None:
+def stdout(
+        shell: AnyStr,
+        keepends: bool = False,
+        split: bool = False,
+        cwd: Path | str | None = None
+) -> list[str] | str | None:
     """Return stdout of executing cmd in a shell or None if error.
 
     Execute the string 'cmd' in a shell with 'subprocess.getstatusoutput' and
@@ -7190,11 +7229,13 @@ def stdout(shell: AnyStr, keepends: bool = False, split: bool = False) -> list[s
         keepends: line breaks when ``split`` if true, are not included in the resulting list unless keepends
             is given and true.
         split: return a list of the stdout lines in the string, breaking at line boundaries.(default: False)
+        cwd: cwd
 
     Returns:
         Stdout or None if error.
     """
-    exitcode, data = subprocess.getstatusoutput(shell)
+    with Path(cwd or "").cd():
+        exitcode, data = subprocess.getstatusoutput(shell)
 
     if exitcode == 0:
         if split:
