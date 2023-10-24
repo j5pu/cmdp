@@ -2478,8 +2478,7 @@ class Gh(GitUrl):
         Examples:
             >>> from nodeps import Gh
             >>>
-            >>> assert Gh().git_check_call("rev-parse --abbrev-ref HEAD") is None
-
+            >>> assert Gh().gh_check_call("repo view") == 0  # doctest: +SKIP
         """
         return subprocess.check_call(f"gh {line}", shell=True, cwd=self._path)
 
@@ -2488,8 +2487,9 @@ class Gh(GitUrl):
 
         Examples:
             >>> from nodeps import Gh
+            >>> from nodeps import NODEPS_PROJECT_NAME
             >>>
-            >>> assert Gh().git_stdout("rev-parse --abbrev-ref HEAD") == "main"
+            >>> assert NODEPS_PROJECT_NAME in Gh().gh_stdout("repo view")  # doctest: +SKIP
         """
         return stdout(f"gh {line}", cwd=self._path)
 
@@ -2499,8 +2499,7 @@ class Gh(GitUrl):
         Examples:
             >>> from nodeps import Gh
             >>>
-            >>> Gh().git_check_call("rev-parse --abbrev-ref HEAD")
-            >>> assert Gh().git_check_call("rev-parse --abbrev-ref HEAD") == "main"
+            >>> assert Gh().git_check_call("rev-parse --abbrev-ref HEAD") == 0
 
         """
         return subprocess.check_call(f"{self.git} {line}", shell=True)
