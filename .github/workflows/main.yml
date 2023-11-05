@@ -29,7 +29,7 @@ jobs:
         run: |
           pip install --upgrade -q pip
           pip install pip-tools
-          python -m piptools compile --no-strip-extras -o /tmp/requirements.txt pyproject.toml
+          python -m piptools compile --all-extras -o /tmp/requirements.txt pyproject.toml
           pip install -r /tmp/requirements.txt
 
       - name: pytest
