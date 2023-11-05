@@ -77,7 +77,7 @@ class Repo(GitRepo):
             >>> import warnings
             >>> import nodeps
             >>> from nodeps.extras._repo import Repo
-            >>> assert Repo(nodeps.__file__)
+            >>> assert Repo(__file__)
             >>> Repo("~/repo.git")  # doctest: +ELLIPSIS +IGNORE_EXCEPTION_DETAIL
             Traceback (most recent call last):
             git.exc.NoSuchPathError: .../repo.git
@@ -121,10 +121,9 @@ class Repo(GitRepo):
         The configuration will include values from the system, user and repository configuration files.
 
         Examples:
-            >>> import nodeps
             >>> from nodeps.extras._repo import Repo
             >>>
-            >>> conf = Repo(nodeps.__file__).git_config
+            >>> conf = Repo(__file__).git_config
             >>> conf.has_section('remote "origin"')
             True
             >>> conf.has_option('remote "origin"', 'url')
@@ -146,10 +145,9 @@ class Repo(GitRepo):
         """Git Origin URL.
 
         Examples:
-            >>> import nodeps
             >>> from nodeps.extras._repo import Repo
             >>>
-            >>> Repo(nodeps.__file__).origin_url.geturl()   # doctest: +ELLIPSIS
+            >>> Repo(__file__).origin_url.geturl()   # doctest: +ELLIPSIS
             'https://github.com/.../nodeps'
         """
         return urllib.parse.urlparse(self.git_config.get_value('remote "origin"', "url", ""))

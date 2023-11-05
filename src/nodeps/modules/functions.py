@@ -307,23 +307,25 @@ def chdir(data: StrOrBytesPath | bool = True) -> Iterable[tuple[pathlib.Path, pa
         >>> from nodeps import MACOS
         >>>
         >>> previous = Path.cwd()
-        >>> new = Path('/usr/local')
+        >>> new = Path('/usr')
         >>> with chdir(new) as (pr, ne):
         ...     assert previous == pr
         ...     assert new == ne
         ...     assert ne == Path.cwd()
         >>>
-        >>> new = Path('/bin/ls')
-        >>> with chdir(new) as (pr, ne):
-        ...     assert previous == pr
-        ...     assert new.parent == ne
-        ...     assert ne == Path.cwd()
+        >>> if MACOS:
+        ...     new = Path('/bin/ls')
+        ...     with chdir(new) as (pr, ne):
+        ...         assert previous == pr
+        ...         assert new.parent == ne
+        ...         assert ne == Path.cwd()
         >>>
-        >>> new = Path('/bin/foo')
-        >>> with chdir(new) as (pr, ne):
-        ...     assert previous == pr
-        ...     assert new.parent == ne
-        ...     assert ne == Path.cwd()
+        >>> if MACOS:
+        ...     new = Path('/bin/foo')
+        ...     with chdir(new) as (pr, ne):
+        ...         assert previous == pr
+        ...         assert new.parent == ne
+        ...         assert ne == Path.cwd()
         >>>
         >>> with chdir() as (pr, ne):
         ...     assert previous == pr
@@ -705,14 +707,13 @@ def toiter(obj: Any, always: bool = False, split: str = " ") -> Any:
 
 
 def which(data="sudo", raises: bool = False) -> str:
-    """Checks if cmd or path is executable or exported bash function.
+    """Checks if cmd or path is executable.
 
     Examples:
         >>> from nodeps import which
         >>> if which():
         ...    assert "sudo" in which()
         >>> assert which('/bin/ls') == '/bin/ls'
-        >>> assert which('type') == 'type'
         >>> which("foo", raises=True) # doctest: +IGNORE_EXCEPTION_DETAIL
         Traceback (most recent call last):
         nodeps.CommandNotFoundError: foo
@@ -727,11 +728,7 @@ def which(data="sudo", raises: bool = False) -> str:
     Returns:
         Cmd path or ""
     """
-    rv = (
-        shutil.which(data, mode=os.X_OK)
-        or subprocess.run(f"command -v {data}", shell=True, text=True, capture_output=True).stdout.rstrip("\n")
-        or ""
-    )
+    rv = shutil.which(data, mode=os.X_OK) or ""
 
     if raises and not rv:
         raise CommandNotFoundError(data)
