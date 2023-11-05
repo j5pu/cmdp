@@ -27,7 +27,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --upgrade -q pip && pip install -q --no-cache-dir .[full]
+          pip install --upgrade -q pip && pip install -q --no-cache-dir --only-deps .[full]
 
       - name: pytest
         run: pytest
