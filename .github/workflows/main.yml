@@ -1,0 +1,33 @@
+---
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  tests:
+    name: Python ${{ matrix.python-version }} tests
+    runs-on: ${{ matrix.os}}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+        python: [ "3.11", "3.12" ]
+
+    steps:
+      - uses: actions/checkout@main
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@main
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade -q pip && pip install -q --no-cache-dir . .[full]
+
+      - name: pytest
+        run: pytest

@@ -1,0 +1,98 @@
+"""Constants Module."""
+__all__ = (
+    "AUTHOR",
+    "CI",
+    "DOCKER",
+    "DOCKER_COMMAND",
+    "GIT",
+    "GIT_DEFAULT_SCHEME",
+    "GITHUB_DOMAIN",
+    "GITHUB_TOKEN",
+    "GITHUB_URL",
+    "LINUX",
+    "LOCAL",
+    "MACOS",
+    "NODEPS_EXECUTABLE",
+    "NODEPS_PIP_POST_INSTALL_FILENAME",
+    "NODEPS_PROJECT_NAME",
+    "NODEPS_PATH",
+    "NODEPS_QUIET",
+    "PY_MAJOR_MINOR",
+    "PYTHON_VERSIONS",
+    "PYTHON_DEFAULT_VERSION",
+    "USER",
+    "EMAIL",
+    "IPYTHON_EXTENSIONS",
+    "IPYTHONDIR",
+    "PW_ROOT",
+    "PW_USER",
+    "PYTHONSTARTUP",
+)
+import os
+import pathlib
+import pwd
+import shutil
+import sys
+
+AUTHOR = "José Antonio Puértolas Montañés"
+CI = bool(os.environ.get("CI"))
+"""True if running in CI."""
+DOCKER = pathlib.Path("/.dockerenv").exists()
+"""True if running inside container."""
+DOCKER_COMMAND = bool(shutil.which("docker", mode=os.X_OK))
+"""True if docker install."""
+GIT = os.environ.get("GIT", "j5pu")
+"""GitHub user name"""
+GIT_DEFAULT_SCHEME = "https"
+GITHUB_DOMAIN = "github.com"
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", os.environ.get("GH_TOKEN", os.environ.get("TOKEN")))
+"""GitHub Token"""
+GITHUB_URL = {
+    "api": f"https://api.{GITHUB_DOMAIN}",
+    "git+file": "git+file://",
+    "git+https": f"git+https://{GITHUB_DOMAIN}/",
+    "git+ssh": f"git+ssh://git@{GITHUB_DOMAIN}/",
+    "https": f"https://{GITHUB_DOMAIN}/",
+    "ssh": f"git@{GITHUB_DOMAIN}:",
+}
+"""
+GitHub: api, git+file, git+https, git+ssh, https, ssh and git URLs
+(join directly the user or path without '/' or ':')
+"""
+LINUX = sys.platform == "linux"
+"""Is Linux? sys.platform == 'linux'"""
+LOCAL = not CI and not DOCKER
+"""True if not running in CI nor DOCKER container."""
+MACOS = sys.platform == "darwin"
+"""Is macOS? sys.platform == 'darwin'"""
+NODEPS_EXECUTABLE = "p"
+"""NoDeps Executable Name"""
+NODEPS_PATH = pathlib.Path(__file__).parent.parent
+"""NoDeps Source Path"""
+NODEPS_PIP_POST_INSTALL_FILENAME = "_post_install.py"
+"""Filename that will be searched after pip installs a package."""
+NODEPS_PROJECT_NAME = "nodeps"
+"""NoDeps Project Name"""
+NODEPS_QUIET = True
+"""Global variable to supress warn in setuptools"""
+PY_MAJOR_MINOR = f"{sys.version_info[0]}.{sys.version_info[1]}"
+"""Major.Minor Python running version."""
+PYTHON_VERSIONS = (
+    os.environ.get("PYTHON_DEFAULT_VERSION", "3.11"),
+    "3.12",
+)
+"""Python versions for venv, etc."""
+PYTHON_DEFAULT_VERSION = PYTHON_VERSIONS[0]
+"""Python default version for venv, etc."""
+USER = os.getenv("USER")
+""""Environment Variable $USER"""
+
+IPYTHON_EXTENSIONS = ["autoreload", NODEPS_PROJECT_NAME, "storemagic", "rich"]
+"""Default IPython extensions to load"""
+IPYTHONDIR = str(NODEPS_PATH / "ipython_profile")
+"""IPython Profile :mod:`ipython_profile.profile_default.ipython_config`: `export IPYTHONDIR="$(ipythondir)"`."""
+EMAIL = f"63794670+{GIT}@users.noreply.github.com"
+PW_ROOT = pwd.getpwnam("root")
+PW_USER = pwd.getpwnam(USER) if USER else PW_ROOT
+PYTHONSTARTUP = str(NODEPS_PATH / "python_startup/__init__.py")
+"""Python Startup :mod:`python_startup.__init__`: `export PYTHONSTARTUP="$(pythonstartup)"`."""

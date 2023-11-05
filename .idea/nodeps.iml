@@ -10,6 +10,12 @@
       <excludeFolder url="file://$MODULE_DIR$/venv" />
       <excludeFolder url="file://$MODULE_DIR$/.pytest_cache" />
       <excludeFolder url="file://$MODULE_DIR$/src/nodeps/venv" />
+      <excludeFolder url="file://$MODULE_DIR$/src/_backup" />
+      <excludeFolder url="file://$MODULE_DIR$/src/nodeps/ipython_profile/profile_default/db" />
+      <excludeFolder url="file://$MODULE_DIR$/src/nodeps/ipython_profile/profile_default/log" />
+      <excludeFolder url="file://$MODULE_DIR$/src/nodeps/ipython_profile/profile_default/pid" />
+      <excludeFolder url="file://$MODULE_DIR$/src/nodeps/ipython_profile/profile_default/security" />
+      <excludeFolder url="file://$MODULE_DIR$/src/nodeps/ipython_profile/profile_default/startup" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.11 (nodeps)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

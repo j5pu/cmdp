@@ -30,14 +30,7 @@ __all__ = (
     "logger",
 
     "cache",
-    "FORCE_COLOR",
-    "IPYTHON",
-    "IS_REPL",
-    "IS_TTY",
-    "OpenIO",
-    "ins",
-    "is_terminal",
-    "CONSOLE",
+
     "ic",
     "icc",
 
@@ -77,16 +70,8 @@ from ._echo import (
 from ._log import LOGGER_DEFAULT_FMT, logger
 from ._pickle import cache
 from ._pretty import (
-    CONSOLE,
-    FORCE_COLOR,
-    IPYTHON,
-    IS_REPL,
-    IS_TTY,
-    OpenIO,
     ic,
     icc,
-    ins,
-    is_terminal,
 )
 from ._repo import Repo
 from ._url import (
