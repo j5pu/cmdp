@@ -6189,7 +6189,6 @@ os.environ["IPYTHONDIR"] = IPYTHONDIR
 os.environ["PIP_ROOT_USER_ACTION"] = "ignore"
 os.environ["PYTHONDONTWRITEBYTECODE"] = ""
 os.environ["PYTHONSTARTUP"] = PYTHONSTARTUP
-os.environ["PY_IGNORE_IMPORTMISMATCH"] = "1"
 
 if "pip._internal.operations.install.wheel" in sys.modules:
     pip._internal.operations.install.wheel.install_wheel = _pip_install_wheel
