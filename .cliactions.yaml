@@ -1,0 +1,5 @@
+groups:
+  - name: Docker
+    commands:
+      - name: Docker tests
+        command: docker build --quiet -f tests.dockerfile -t tests . && docker run --rm tests pytest
