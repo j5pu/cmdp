@@ -301,7 +301,6 @@ def chdir(data: AnyPath | bool = True) -> Iterable[tuple[Path, Path]]:
     """Change directory and come back to previous directory.
 
     Examples:
-        # FIXME: Ubuntu
         >>> from nodeps import Path
         >>> from nodeps import chdir
         >>> from nodeps import MACOS

@@ -330,12 +330,13 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             >>> from nodeps import Path
             >>> from nodeps import MACOS
             >>> from nodeps import LOCAL
+            >>> from nodeps import USER
             >>>
             >>> assert Path().access() is True
-            >>> if MACOS and LOCAL:
-            ...     assert Path('/usr/bin').access() is False
-            ... else:
+            >>> if USER == "root":
             ...     assert Path('/usr/bin').access() is True
+            ... else:
+            ...     assert Path('/usr/bin').access() is False
             >>> assert Path('/tmp').access(follow_symlinks=True) is True
             >>> assert Path('/tmp').access(effective_ids=True, follow_symlinks=True) is True
             >>> if MACOS and LOCAL:
@@ -696,7 +697,6 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         """Wrapper for shell `cp` command to copy file recursivily and adding sudo if necessary.
 
         Examples:
-            # FIXME: Ubuntu
             >>> import sys
             >>> from nodeps import Path
             >>> from nodeps import SUDO, USER
@@ -720,7 +720,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             ...     dirname = src.name
             ...     filename = Path(__file__).name
             ...
-            ...     dst = src.cp(tmp)
+            ...     _ = src.cp(tmp)
             ...     destination = tmp / dirname
             ...     stats = destination.stats()
             ...     assert stats.mode == "drwxr-xr-x"
@@ -733,9 +733,9 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             ...     assert file.owner() == USER
             ...     assert file.cmp(__file__)
             ...
-            ...     dst = src.cp(tmp, contents=True)
+            ...     _ = src.cp(tmp, contents=True)
             ...     file = tmp / filename
-            ...     assert (file).cmp(__file__)
+            ...     assert file.cmp(__file__)
             >>>
             >>> Path("/tmp/foo").cp("/tmp/boo")  # doctest: +IGNORE_EXCEPTION_DETAIL
             Traceback (most recent call last):
@@ -965,7 +965,6 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
            dest: link destination (ln -s self dest)
            force: force creation of link, if file or link exists and is different (default: True)
         """
-        # TODO: relative symlinks https://gist.dreamtobe.cn/willprice/311faace6fb4f514376fa405d2220615
         dest = self.__class__(dest)
         if dest.is_symlink() and dest.readlink().resolve() == self.resolve():
             return dest
@@ -973,6 +972,27 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             dest.rm()
         os.symlink(self, dest)
         return dest
+
+    def ln_rel(self, dest: AnyPath) -> Path:
+        """Create a symlink pointing to ``target`` from ``location``.
+
+        Args:
+            dest: The location of the symlink itself.
+        """
+        # TODO: examples and check if exists and merge with ln with absolute argument.
+        target = self
+        destination = self.__class__(dest)
+        target_dir = destination.parent
+        target_dir.mkdir()
+        relative_source = os.path.relpath(target, target_dir)
+        dir_fd = os.open(str(target_dir.absolute()), os.O_RDONLY)
+        print(f"{relative_source} -> {destination.name} in {target_dir}")
+        try:
+            os.symlink(relative_source, destination.name, dir_fd=dir_fd)
+        finally:
+            os.close(dir_fd)
+
+        return destination
 
     def mkdir(
         self,
