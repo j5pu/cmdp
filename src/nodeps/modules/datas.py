@@ -34,4 +34,3 @@ class GroupUser:
     """GroupUser class."""
     group: int | str
     user: int | str
-

@@ -13,4 +13,4 @@ def test_docker():
     tag = f"tests-{path.name}"
     assert subprocess.run(
         f"docker build --build-arg='PY_VERSION={PY_MAJOR_MINOR}' --quiet -f {path / 'tests.dockerfile'} -t {tag} "
-        f"{path} && docker run --rm {tag}", shell=True).returncode == 0
+        f"{path} && docker run --rm {tag} pytest", shell=True).returncode == 0

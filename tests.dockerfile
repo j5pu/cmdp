@@ -16,5 +16,3 @@ WORKDIR /nodeps
 
 RUN pip install --upgrade -q pip && \
   pip install -q --no-cache-dir . .[full]
-
-CMD pytest

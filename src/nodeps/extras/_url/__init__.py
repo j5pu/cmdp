@@ -22,6 +22,9 @@ except ModuleNotFoundError:
 PYTHON_FTP = "https://www.python.org/ftp/python"
 """Python FTP Server URL"""
 
+DEFAULT_TIMEOUT = 5
+"""Default requests timeout."""
+
 
 def _msg_bs4_requests():
     if bs4 is None or requests is None:
@@ -104,7 +107,7 @@ def python_versions() -> list[str]:
     """
     _msg_bs4_requests()
     rv = []
-    for link in bs4.BeautifulSoup(requests.get(PYTHON_FTP, timeout=5).text, "html.parser").find_all("a"):
+    for link in bs4.BeautifulSoup(requests.get(PYTHON_FTP, timeout=DEFAULT_TIMEOUT).text, "html.parser").find_all("a"):
         if link := re.match(r"((3\.([7-9]|[1-9][0-9]))|4).*", link.get("href").rstrip("/")):
             rv.append(link.string)
     rv.sort(key=lambda s: [int(u) for u in s.split(".")])
@@ -132,7 +135,7 @@ def request_x_api_key_json(url, key: str = "") -> dict[str, str] | None:
     _msg_bs4_requests()
 
     headers = {"headers": {"X-Api-Key": key}} if key else {}
-    response = requests.get(url, **headers, timeout=2)
+    response = requests.get(url, **headers, timeout=DEFAULT_TIMEOUT)
     if response.status_code == requests.codes.ok:
         return response.json()
     return None

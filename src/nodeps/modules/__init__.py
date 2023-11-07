@@ -1,5 +1,5 @@
 """NoDeps Modules Module."""
-from . import classes, constants, datas, enums, errors, functions, ipython, metapath, typings
+from . import classes, constants, datas, enums, errors, functions, ipython, metapath, path, typings
 from .classes import *
 from .constants import *
 from .datas import *
@@ -8,6 +8,7 @@ from .errors import *
 from .functions import *
 from .ipython import *
 from .metapath import *
+from .path import *
 from .typings import *
 
 __all__ = (
@@ -19,5 +20,6 @@ __all__ = (
     functions.__all__ +
     ipython.__all__ +
     metapath.__all__ +
+    path.__all__ +
     typings.__all__
 )

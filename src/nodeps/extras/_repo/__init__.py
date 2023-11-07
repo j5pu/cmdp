@@ -76,8 +76,9 @@ class Repo(GitRepo):
         Examples:
             >>> import warnings
             >>> import nodeps
-            >>> from nodeps.extras._repo import Repo
-            >>> assert Repo(__file__)
+            >>> from nodeps import Repo, Path
+            >>> if not Path(nodeps.__file__).installed():
+            ...     assert Repo(nodeps.__file__)
             >>> Repo("~/repo.git")  # doctest: +ELLIPSIS +IGNORE_EXCEPTION_DETAIL
             Traceback (most recent call last):
             git.exc.NoSuchPathError: .../repo.git
@@ -121,17 +122,15 @@ class Repo(GitRepo):
         The configuration will include values from the system, user and repository configuration files.
 
         Examples:
-            >>> from nodeps.extras._repo import Repo
+            >>> import nodeps
+            >>> from nodeps import Repo, Path
             >>>
-            >>> conf = Repo(__file__).git_config
-            >>> conf.has_section('remote "origin"')
-            True
-            >>> conf.has_option('remote "origin"', 'url')
-            True
-            >>> conf.get('remote "origin"', 'url')  # doctest: +ELLIPSIS
-            'https://github.com/...'
-            >>> conf.get_value('remote "origin"', 'url', "")  # doctest: +ELLIPSIS
-            'https://github.com/...'
+            >>> if not Path(nodeps.__file__).installed():
+            ...     conf = Repo(__file__).git_config
+            ...     assert conf.has_section('remote "origin"') is True
+            ...     assert conf.has_option('remote "origin"', 'url') is True
+            ...     assert 'https://github.com/' in conf.get('remote "origin"', 'url')
+            ...     assert 'https://github.com/' in conf.get_value('remote "origin"', 'url', "")
 
         Returns:
             GitConfigParser: GitConfigParser instance
@@ -145,10 +144,11 @@ class Repo(GitRepo):
         """Git Origin URL.
 
         Examples:
-            >>> from nodeps.extras._repo import Repo
+            >>> import nodeps
+            >>> from nodeps import Repo, Path
             >>>
-            >>> Repo(__file__).origin_url.geturl()   # doctest: +ELLIPSIS
-            'https://github.com/.../nodeps'
+            >>> if not Path(nodeps.__file__).installed():
+            ...     assert 'https://github.com' in Repo(nodeps.__file__).origin_url.geturl()
         """
         return urllib.parse.urlparse(self.git_config.get_value('remote "origin"', "url", ""))
 

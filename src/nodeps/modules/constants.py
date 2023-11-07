@@ -4,6 +4,8 @@ __all__ = (
     "CI",
     "DOCKER",
     "DOCKER_COMMAND",
+    "EXECUTABLE",
+    "EXECUTABLE_SITE",
     "GIT",
     "GIT_DEFAULT_SCHEME",
     "GITHUB_DOMAIN",
@@ -20,6 +22,7 @@ __all__ = (
     "PY_MAJOR_MINOR",
     "PYTHON_VERSIONS",
     "PYTHON_DEFAULT_VERSION",
+    "SUDO",
     "USER",
     "EMAIL",
     "IPYTHON_EXTENSIONS",
@@ -41,6 +44,8 @@ DOCKER = pathlib.Path("/.dockerenv").exists()
 """True if running inside container."""
 DOCKER_COMMAND = bool(shutil.which("docker", mode=os.X_OK))
 """True if docker install."""
+EXECUTABLE = pathlib.Path(sys.executable)
+EXECUTABLE_SITE = pathlib.Path(EXECUTABLE).resolve()
 GIT = os.environ.get("GIT", "j5pu")
 """GitHub user name"""
 GIT_DEFAULT_SCHEME = "https"
@@ -84,8 +89,10 @@ PYTHON_VERSIONS = (
 """Python versions for venv, etc."""
 PYTHON_DEFAULT_VERSION = PYTHON_VERSIONS[0]
 """Python default version for venv, etc."""
-USER = os.getenv("USER")
-""""Environment Variable $USER"""
+SUDO = str(rv) if (rv := pathlib.Path("/usr/bin/sudo")).exists() else ""
+"""Sudo command path if exists."""
+USER = os.getenv("USER", "root")
+""""Environment Variable $USER or root if not USER variable"""
 
 IPYTHON_EXTENSIONS = ["autoreload", NODEPS_PROJECT_NAME, "storemagic", "rich"]
 """Default IPython extensions to load"""
@@ -96,3 +103,6 @@ PW_ROOT = pwd.getpwnam("root")
 PW_USER = pwd.getpwnam(USER) if USER else PW_ROOT
 PYTHONSTARTUP = str(NODEPS_PATH / "python_startup/__init__.py")
 """Python Startup :mod:`python_startup.__init__`: `export PYTHONSTARTUP="$(pythonstartup)"`."""
+
+os.environ["IPYTHONDIR"] = IPYTHONDIR
+os.environ["PYTHONSTARTUP"] = PYTHONSTARTUP

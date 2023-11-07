@@ -26,11 +26,7 @@ jobs:
           python-version: ${{ matrix.python }}
 
       - name: Install dependencies
-        run: |
-          pip install --upgrade -q pip
-          pip install pip-tools
-          python -m piptools compile --all-extras -o /tmp/requirements.txt pyproject.toml
-          pip install -r /tmp/requirements.txt
+        run: pip install .[full]
 
       - name: pytest
         run: pytest

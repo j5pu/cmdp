@@ -13,6 +13,9 @@ __all__ = (
     "anyin",
     "chdir",
     "cmd",
+    "cmdrun",
+    "cmdsudo",
+    "command",
     "current_task_name",
     "dict_sort",
     "dmg",
@@ -25,7 +28,6 @@ __all__ = (
     "parent",
     "tardir",
     "tilde",
-    "toiter",
     "which",
 )
 
@@ -34,7 +36,6 @@ import collections
 import contextlib
 import getpass
 import os
-import pathlib
 import pwd
 import shutil
 import subprocess
@@ -44,8 +45,10 @@ import tempfile
 from collections.abc import Callable, Iterable, MutableMapping
 from typing import Any, TypeVar, cast
 
-from .errors import CmdError, CommandNotFoundError
-from .typings import ExcType, RunningLoop, StrOrBytesPath
+from .constants import EXECUTABLE, EXECUTABLE_SITE
+from .errors import CalledProcessError, CmdError, CommandNotFoundError
+from .path import AnyPath, Path, toiter
+from .typings import ExcType, RunningLoop
 
 _KT = TypeVar("_KT")
 _T = TypeVar("_T")
@@ -62,9 +65,8 @@ async def aiocmd(*args, **kwargs) -> subprocess.CompletedProcess:
 
     Examples:
         >>> import asyncio
-        >>> from pathlib import Path
         >>> from tempfile import TemporaryDirectory
-        >>> from nodeps import aiocmd
+        >>> from nodeps import Path, aiocmd
         >>> with TemporaryDirectory() as tmp:
         ...     tmp = Path(tmp)
         ...     rv = asyncio.run(aiocmd("git", "clone", "https://github.com/octocat/Hello-World.git", cwd=tmp))
@@ -124,7 +126,7 @@ async def aiocommand(
     return subprocess.CompletedProcess(data, proc.returncode, out, cast(Any, err))
 
 
-async def aiodmg(src: StrOrBytesPath, dest: StrOrBytesPath) -> None:
+async def aiodmg(src: AnyPath, dest: AnyPath) -> None:
     """Async Open dmg file and copy the app to dest.
 
     Examples:
@@ -141,15 +143,15 @@ async def aiodmg(src: StrOrBytesPath, dest: StrOrBytesPath) -> None:
     """
     with tempfile.TemporaryDirectory() as tmpdir:
         await aiocmd("hdiutil", "attach", "-mountpoint", tmpdir, "-nobrowse", "-quiet", src)
-        for item in pathlib.Path(src).iterdir():
+        for item in Path(src).iterdir():
             if item.name.endswith(".app"):
-                await aiocmd("cp", "-r", pathlib.Path(tmpdir) / item.name, dest)
+                await aiocmd("cp", "-r", Path(tmpdir) / item.name, dest)
                 await aiocmd("xattr", "-r", "-d", "com.apple.quarantine", dest)
                 await aiocmd("hdiutil", "detach", tmpdir, "-force")
                 break
 
 
-async def aiogz(src: StrOrBytesPath, dest: StrOrBytesPath = ".") -> pathlib.Path:
+async def aiogz(src: AnyPath, dest: AnyPath = ".") -> Path:
     """Async ncompress .gz src to dest (default: current directory).
 
     It will be uncompressed to the same directory name as src basename.
@@ -158,8 +160,7 @@ async def aiogz(src: StrOrBytesPath, dest: StrOrBytesPath = ".") -> pathlib.Path
     Examples:
         >>> import os
         >>> import tempfile
-        >>> from pathlib import Path
-        >>> from nodeps import aiogz, tardir
+        >>> from nodeps import Path, aiogz, tardir
         >>>
         >>> cwd = Path.cwd()
         >>> with tempfile.TemporaryDirectory() as workdir:
@@ -296,13 +297,12 @@ def anyin(origin: Iterable, destination: Iterable) -> Any | None:
 
 
 @contextlib.contextmanager
-def chdir(data: StrOrBytesPath | bool = True) -> Iterable[tuple[pathlib.Path, pathlib.Path]]:
+def chdir(data: AnyPath | bool = True) -> Iterable[tuple[Path, Path]]:
     """Change directory and come back to previous directory.
 
     Examples:
         # FIXME: Ubuntu
-        >>> from pathlib import Path
-
+        >>> from nodeps import Path
         >>> from nodeps import chdir
         >>> from nodeps import MACOS
         >>>
@@ -344,11 +344,11 @@ def chdir(data: StrOrBytesPath | bool = True) -> Iterable[tuple[pathlib.Path, pa
         os.chdir(new)
         return oldpwd, new
 
-    oldpwd = pathlib.Path.cwd()
+    oldpwd = Path.cwd()
     try:
         if data is True:
             with tempfile.TemporaryDirectory() as tmp:
-                yield y(pathlib.Path(tmp))
+                yield y(Path(tmp))
         else:
             yield y(parent(data, none=False))
     finally:
@@ -360,8 +360,7 @@ def cmd(*args, **kwargs) -> subprocess.CompletedProcess:
 
     Examples:
         >>> import tempfile
-        >>> from pathlib import Path
-        >>> from nodeps import cmd
+        >>> from nodeps import Path, cmd
         >>>
         >>> with tempfile.TemporaryDirectory() as tmp:
         ...     rv = cmd("git", "clone", "https://github.com/octocat/Hello-World.git", tmp)
@@ -382,6 +381,116 @@ def cmd(*args, **kwargs) -> subprocess.CompletedProcess:
 
     if completed.returncode != 0:
         raise CmdError(completed)
+    return completed
+
+
+def cmdrun(
+    data: Iterable, exc: bool = False, lines: bool = True, shell: bool = True, py: bool = False, pysite: bool = True
+) -> subprocess.CompletedProcess | int | list | str:
+    r"""Runs a cmd.
+
+    Examples:
+        >>> from nodeps import CI
+        >>> from nodeps import cmdrun
+        >>> from nodeps import in_tox
+        >>>
+        >>> cmdrun('ls a')  # doctest: +ELLIPSIS
+        CompletedProcess(args='ls a', returncode=..., stdout=[], stderr=[...])
+        >>> assert 'Requirement already satisfied' in cmdrun('pip install pip', py=True).stdout[0]
+        >>> cmdrun('ls a', shell=False, lines=False)  # doctest: +ELLIPSIS
+        CompletedProcess(args=['ls', 'a'], returncode=..., stdout='', stderr=...)
+        >>> cmdrun('echo a', lines=False)  # Extra '\' added to avoid docstring error.
+        CompletedProcess(args='echo a', returncode=0, stdout='a\n', stderr='')
+        >>> assert "venv" not in cmdrun("sysconfig", py=True, lines=False).stdout
+        >>> if os.environ.get("VIRTUAL_ENV"):
+        ...     assert "venv" in cmdrun("sysconfig", py=True, pysite=False, lines=False).stdout
+
+    Args:
+        data: command.
+        exc: raise exception.
+        lines: split lines so ``\\n`` is removed from all lines (extra '\' added to avoid docstring error).
+        py: runs with python executable.
+        shell: expands shell variables and one line (shell True expands variables in shell).
+        pysite: run on site python if running on a VENV.
+
+    Returns:
+        Union[CompletedProcess, int, list, str]: Completed process output.
+
+    Raises:
+        CmdError:
+    """
+    if py:
+        m = "-m"
+        if isinstance(data, str) and data.startswith("/"):
+            m = ""
+        data = f"{EXECUTABLE_SITE if pysite else EXECUTABLE} {m} {data}"
+    elif not shell:
+        data = toiter(data)
+
+    text = not lines
+
+    proc = subprocess.run(data, shell=shell, capture_output=True, text=text)
+
+    def std(out=True):
+        if out:
+            if lines:
+                return proc.stdout.decode("utf-8").splitlines()
+            return proc.stdout
+        if lines:
+            return proc.stderr.decode("utf-8").splitlines()
+        return proc.stderr
+
+    rv = subprocess.CompletedProcess(proc.args, proc.returncode, std(), std(False))
+    if rv.returncode != 0 and exc:
+        raise CmdError(rv)
+    return rv
+
+
+def cmdsudo(*args, user: str = "root", **kwargs) -> subprocess.CompletedProcess | None:
+    """Run Program with sudo if user is different that the current user.
+
+    Arguments:
+        *args: command and args to run
+        user: run as user (Default: False)
+        **kwargs: subprocess.run kwargs
+
+    Returns:
+        CompletedProcess if the current user is not the same as user, None otherwise
+    """
+    if not ami(user):
+        return cmd(["sudo", "-u", user, *args], **kwargs)
+    return None
+
+
+def command(*args, **kwargs) -> subprocess.CompletedProcess:
+    """Exec Command with the following defaults compared to :func:`subprocess.run`.
+
+        - capture_output=True
+        - text=True
+        - check=True
+
+    Examples:
+        >>> from nodeps import Path
+        >>> import tempfile
+        >>> with tempfile.TemporaryDirectory() as tmp:
+        ...     rv = command("git", "clone", "https://github.com/octocat/Hello-World.git", tmp)
+        ...     assert rv.returncode == 0
+        ...     assert (Path(tmp) / ".git").exists()
+
+    Args:
+        *args: command and args
+        **kwargs: `subprocess.run` kwargs
+
+    Raises:
+        CmdError
+
+    Returns:
+        None
+    """
+    completed = subprocess.run(args, **kwargs, capture_output=True, text=True)
+
+    if completed.returncode != 0:
+        raise CalledProcessError(completed=completed)
     return completed
 
 
@@ -424,7 +533,7 @@ def dict_sort(
     return data
 
 
-def dmg(src: StrOrBytesPath, dest: StrOrBytesPath) -> None:
+def dmg(src: AnyPath, dest: AnyPath) -> None:
     """Open dmg file and copy the app to dest.
 
     Examples:
@@ -440,9 +549,9 @@ def dmg(src: StrOrBytesPath, dest: StrOrBytesPath) -> None:
     """
     with tempfile.TemporaryDirectory() as tmpdir:
         cmd("hdiutil", "attach", "-mountpoint", tmpdir, "-nobrowse", "-quiet", src)
-        for item in pathlib.Path(src).iterdir():
+        for item in Path(src).iterdir():
             if item.name.endswith(".app"):
-                cmd("cp", "-r", pathlib.Path(tmpdir) / item.name, dest)
+                cmd("cp", "-r", Path(tmpdir) / item.name, dest)
                 cmd("xattr", "-r", "-d", "com.apple.quarantine", dest)
                 cmd("hdiutil", "detach", tmpdir, "-force")
                 break
@@ -493,7 +602,7 @@ def elementadd(name: str | tuple[str, ...], closing: bool | None = False) -> str
     return "".join(f'<{"/" if closing else ""}{i}>' for i in ((name,) if isinstance(name, str) else name))
 
 
-def gz(src: StrOrBytesPath, dest: StrOrBytesPath = ".") -> pathlib.Path:
+def gz(src: AnyPath, dest: AnyPath = ".") -> Path:
     """Uncompress .gz src to dest (default: current directory).
 
     It will be uncompressed to the same directory name as src basename.
@@ -502,8 +611,7 @@ def gz(src: StrOrBytesPath, dest: StrOrBytesPath = ".") -> pathlib.Path:
     Examples:
         >>> import os
         >>> import tempfile
-        >>> from pathlib import Path
-        >>> from nodeps import gz, tardir
+        >>> from nodeps import Path, gz, tardir
         >>> cwd = Path.cwd()
         >>> with tempfile.TemporaryDirectory() as workdir:
         ...     os.chdir(workdir)
@@ -524,7 +632,7 @@ def gz(src: StrOrBytesPath, dest: StrOrBytesPath = ".") -> pathlib.Path:
     Returns:
         Absolute Path of the Uncompressed Directory
     """
-    dest = pathlib.Path(dest)
+    dest = Path(dest)
     with tarfile.open(src, "r:gz") as tar:
         tar.extractall(dest)
         return (dest / tar.getmembers()[0].name).parent.absolute()
@@ -583,18 +691,18 @@ def noexc(
         return default_
 
 
-def parent(path: StrOrBytesPath = __file__, none: bool = True) -> pathlib.Path | None:
+def parent(path: AnyPath = __file__, none: bool = True) -> Path | None:
     """Parent if File or None if it does not exist.
 
     Examples:
         >>> from nodeps import parent
         >>>
         >>> parent("/bin/ls")
-        PosixPath('/bin')
+        Path('/bin')
         >>> parent("/bin")
-        PosixPath('/bin')
+        Path('/bin')
         >>> parent("/bin/foo", none=False)
-        PosixPath('/bin')
+        Path('/bin')
         >>> parent("/bin/foo")
 
     Args:
@@ -604,18 +712,17 @@ def parent(path: StrOrBytesPath = __file__, none: bool = True) -> pathlib.Path |
     Returns:
         Path
     """
-    return path.parent if (path := pathlib.Path(path)).is_file() else path \
+    return path.parent if (path := Path(path)).is_file() else path \
         if path.is_dir() else None if none else path.parent
 
 
-def tardir(src: StrOrBytesPath) -> pathlib.Path:
+def tardir(src: AnyPath) -> Path:
     """Compress directory src to <basename src>.tar.gz in cwd.
 
     Examples:
         >>> import os
         >>> import tempfile
-        >>> from pathlib import Path
-        >>> from nodeps import tardir
+        >>> from nodeps import Path, tardir
         >>> cwd = Path.cwd()
         >>> with tempfile.TemporaryDirectory() as workdir:
         ...     os.chdir(workdir)
@@ -639,30 +746,29 @@ def tardir(src: StrOrBytesPath) -> pathlib.Path:
     Returns:
         Compressed Absolute File Path
     """
-    src = pathlib.Path(src)
+    src = Path(src)
     if not src.exists():
         msg = f"{src}: No such file or directory"
         raise FileNotFoundError(msg)
 
-    if src.resolve() == pathlib.Path.cwd().resolve():
+    if src.resolve() == Path.cwd().resolve():
         msg = f"{src}: Can't compress current working directory"
         raise ValueError(msg)
 
-    name = pathlib.Path(src).name + ".tar.gz"
-    dest = pathlib.Path(name)
+    name = Path(src).name + ".tar.gz"
+    dest = Path(name)
     with tarfile.open(dest, "w:gz") as tar:
         for root, _, files in os.walk(src):
             for file_name in files:
-                tar.add(pathlib.Path(root, file_name))
+                tar.add(Path(root, file_name))
         return dest.absolute()
 
 
-def tilde(path: StrOrBytesPath = ".") -> str:
+def tilde(path: AnyPath = ".") -> str:
     """Replaces $HOME with ~.
 
     Examples:
-        >>> from pathlib import Path
-        >>> from nodeps import tilde
+        >>> from nodeps import Path, tilde
         >>> assert tilde(f"{Path.home()}/file") == f"~/file"
 
     Arguments:
@@ -671,39 +777,7 @@ def tilde(path: StrOrBytesPath = ".") -> str:
     Returns:
         str
     """
-    return str(path).replace(str(pathlib.Path.home()), "~")
-
-
-def toiter(obj: Any, always: bool = False, split: str = " ") -> Any:
-    """To iter.
-
-    Examples:
-        >>> import pathlib
-        >>> from nodeps import toiter
-        >>>
-        >>> assert toiter('test1') == ['test1']
-        >>> assert toiter('test1 test2') == ['test1', 'test2']
-        >>> assert toiter({'a': 1}) == {'a': 1}
-        >>> assert toiter({'a': 1}, always=True) == [{'a': 1}]
-        >>> assert toiter('test1.test2') == ['test1.test2']
-        >>> assert toiter('test1.test2', split='.') == ['test1', 'test2']
-        >>> assert toiter(pathlib.Path("/tmp/foo")) == ('/', 'tmp', 'foo')
-
-    Args:
-        obj: obj.
-        always: return any iterable into a list.
-        split: split for str.
-
-    Returns:
-        Iterable.
-    """
-    if isinstance(obj, str):
-        obj = obj.split(split)
-    elif hasattr(obj, "parts"):
-        obj = obj.parts
-    elif not isinstance(obj, Iterable) or always:
-        obj = [obj]
-    return obj
+    return str(path).replace(str(Path.home()), "~")
 
 
 def which(data="sudo", raises: bool = False) -> str:
