@@ -105,4 +105,4 @@ PYTHONSTARTUP = str(NODEPS_PATH / "python_startup/__init__.py")
 """Python Startup :mod:`python_startup.__init__`: `export PYTHONSTARTUP="$(pythonstartup)"`."""
 
 os.environ["IPYTHONDIR"] = IPYTHONDIR
-os.environ["PYTHONSTARTUP"] = PYTHONSTARTUP
+# os.environ["PYTHONSTARTUP"] = PYTHONSTARTUP
