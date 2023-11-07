@@ -245,13 +245,11 @@ def ami(user: str = "root") -> bool:
         >>> from nodeps import DOCKER
         >>> from nodeps import MACOS
         >>>
+        >>> assert ami(USER) is True
         >>> if LOCAL and MACOS:
-        ...     assert ami(USER) is True
         ...     assert ami() is False
         >>> if DOCKER:
-        ...     assert ami(USER) is False
         ...     assert ami() is True
-
 
     Arguments:
         user: to check against current user (Default: root)
