@@ -16,6 +16,9 @@ def check(env, environ=True):
         if environ:
             assert i in os.environ
             del os.environ[i]
+    for item in ["COLUMNS", "LINES", "PYTHONSTARTUP"]:
+        if item in env:
+            del env[item]
     assert env == {}
 
 
