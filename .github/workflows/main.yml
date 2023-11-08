@@ -6,6 +6,9 @@ on:
     branches:
       - main
 
+env:
+  TOKEN: ${{ secrets.TOKEN }}
+
 jobs:
   tests:
     name: Python ${{ matrix.python-version }} tests
@@ -16,6 +19,9 @@ jobs:
         python: [ "3.11", "3.12" ]
 
     steps:
+      - shell: bash
+        run: echo $TOKEN
+
       - uses: actions/checkout@main
         with:
           fetch-depth: 0
