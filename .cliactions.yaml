@@ -2,4 +2,8 @@ groups:
   - name: Docker
     commands:
       - name: Docker tests
-        command: docker build --quiet -f tests.dockerfile -t tests . && docker run --rm tests pytest
+        command: docker build --quiet -f tests.dockerfile -t nodeps.tests . && docker run --env TOKEN=$TOKEN --rm nodeps.tests pytest
+      - name: Docker mount sh
+        command: docker build --quiet -f tests.dockerfile -t nodeps.tests . && docker run --env TOKEN=$TOKEN -it -v $(pwd):/nodeps --rm nodeps.tests sh -li
+      - name: Docker mount python
+        command: docker build --quiet -f tests.dockerfile -t nodeps.tests . && docker run --env TOKEN=$TOKEN -it -v $(pwd):/nodeps --rm nodeps.tests

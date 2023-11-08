@@ -1,83 +1,13 @@
 """NoDeps Extras Module."""
-__all__ = (
-    "getstdout",
-    "strip",
+from . import ansi, debug, echo, log, pickle, pth, repo, url
+from .ansi import *
+from .debug import *
+from .echo import *
+from .log import *
+from .pickle import *
+from .pth import *
+from .repo import *
+from .url import *
 
-    "black",
-    "red",
-    "green",
-    "yellow",
-    "blue",
-    "magenta",
-    "cyan",
-    "white",
-    "bblack",
-    "bred",
-    "bgreen",
-    "byellow",
-    "bblue",
-    "bmagenta",
-    "bcyan",
-    "bwhite",
-    "reset",
-    "COLORIZE",
-    "EnumLower",
-    "Color",
-    "SYMBOL",
-    "Symbol",
-
-    "LOGGER_DEFAULT_FMT",
-    "logger",
-
-    "cache",
-
-    "ic",
-    "icc",
-
-    "Repo",
-    "PYTHON_FTP",
-    "python_latest",
-    "python_version",
-    "python_versions",
-    "request_x_api_key_json",
-)
-
-from ._ansi import getstdout, strip
-from ._echo import (
-    COLORIZE,
-    SYMBOL,
-    Color,
-    EnumLower,
-    Symbol,
-    bblack,
-    bblue,
-    bcyan,
-    bgreen,
-    black,
-    blue,
-    bmagenta,
-    bred,
-    bwhite,
-    byellow,
-    cyan,
-    green,
-    magenta,
-    red,
-    reset,
-    white,
-    yellow,
-)
-from ._log import LOGGER_DEFAULT_FMT, logger
-from ._pickle import cache
-from ._pretty import (
-    ic,
-    icc,
-)
-from ._repo import Repo
-from ._url import (
-    PYTHON_FTP,
-    python_latest,
-    python_version,
-    python_versions,
-    request_x_api_key_json,
-)
+__all__ = (ansi.__all__ + debug.__all__ + echo.__all__ + log.__all__ + pickle.__all__ + pth.__all__ + repo.__all__ +
+           url.__all__)

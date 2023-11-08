@@ -1,9 +1,13 @@
+import sys
+
 import pytest
 import typer
 from typer.testing import CliRunner
 
 from nodeps import Gh
 from nodeps import Path
+from nodeps import CI
+from nodeps import DOCKER
 from nodeps.__main__ import *
 from nodeps.fixtures import Repos, repos
 
@@ -29,7 +33,7 @@ def test_commit(repos: Repos):
 
     touch(2)
     assert local.status().dirty is True
-    assert invoke(gh_g, ["commit", str(repos.local.top),  "-m", "Feat:"]).exit_code == 0
+    assert invoke(gh_g, ["commit", str(repos.local.top), "-m", "Feat:"]).exit_code == 0
     assert invoke(gh_g, ["next", str(repos.local.top)]).stdout == "0.1.0\n"
     assert local.status().dirty is False
 
@@ -142,6 +146,7 @@ def test_remote(repos: Repos):
     assert rv.stdout
 
 
+@pytest.mark.skipif(CI or DOCKER, reason="must be local")
 def test_secrets():
     assert invoke(gh_g, ["secrets"]).exit_code == 0
     assert "TOKEN" in invoke(gh_g, ["secrets-names"]).stdout.splitlines()

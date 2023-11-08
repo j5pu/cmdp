@@ -25,7 +25,7 @@ __all__ = (
     "Symbol"
 )
 
-from .color import COLORIZE, SYMBOL, Color, EnumLower, Symbol, click, msg_click_typer
+from ._echo import COLORIZE, SYMBOL, Color, EnumLower, Symbol, click, msg_click_typer
 
 
 def black(msg="", bold=False, underline=False, blink=False, err=False):

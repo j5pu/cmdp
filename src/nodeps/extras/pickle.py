@@ -28,7 +28,7 @@ class _CacheWrapper(Generic[_T]):
 
 
 def cache(
-    func: Callable[..., _T | Coroutine[Any, Any, _T]] = ...
+        func: Callable[..., _T | Coroutine[Any, Any, _T]] = ...
 ) -> Callable[[Callable[..., _T]], _CacheWrapper[_T]] | _T | Coroutine[Any, Any, _T] | Any:
     """Caches previous calls to the function if object can be encoded.
 
@@ -38,7 +38,7 @@ def cache(
         >>> from typing import Coroutine
         >>> from environs import Env as Environs
         >>> from collections import namedtuple
-        >>> from nodeps.extras._pickle import cache
+        >>> from nodeps import cache
         >>>
         >>> @cache
         ... def test(a):
@@ -128,7 +128,6 @@ def cache(
     log = structlog.get_logger()
     coro = inspect.iscoroutinefunction(func)
     if coro:
-
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
             """Async Cache Wrapper."""
@@ -146,7 +145,6 @@ def cache(
                 memo[key] = value
             return value
     else:
-
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             """Cache Wrapper."""

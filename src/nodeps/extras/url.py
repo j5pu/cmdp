@@ -37,7 +37,7 @@ def python_latest(start: str | int | None = None) -> str:
 
     Examples:
         >>> import platform
-        >>> from nodeps.extras._url import python_latest
+        >>> from nodeps import python_latest
         >>>
         >>> v = platform.python_version()
         >>> if "rc" not in v:
@@ -65,7 +65,7 @@ def python_version() -> str:
     Examples:
         >>> import os
         >>> import platform
-        >>> from nodeps.extras._url import python_version
+        >>> from nodeps import python_version
         >>>
         >>> v = python_version()
         >>> assert platform.python_version().startswith(v)
@@ -96,7 +96,7 @@ def python_versions() -> list[str]:
 
     Examples:
         >>> import platform
-        >>> from nodeps.extras._url import python_versions
+        >>> from nodeps import python_versions
         >>>
         >>> v = platform.python_version()
         >>> if not "rc" in v:
@@ -118,7 +118,7 @@ def request_x_api_key_json(url, key: str = "") -> dict[str, str] | None:
     """API request helper with API Key and returning json.
 
     Examples:
-        >>> from nodeps.extras._url import request_x_api_key_json
+        >>> from nodeps import request_x_api_key_json
         >>>
         >>> request_x_api_key_json("https://api.iplocation.net/?ip=8.8.8.8", \
                 "rn5ya4fp/tzI/mENxaAvxcMo8GMqmg7eMnCvUFLIV/s=")

@@ -18,7 +18,6 @@ __all__ = (
     "NODEPS_PIP_POST_INSTALL_FILENAME",
     "NODEPS_PROJECT_NAME",
     "NODEPS_PATH",
-    "NODEPS_QUIET",
     "PY_MAJOR_MINOR",
     "PYTHON_VERSIONS",
     "PYTHON_DEFAULT_VERSION",
@@ -31,6 +30,7 @@ __all__ = (
     "PW_USER",
     "PYTHONSTARTUP",
 )
+
 import os
 import pathlib
 import pwd
@@ -40,7 +40,7 @@ import sys
 AUTHOR = "José Antonio Puértolas Montañés"
 CI = bool(os.environ.get("CI"))
 """True if running in CI."""
-DOCKER = pathlib.Path("/.dockerenv").exists()
+DOCKER = bool((_p := pathlib.Path("/proc/self/mountinfo")).is_file() and "/docker" in _p.read_text())
 """True if running inside container."""
 DOCKER_COMMAND = bool(shutil.which("docker", mode=os.X_OK))
 """True if docker install."""
@@ -78,8 +78,6 @@ NODEPS_PIP_POST_INSTALL_FILENAME = "_post_install.py"
 """Filename that will be searched after pip installs a package."""
 NODEPS_PROJECT_NAME = "nodeps"
 """NoDeps Project Name"""
-NODEPS_QUIET = True
-"""Global variable to supress warn in setuptools"""
 PY_MAJOR_MINOR = f"{sys.version_info[0]}.{sys.version_info[1]}"
 """Major.Minor Python running version."""
 PYTHON_VERSIONS = (
@@ -96,13 +94,10 @@ USER = os.getenv("USER", "root")
 
 IPYTHON_EXTENSIONS = ["autoreload", NODEPS_PROJECT_NAME, "storemagic", "rich"]
 """Default IPython extensions to load"""
-IPYTHONDIR = str(NODEPS_PATH / "ipython_profile")
+IPYTHONDIR = str(NODEPS_PATH / "ipython")
 """IPython Profile :mod:`ipython_profile.profile_default.ipython_config`: `export IPYTHONDIR="$(ipythondir)"`."""
 EMAIL = f"63794670+{GIT}@users.noreply.github.com"
 PW_ROOT = pwd.getpwnam("root")
-PW_USER = pwd.getpwnam(USER) if USER else PW_ROOT
+PW_USER = pwd.getpwnam(USER)
 PYTHONSTARTUP = str(NODEPS_PATH / "python_startup/__init__.py")
 """Python Startup :mod:`python_startup.__init__`: `export PYTHONSTARTUP="$(pythonstartup)"`."""
-
-os.environ["IPYTHONDIR"] = IPYTHONDIR
-os.environ["PYTHONSTARTUP"] = PYTHONSTARTUP

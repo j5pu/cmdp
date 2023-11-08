@@ -20,7 +20,6 @@ except ModuleNotFoundError:
     click = None
     typer = None
 
-
 COLORIZE = os.environ.get("COLORIZE")
 """Force showing or hiding colors and other styles colorized output."""
 
@@ -75,7 +74,7 @@ class _Color(EnumLower):
         See `click.secho <https://click.palletsprojects.com/en/8.0.x/api/#click.secho>`_ for more information.
 
         Examples:
-            >>> from nodeps.extras._echo.color import Color
+            >>> from nodeps import Color
             >>> Color.GREEN('Hello World!',)
 
         Arguments:
@@ -269,7 +268,7 @@ class Symbol(_Symbol):
     """:func:`click.echo` and :func:`click.style` wrapper class for :data:`SYMBOLS`.
 
     Examples:
-        >>> from nodeps.extras._echo.color import Symbol
+        >>> from nodeps import Symbol
         >>>
         >>> Symbol.OK() # OK
         >>>

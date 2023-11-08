@@ -6,6 +6,7 @@ __all__ = (
     "GitSchemeLiteral",
     "ModuleSpec",
     "OpenIO",
+    "PathIsLiteral",
     "StrOrBytesPath",
     "ThreadLock",
     "RunningLoop",
@@ -25,6 +26,7 @@ ExcType: TypeAlias = type[Exception] | tuple[type[Exception], ...]
 GitSchemeLiteral = Literal["git+file", "git+https", "git+ssh", "https", "ssh"]
 ModuleSpec = importlib._bootstrap.ModuleSpec
 OpenIO = BinaryIO | BufferedRandom | BufferedReader | BufferedWriter | FileIO | IO | TextIOWrapper
+PathIsLiteral: TypeAlias = Literal["exists", "is_dir", "is_file"]
 StrOrBytesPath = AnyStr | os.PathLike[str] | os.PathLike[bytes]
 ThreadLock = threading.Lock
 RunningLoop = asyncio.events._RunningLoop

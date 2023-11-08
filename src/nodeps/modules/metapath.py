@@ -27,9 +27,9 @@ class PipMetaPathFinder(importlib.abc.MetaPathFinder):
 
     # noinspection PyMethodOverriding,PyMethodParameters
     def find_spec(
-        fullname: str,
-        path: Sequence[str | bytes] | None,
-        target: types.ModuleType | None = None,
+            fullname: str,
+            path: Sequence[str | bytes] | None,
+            target: types.ModuleType | None = None,
     ) -> importlib._bootstrap.ModuleSpec | None:
         """Try to find a module spec for the specified module."""
         packages = {

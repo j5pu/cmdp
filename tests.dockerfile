@@ -9,10 +9,11 @@ ENV PIP_ROOT_USER_ACTION=ignore PYTHONPATH=/nodeps/src
 
 RUN apt-get update && \
   apt-get install --no-install-recommends -y git && \
-  rm -rf /var/cache/apt/archives
+  rm -rf /var/cache/apt/archives  && ln -sf /bin/bash /bin/sh
 
 COPY . /nodeps
 WORKDIR /nodeps
+VOLUME /nodeps
 
 RUN pip install --upgrade -q pip && \
   pip install -q --no-cache-dir . .[full]

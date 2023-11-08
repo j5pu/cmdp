@@ -11,7 +11,7 @@ import subprocess
 from collections.abc import Sequence
 from typing import AnyStr
 
-from .typings import StrOrBytesPath
+from nodeps.modules.typings import StrOrBytesPath
 
 
 class _NoDepsBaseError(Exception):
@@ -39,12 +39,12 @@ class CalledProcessError(subprocess.SubprocessError):
 
     # noinspection PyShadowingNames
     def __init__(
-        self,
-        returncode: int | None = None,
-        cmd: StrOrBytesPath | Sequence[StrOrBytesPath] | None = None,
-        output: AnyStr | None = None,
-        stderr: AnyStr | None = None,
-        completed: subprocess.CompletedProcess | None = None,
+            self,
+            returncode: int | None = None,
+            cmd: StrOrBytesPath | Sequence[StrOrBytesPath] | None = None,
+            output: AnyStr | None = None,
+            stderr: AnyStr | None = None,
+            completed: subprocess.CompletedProcess | None = None,
     ) -> None:
         r"""Patched :class:`subprocess.CalledProcessError`.
 
@@ -62,7 +62,7 @@ class CalledProcessError(subprocess.SubprocessError):
             ZeroDivisionError: division by zero
             >>> subprocess.run(["ls", "foo"], capture_output=True, check=True)  # doctest: +IGNORE_EXCEPTION_DETAIL
             Traceback (most recent call last):
-            __init__.CalledProcessError:
+            errors.CalledProcessError:
               Return Code:
                 1
             <BLANKLINE>

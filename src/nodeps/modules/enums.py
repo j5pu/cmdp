@@ -3,6 +3,7 @@ __all__ = (
     "Bump",
     "ProjectRepos",
 )
+
 import enum
 
 

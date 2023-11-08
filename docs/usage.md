@@ -142,7 +142,7 @@
     :nested: full
 
 .. click:: nodeps.__main__:_status_click
-    :prog: _status
+    :prog: status
     :nested: full
 
 .. click:: nodeps.__main__:_superproject_click

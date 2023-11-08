@@ -15,12 +15,11 @@ try:
     icc = IceCreamDebugger(prefix="", includeContext=True)
     ic.enabled = icc.enabled = bool(os.environ.get("IC"))
 except ModuleNotFoundError:
-
     def ic(*a):
         """Include Context."""
         return None if not a else a[0] if len(a) == 1 else a
 
+
     def icc(*a):
         """Include Context."""
         return None if not a else a[0] if len(a) == 1 else a
-

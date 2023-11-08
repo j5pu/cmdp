@@ -1,5 +1,6 @@
 """DataClasses Module."""
 __all__ = (
+    "IdName",
     "GitStatus",
     "GroupUser",
 )
@@ -30,7 +31,14 @@ class GitStatus:
 
 
 @dataclasses.dataclass
+class IdName:
+    """Id and Name dataclass."""
+    id: int  # noqa: A003
+    name: str
+
+
+@dataclasses.dataclass
 class GroupUser:
     """GroupUser class."""
-    group: int | str
-    user: int | str
+    group: IdName
+    user: IdName

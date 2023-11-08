@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 __all__ = (
-    "PathIsLiteral",
-
+    "FileConfig",
+    "FrameSimple",
     "Passwd",
     "Path",
     "PathStat",
@@ -12,6 +12,7 @@ __all__ = (
 
     "AnyPath",
 )
+
 import contextlib
 import dataclasses
 import grp
@@ -27,16 +28,41 @@ import sysconfig
 import tempfile
 import tokenize
 from collections.abc import Iterable, Iterator
-from typing import IO, Any, AnyStr, Generic, Literal, TypeAlias, TypeVar, cast
+from typing import IO, TYPE_CHECKING, Any, AnyStr, Generic, Literal, TypeAlias, TypeVar, cast
 
-from .constants import MACOS, SUDO
-from .errors import InvalidArgumentError
-from .typings import StrOrBytesPath
+from nodeps.modules.constants import MACOS, SUDO
+from nodeps.modules.errors import InvalidArgumentError
+from nodeps.modules.typings import PathIsLiteral, StrOrBytesPath
+
+if TYPE_CHECKING:
+    import types
 
 _T = TypeVar("_T")
 
 
-PathIsLiteral: TypeAlias = Literal["exists", "is_dir", "is_file"]
+@dataclasses.dataclass
+class FileConfig:
+    """FileConfig class."""
+
+    file: Path | None = None
+    config: dict = dataclasses.field(default_factory=dict)
+
+
+@dataclasses.dataclass
+class FrameSimple:
+    """Simple frame class."""
+
+    back: types.FrameType
+    code: types.CodeType
+    frame: types.FrameType
+    function: str
+    globals: dict[str, Any]  # noqa: A003, A003
+    lineno: int
+    locals: dict[str, Any]  # noqa: A003
+    name: str
+    package: str
+    path: Path
+    vars: dict[str, Any]  # noqa: A003
 
 
 @dataclasses.dataclass
@@ -189,13 +215,13 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
     """Path helper class."""
 
     def __call__(
-        self,
-        name: AnyPath = "",
-        file: PathIsLiteral = "is_dir",
-        passwd: Passwd | None = None,
-        mode: int | str | None = None,
-        effective_ids: bool = False,
-        follow_symlinks: bool = False,
+            self,
+            name: AnyPath = "",
+            file: PathIsLiteral = "is_dir",
+            passwd: Passwd | None = None,
+            mode: int | str | None = None,
+            effective_ids: bool = False,
+            follow_symlinks: bool = False,
     ) -> Path:
         """Make dir or touch file and create subdirectories as needed.
 
@@ -310,12 +336,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return self.parts >= other.parts
 
     def access(
-        self,
-        os_mode: int = os.W_OK,
-        *,
-        dir_fd: int | None = None,
-        effective_ids: bool = False,
-        follow_symlinks: bool = False,
+            self,
+            os_mode: int = os.W_OK,
+            *,
+            dir_fd: int | None = None,
+            effective_ids: bool = False,
+            follow_symlinks: bool = False,
     ) -> bool | None:
         # noinspection LongLine
         """Checks if file or directory exists and has access (returns None if file/directory does not exist.
@@ -498,9 +524,9 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return path
 
     def checksum(
-        self,
-        algorithm: Literal["md5", "sha1", "sha224", "sha256", "sha384", "sha512"] = "sha256",
-        block_size: int = 65536,
+            self,
+            algorithm: Literal["md5", "sha1", "sha224", "sha256", "sha384", "sha512"] = "sha256",
+            block_size: int = 65536,
     ) -> str:
         """Calculate the checksum of a file.
 
@@ -525,12 +551,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return sha.hexdigest()
 
     def chmod(
-        self,
-        mode: int | str | None = None,
-        effective_ids: bool = False,
-        exception: bool = True,
-        follow_symlinks: bool = False,
-        recursive: bool = False,
+            self,
+            mode: int | str | None = None,
+            effective_ids: bool = False,
+            exception: bool = True,
+            follow_symlinks: bool = False,
+            recursive: bool = False,
     ) -> Path:
         """Change mode of self.
 
@@ -583,12 +609,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return self
 
     def chown(
-        self,
-        passwd=None,
-        effective_ids: bool = False,
-        exception: bool = True,
-        follow_symlinks: bool = False,
-        recursive: bool = False,
+            self,
+            passwd=None,
+            effective_ids: bool = False,
+            exception: bool = True,
+            follow_symlinks: bool = False,
+            recursive: bool = False,
     ) -> Path:
         """Change owner of path.
 
@@ -687,12 +713,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return self.checksum() == self.__class__(other).checksum()
 
     def cp(
-        self,
-        dest: AnyPath,
-        contents: bool = False,
-        effective_ids: bool = False,
-        follow_symlinks: bool = False,
-        preserve: bool = False,
+            self,
+            dest: AnyPath,
+            contents: bool = False,
+            effective_ids: bool = False,
+            follow_symlinks: bool = False,
+            preserve: bool = False,
     ) -> Path:
         """Wrapper for shell `cp` command to copy file recursivily and adding sudo if necessary.
 
@@ -861,7 +887,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
                     raise NotADirectoryError(msg)
                 return path
             if path.is_dir() or (
-                path := path.parent.resolve() if follow_symlinks else path.parent.absolute()
+                    path := path.parent.resolve() if follow_symlinks else path.parent.absolute()
             ) == self.__class__("/"):
                 return None
 
@@ -995,12 +1021,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return destination
 
     def mkdir(
-        self,
-        name: AnyPath = "",
-        passwd: Passwd | None = None,
-        mode: int | str | None = None,
-        effective_ids: bool = False,
-        follow_symlinks: bool = False,
+            self,
+            name: AnyPath = "",
+            passwd: Passwd | None = None,
+            mode: int | str | None = None,
+            effective_ids: bool = False,
+            follow_symlinks: bool = False,
     ) -> Path:
         """Add directory, make directory, change mode and return new Path.
 
@@ -1096,13 +1122,13 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return dest
 
     def open(  # noqa: A003
-        self,
-        mode: str = "r",
-        buffering: int = -1,
-        encoding: str | None = None,
-        errors: str | None = None,
-        newline: str | None = None,
-        token: bool = False,
+            self,
+            mode: str = "r",
+            buffering: int = -1,
+            encoding: str | None = None,
+            errors: str | None = None,
+            newline: str | None = None,
+            token: bool = False,
     ) -> IO[AnyStr] | None:
         """Open the file pointed by this path and return a file object, as the built-in open function does."""
         if token:
@@ -1162,7 +1188,11 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
 
         if data is None and file.is_file():
             with file.open("rb") as f:
-                return pickle.load(f)  # noqa: S301
+                try:
+                    return pickle.load(f)  # noqa: S301
+                except ModuleNotFoundError:
+                    file.rm()  # No module name if source has changed.
+                    return None
         if data is None and not file.is_file():
             return None
         if data:
@@ -1223,7 +1253,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return self.relative_to(p) if self.absolute().is_relative_to(p) else None
 
     def rm(
-        self, *args: str, effective_ids: bool = False, follow_symlinks: bool = False, missing_ok: bool = True
+            self, *args: str, effective_ids: bool = False, follow_symlinks: bool = False, missing_ok: bool = True
     ) -> None:
         """Delete a folder/file (even if the folder is not empty).
 
@@ -1304,11 +1334,11 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
                 self.__class__(d).rmdir()
 
     def setid(
-        self,
-        name: bool | str | None = None,
-        uid: bool = True,
-        effective_ids: bool = False,
-        follow_symlinks: bool = False,
+            self,
+            name: bool | str | None = None,
+            uid: bool = True,
+            effective_ids: bool = False,
+            follow_symlinks: bool = False,
     ) -> Path:
         """Sets the set-user-ID-on-execution or set-group-ID-on-execution bits.
 
@@ -1379,11 +1409,11 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return target
 
     def setid_cp(
-        self,
-        name: bool | str | None = None,
-        uid: bool = True,
-        effective_ids: bool = False,
-        follow_symlinks: bool = False,
+            self,
+            name: bool | str | None = None,
+            uid: bool = True,
+            effective_ids: bool = False,
+            follow_symlinks: bool = False,
     ) -> Path:
         """Sets the set-user-ID-on-execution or set-group-ID-on-execution bits.
 
@@ -1532,12 +1562,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         )
 
     def sudo(
-        self,
-        force: bool = False,
-        to_list: bool = True,
-        os_mode: int = os.W_OK,
-        effective_ids: bool = False,
-        follow_symlinks: bool = False,
+            self,
+            force: bool = False,
+            to_list: bool = True,
+            os_mode: int = os.W_OK,
+            effective_ids: bool = False,
+            follow_symlinks: bool = False,
     ) -> list[str] | str | None:
         """Returns sudo command if path or ancestors exist and is not own by user and sudo command not installed.
 
@@ -1619,7 +1649,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
     @classmethod
     @contextlib.contextmanager
     def tempcd(
-        cls, suffix: AnyStr | None = None, prefix: AnyStr | None = None, directory: AnyPath | None = None
+            cls, suffix: AnyStr | None = None, prefix: AnyStr | None = None, directory: AnyPath | None = None
     ) -> Path:
         """Create temporaly directory, change to it and return it.
 
@@ -1658,7 +1688,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
     @classmethod
     @contextlib.contextmanager
     def tempdir(
-        cls, suffix: AnyStr | None = None, prefix: AnyStr | None = None, directory: AnyPath | None = None
+            cls, suffix: AnyStr | None = None, prefix: AnyStr | None = None, directory: AnyPath | None = None
     ) -> Path:
         """Create and return tmp directory.  This has the same behavior as mkdtemp but can be used as a context manager.
 
@@ -1694,34 +1724,34 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
     @classmethod
     @contextlib.contextmanager
     def tempfile(
-        cls,
-        mode: Literal[
-            "r",
-            "w",
-            "a",
-            "x",
-            "r+",
-            "w+",
-            "a+",
-            "x+",
-            "rt",
-            "wt",
-            "at",
-            "xt",
-            "r+t",
-            "w+t",
-            "a+t",
-            "x+t",
-        ] = "w",
-        buffering: int = -1,
-        encoding: str | None = None,
-        newline: str | None = None,
-        suffix: AnyStr | None = None,
-        prefix: AnyStr | None = None,
-        directory: AnyPath | None = None,
-        delete: bool = True,
-        *,
-        errors: str | None = None,
+            cls,
+            mode: Literal[
+                "r",
+                "w",
+                "a",
+                "x",
+                "r+",
+                "w+",
+                "a+",
+                "x+",
+                "rt",
+                "wt",
+                "at",
+                "xt",
+                "r+t",
+                "w+t",
+                "a+t",
+                "x+t",
+            ] = "w",
+            buffering: int = -1,
+            encoding: str | None = None,
+            newline: str | None = None,
+            suffix: AnyStr | None = None,
+            prefix: AnyStr | None = None,
+            directory: AnyPath | None = None,
+            delete: bool = True,
+            *,
+            errors: str | None = None,
     ) -> Path:
         """Create and return a temporary file.
 
@@ -1778,12 +1808,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return self.parent if self.is_file() else self
 
     def touch(
-        self,
-        name: AnyPath = "",
-        passwd: Passwd | None = None,
-        mode: int | str | None = None,
-        effective_ids: bool = False,
-        follow_symlinks: bool = False,
+            self,
+            name: AnyPath = "",
+            passwd: Passwd | None = None,
+            mode: int | str | None = None,
+            effective_ids: bool = False,
+            follow_symlinks: bool = False,
     ) -> Path:
         """Add file, touch and return post_init Path. Parent paths are created.
 
@@ -1824,9 +1854,9 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         path = self / str(name)
         path = path.resolve() if follow_symlinks else path.absolute()
         if (
-            not path.is_file()
-            and not path.is_dir()
-            and path.parent.file_in_parents(follow_symlinks=follow_symlinks) is None
+                not path.is_file()
+                and not path.is_dir()
+                and path.parent.file_in_parents(follow_symlinks=follow_symlinks) is None
         ):
             if not (d := path.parent).exists():
                 d.mkdir(

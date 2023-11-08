@@ -9,6 +9,8 @@ __all__ = (
     "getter",
     "LetterCounter",
     "NamedtupleMeta",
+    "Noset",
+    "NOSET",
 )
 
 import abc
@@ -19,13 +21,12 @@ import types
 from collections.abc import Callable, Iterable, MutableMapping
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar, Union
 
-from .functions import toiter
+from nodeps.modules.functions import toiter
 
 if TYPE_CHECKING:
     from collections.abc import Hashable
 
-    from .typings import ChainLiteral
-
+    from nodeps.modules.typings import ChainLiteral
 
 _KT = TypeVar("_KT")
 _VT = TypeVar("_VT")
@@ -170,9 +171,9 @@ Test1(a=1, b=2), <....Test4 object at 0x...>)
                 except KeyError:
                     pass
             elif (
-                hasattr(mapping, "__getattribute__")
-                and isinstance(key, str)
-                and not isinstance(mapping, (tuple | bool | int | str | bytes))
+                    hasattr(mapping, "__getattribute__")
+                    and isinstance(key, str)
+                    and not isinstance(mapping, (tuple | bool | int | str | bytes))
             ):
                 try:
                     value = getattr(mapping, key)
@@ -263,15 +264,15 @@ class ColorLogger(logging.Formatter):
     FORMATS: ClassVar[dict[int, str]] = {
         logging.DEBUG: grey + fmt + reset,
         logging.INFO: f"{cyan}%(levelname)8s{reset} {vertical}"
-        f"{cyan}%(name)s{reset} {vertical}"
-        f"{cyan}%(filename)s{reset}:{cyan}%(lineno)d{reset} {vertical}"
-        f"{gr}%(extra)s{reset} {vertical}"
-        f"{cyan}%(message)s{reset}",
+                      f"{cyan}%(name)s{reset} {vertical}"
+                      f"{cyan}%(filename)s{reset}:{cyan}%(lineno)d{reset} {vertical}"
+                      f"{gr}%(extra)s{reset} {vertical}"
+                      f"{cyan}%(message)s{reset}",
         logging.WARNING: f"{yellow}%(levelname)8s{reset} {vertical}"
-        f"{yellow}%(name)s{reset} {vertical}"
-        f"{yellow}%(filename)s{reset}:{yellow}%(lineno)d{reset} {vertical}"
-        f"{gr}%(repo)s{reset} {vertical}"
-        f"{yellow}%(message)s{reset}",
+                         f"{yellow}%(name)s{reset} {vertical}"
+                         f"{yellow}%(filename)s{reset}:{yellow}%(lineno)d{reset} {vertical}"
+                         f"{gr}%(repo)s{reset} {vertical}"
+                         f"{yellow}%(message)s{reset}",
         logging.ERROR: red + fmt + reset,
         logging.CRITICAL: red_bold + fmt + reset,
     }
@@ -650,3 +651,47 @@ class NamedtupleMeta(metaclass=abc.ABCMeta):
                 [issubclass(C, tuple), hasattr(C, "_fields"), hasattr(C, "_field_defaults")]
             )
         return NotImplemented
+
+
+class Noset:
+    """Marker object for globals not initialized or other objects.
+
+    Examples:
+        >>> from nodeps import NOSET
+        >>>
+        >>> name = Noset.__name__.lower()
+        >>> assert str(NOSET) == f'<{name}>'
+        >>> assert repr(NOSET) == f'<{name}>'
+        >>> assert repr(Noset("test")) == f'<test>'
+    """
+
+    name: str
+    __slots__ = ("name",)
+
+    def __init__(self, name: str = ""):
+        """Init."""
+        self.name = name if name else self.__class__.__name__.lower()
+
+    def __hash__(self) -> int:
+        """Hash."""
+        return hash(
+            (
+                self.__class__,
+                self.name,
+            )
+        )
+
+    def __reduce__(self) -> tuple[type[Noset], tuple[str]]:
+        """Reduce."""
+        return self.__class__, (self.name,)
+
+    def __repr__(self):
+        """Repr."""
+        return self.__str__()
+
+    def __str__(self):
+        """Str."""
+        return f"<{self.name}>"
+
+
+NOSET = Noset()

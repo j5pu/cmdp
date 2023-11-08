@@ -69,7 +69,7 @@ class Repo(GitRepo):
     """if True, all parent directories will be searched for a valid repo as well."""
 
     def __post_init__(
-        self, path: AnyPath | None, expand_vars: bool, odbt: type[LooseObjectDB], search_parent_directories: bool
+            self, path: AnyPath | None, expand_vars: bool, odbt: type[LooseObjectDB], search_parent_directories: bool
     ):
         """Create a new Repo instance.
 
