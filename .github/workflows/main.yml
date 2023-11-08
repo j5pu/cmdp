@@ -35,4 +35,5 @@ jobs:
         run: pip install .[full]
 
       - name: pytest
-        run: pytest src/nodeps/modules/gh.py
+#        run: pytest src/nodeps/modules/gh.py
+        run: pytest
