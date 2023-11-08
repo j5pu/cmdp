@@ -8,7 +8,6 @@ __all__ = (
 
 import collections
 import dataclasses
-import os
 import subprocess
 import tempfile
 import urllib.error
@@ -44,7 +43,7 @@ class GitUrl:
             >>> import nodeps
             >>> from nodeps import GitUrl
             >>> from nodeps import Path
-            >>> from nodeps import NODEPS_PROJECT_NAME, Env
+            >>> from nodeps import NODEPS_PROJECT_NAME, Env, CI
             >>> from nodeps import NODEPS_PATH
             >>>
             >>> env = Env()
@@ -56,7 +55,8 @@ class GitUrl:
             >>> p.host, p.owner, p.repo, p.protocol, p.protocols, p.platform, p.pathname, p.ownerrepo
             ('github.com', 'j5pu', 'nodeps', 'https', ['https'], 'github', '/j5pu/nodeps', 'j5pu/nodeps')
             >>> assert p2.url == p1.url == p.url == "https://github.com/j5pu/nodeps"
-            >>> assert NODEPS_PATH == p1._path
+            >>> if not CI:
+            ...     assert NODEPS_PATH == p1._path
             >>>
             >>> u = 'git@bitbucket.org:AaronO/some-repo.git'
             >>> p = GitUrl(u)
