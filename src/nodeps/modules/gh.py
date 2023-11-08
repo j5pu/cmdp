@@ -285,11 +285,13 @@ class GitUrl:
 
         Examples:
             >>> import nodeps
-            >>> from nodeps import GitUrl
+            >>> from nodeps import GitUrl, Env
             >>> from nodeps import NODEPS_PROJECT_NAME
             >>>
-            >>> assert GitUrl(nodeps.__file__).admin() is True
-            >>> assert GitUrl(nodeps.__file__).admin("foo") is False
+            >>> env = Env()
+            >>> file = env.GITHUB_WORKSPACE if env.GITHUB_WORKSPACE else nodeps.__file__
+            >>> assert GitUrl(file).admin() is True
+            >>> assert GitUrl(file).admin("foo") is False
 
         Arguments:
             user: default $GIT
@@ -314,9 +316,11 @@ class GitUrl:
 
         Examples:
             >>> import nodeps
-            >>> from nodeps import GitUrl
+            >>> from nodeps import GitUrl, Env
             >>>
-            >>> assert GitUrl(nodeps.__file__).default() == "main"
+            >>> env = Env()
+            >>> file = env.GITHUB_WORKSPACE if env.GITHUB_WORKSPACE else nodeps.__file__
+            >>> assert GitUrl(file).default() == "main"
 
         Args:
             rm: remove cache
@@ -404,9 +408,11 @@ class GitUrl:
 
         Examples:
             >>> import nodeps
-            >>> from nodeps import GitUrl
+            >>> from nodeps import GitUrl, Env
             >>>
-            >>> assert GitUrl(nodeps.__file__).public() is True
+            >>> env = Env()
+            >>> file = env.GITHUB_WORKSPACE if env.GITHUB_WORKSPACE else nodeps.__file__
+            >>> assert GitUrl(file).public() is True
             >>> assert GitUrl(repo="pdf").public() is False
 
         Args:
