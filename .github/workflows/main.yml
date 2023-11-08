@@ -36,5 +36,5 @@ jobs:
 
       - name: pytest
 #        run: pytest src/nodeps/modules/functions.py
-#        run: pytest src/nodeps/modules/project.py
-        run: pytest
+        run: pytest src/nodeps/modules/project.py
+#        run: pytest
