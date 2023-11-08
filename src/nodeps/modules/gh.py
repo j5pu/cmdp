@@ -44,11 +44,14 @@ class GitUrl:
             >>> import nodeps
             >>> from nodeps import GitUrl
             >>> from nodeps import Path
-            >>> from nodeps import NODEPS_PROJECT_NAME
+            >>> from nodeps import NODEPS_PROJECT_NAME, Env
             >>> from nodeps import NODEPS_PATH
             >>>
+            >>> env = Env()
+            >>> file = env.GITHUB_WORKSPACE if env.GITHUB_WORKSPACE else nodeps.__file__
+            >>>
             >>> p = GitUrl()
-            >>> p1 = GitUrl(nodeps.__file__)
+            >>> p1 = GitUrl(file)
             >>> p2 = GitUrl(repo=NODEPS_PROJECT_NAME)
             >>> p.host, p.owner, p.repo, p.protocol, p.protocols, p.platform, p.pathname, p.ownerrepo
             ('github.com', 'j5pu', 'nodeps', 'https', ['https'], 'github', '/j5pu/nodeps', 'j5pu/nodeps')
