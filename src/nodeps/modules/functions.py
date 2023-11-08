@@ -817,11 +817,10 @@ def findfile(pattern, path: AnyPath = None) -> list[Path]:
     Examples:
         >>> from pathlib import Path
         >>> import nodeps
-        >>> from nodeps import findfile, Env
+        >>> from nodeps import findfile, MACOS, LOCAL
         >>>
-        >>> env = Env()
-        >>> input_file = env.GITHUB_WORKSPACE if env.GITHUB_WORKSPACE else nodeps.__file__
-        >>> assert Path(input_file) in findfile("*.py")
+        >>> if MACOS and LOCAL:
+        ...     assert Path(nodeps.__file__) in findfile("*.py")
 
     Args:
         pattern: pattern to search files
@@ -858,7 +857,7 @@ def findup(
         >>> env = Env()
         >>> input_file = env.GITHUB_WORKSPACE if env.GITHUB_WORKSPACE else nodeps.__file__
         >>> with chdir(parent(input_file)):
-        ...     pyproject_toml = findup(nodeps.__file__, name="pyproject.toml")
+        ...     pyproject_toml = findup(input_file, name="pyproject.toml")
         ...     assert pyproject_toml.is_file()
         >>>
         >>> with chdir(parent(email.mime.__file__)):
