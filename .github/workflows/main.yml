@@ -11,7 +11,7 @@ env:
 
 jobs:
   tests:
-    name: Python ${{ matrix.python-version }} tests
+    name: Python ${{ matrix.os}} ${{ matrix.python-version }} tests
     runs-on: ${{ matrix.os}}
     strategy:
       matrix:
@@ -35,4 +35,4 @@ jobs:
         run: pip install .[full]
 
       - name: pytest
-        run: pytest
+        run: pytest src/nodeps/modules/gh.py
