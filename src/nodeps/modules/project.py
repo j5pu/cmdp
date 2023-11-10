@@ -504,7 +504,6 @@ class Project:
             dev = home = Path.home()
             add = sorted(add.iterdir()) if (add := home / "Archive").is_dir() and archive else []
             dev = sorted(dev.iterdir()) if NODEPS_TOP and (dev := NODEPS_TOP.parent) != home else []
-            print(dev)
             rv = {
                 ProjectRepos.DICT: {},
                 ProjectRepos.INSTANCES: {},
