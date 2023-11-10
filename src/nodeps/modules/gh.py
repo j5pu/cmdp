@@ -9,6 +9,7 @@ __all__ = (
 import collections
 import dataclasses
 import subprocess
+import sys
 import tempfile
 import urllib.error
 from typing import ClassVar, cast
@@ -630,6 +631,7 @@ class Gh(GitUrl):
             RuntimeError: if diverged or dirty
         """
         status = self.status(quiet=quiet)
+        print(status, file=sys.stderr)
         if status.dirty:
             if status.diverge and not force:
                 msg = f"Diverged: {status=}, {self.repo=}"
