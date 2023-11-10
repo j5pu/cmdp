@@ -484,7 +484,6 @@ class Project:
             >>> from nodeps import Project
             >>> from nodeps import NODEPS_PROJECT_NAME, Path, NODEPS_TOP, NODEPS_PATH
             >>>
-            >>> Project.repos(), NODEPS_TOP, NODEPS_PATH
             >>> assert NODEPS_PROJECT_NAME in Project.repos()
             >>> assert NODEPS_PROJECT_NAME in Project.repos(ProjectRepos.DICT)
             >>> assert NODEPS_PROJECT_NAME in Project.repos(ProjectRepos.INSTANCES)
