@@ -76,7 +76,9 @@ NODEPS_PIP_POST_INSTALL_FILENAME = "_post_install.py"
 """Filename that will be searched after pip installs a package."""
 NODEPS_PROJECT_NAME = "nodeps"
 """NoDeps Project Name"""
-NODEPS_TOP = _p if ((_p := NODEPS_PATH.parent.parent) / ".git").exists() else None
+print(os.environ.get("GITHUB_WORKSPACE"))
+NODEPS_TOP = _p if ((_p := pathlib.Path(
+    os.environ.get("GITHUB_WORKSPACE", NODEPS_PATH.parent.parent))) / ".git").exists() else None
 """NoDeps Git Repository Top if exists, else None."""
 PY_MAJOR_MINOR = f"{sys.version_info[0]}.{sys.version_info[1]}"
 """Major.Minor Python running version."""
