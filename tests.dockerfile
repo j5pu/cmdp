@@ -8,8 +8,10 @@ FROM python:${PY_VERSION}-slim
 ENV PIP_ROOT_USER_ACTION=ignore PYTHONPATH=/nodeps/src
 
 RUN apt-get update && \
-  apt-get install --no-install-recommends -y git && \
-  rm -rf /var/cache/apt/archives  && ln -sf /bin/bash /bin/sh
+  apt-get install --no-install-recommends -y git openssh-client && \
+  rm -rf /var/cache/apt/archives  && ln -sf /bin/bash /bin/sh && \
+  mkdir -p -m 0600 ~/.ssh && \
+  ssh-keyscan -H github.com bitbucket.org >> ~/.ssh/known_hosts
 
 COPY . /nodeps
 WORKDIR /nodeps

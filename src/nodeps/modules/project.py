@@ -630,7 +630,7 @@ class Project:
 
     def tox(self) -> int:
         """Runs tox."""
-        if self.pyproject_toml.file:
+        if self.pyproject_toml.file and not self.ci:
             rv = subprocess.run(f"{self.executable()} -m tox --root {self.root}", shell=True).returncode
             self.info(self.tox.__name__)
             return rv

@@ -631,7 +631,7 @@ class Gh(GitUrl):
             RuntimeError: if diverged or dirty
         """
         status = self.status(quiet=quiet)
-        print(status, file=sys.stderr)
+        # print(status, file=sys.stderr)
         if status.dirty:
             if status.diverge and not force:
                 msg = f"Diverged: {status=}, {self.repo=}"

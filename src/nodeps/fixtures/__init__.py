@@ -12,6 +12,7 @@ from collections.abc import Generator
 import pytest
 
 from ..extras import Repo
+from ..modules.constants import DOCKER_COMMAND
 from ..modules.path import Path
 
 LOGGER = logging.getLogger(__name__)
@@ -36,6 +37,46 @@ class Repos:
     clone: Repo
     local: Repo
     remote: Repo
+
+
+def pytest_collection_modifyitems(config, items):
+    """Mark skip_docker if --local or not DOCKER_COMMAND.
+
+    Examples:
+        >>> @pytest.mark.skip
+        >>> def test_skip_docker(local: bool):
+        ...     assert local is False
+    """
+    # TODO: https://docs.pytest.org/en/7.1.x/example/markers.html#custom-marker-and-command-line-option-to-control-test-runs
+    skip_docker = pytest.mark.skip(reason="Only run when --local or not DOCKER_COMMAND")
+    for item in items:
+        if config.getoption("local") is True or not DOCKER_COMMAND:
+            item.add_marker(skip_docker)
+        # skip_docker = pytest.mark.skip(reason="Only run when --local or not DOCKER_COMMAND")
+        # for item in items:
+        #     if "skip_docker" in item.keywords:
+        #         item.add_marker(skip_docker)
+
+
+@pytest.hookimpl
+def pytest_addoption(parser):
+    """Use config local to skip tests.
+
+    Example:
+        >>> @pytest.mark.skipif("config.getoption('local') is True", reason='--local option provided')
+        >>> def test_func_docker(local: bool):
+        ...     assert local is False
+    """
+    parser.addoption('--local', action='store_true', dest="local", default=False, help='Run local tests.')
+
+@pytest.fixture()
+def local(request) -> bool:
+    """Fixture to see if --local option passed to pytest.
+
+    Examples:
+        pytest --local tests/test_fixture.py::test_fixture_local
+    """
+    return request.config.getoption('local')
 
 
 @pytest.fixture()
