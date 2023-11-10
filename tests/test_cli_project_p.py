@@ -112,6 +112,11 @@ def test_public(invoke):
     assert invoke.exit_code == 0
 
 
+@pytest.mark.parametrize("invoke", [[project_p, "push"]], indirect=True)
+def test_push(invoke):
+    assert invoke.exit_code == 0
+
+
 @pytest.mark.parametrize("invoke", [[project_p, "pythonstartup"]], indirect=True)
 def test_pythonstartup(invoke):
     assert invoke.exit_code == 0
