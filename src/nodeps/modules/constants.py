@@ -18,17 +18,15 @@ __all__ = (
     "NODEPS_PIP_POST_INSTALL_FILENAME",
     "NODEPS_PROJECT_NAME",
     "NODEPS_PATH",
+    "NODEPS_TOP",
     "PY_MAJOR_MINOR",
     "PYTHON_VERSIONS",
     "PYTHON_DEFAULT_VERSION",
     "SUDO",
     "USER",
     "EMAIL",
-    "IPYTHON_EXTENSIONS",
-    "IPYTHONDIR",
     "PW_ROOT",
     "PW_USER",
-    "PYTHONSTARTUP",
 )
 
 import os
@@ -73,11 +71,13 @@ MACOS = sys.platform == "darwin"
 NODEPS_EXECUTABLE = "p"
 """NoDeps Executable Name"""
 NODEPS_PATH = pathlib.Path(__file__).parent.parent
-"""NoDeps Source Path"""
+"""NoDeps Source Path: src/nodeps"""
 NODEPS_PIP_POST_INSTALL_FILENAME = "_post_install.py"
 """Filename that will be searched after pip installs a package."""
 NODEPS_PROJECT_NAME = "nodeps"
 """NoDeps Project Name"""
+NODEPS_TOP = _p if ((_p := NODEPS_PATH.parent.parent) / ".git").exists() else None
+"""NoDeps Git Repository Top if exists, else None."""
 PY_MAJOR_MINOR = f"{sys.version_info[0]}.{sys.version_info[1]}"
 """Major.Minor Python running version."""
 PYTHON_VERSIONS = (
@@ -92,12 +92,6 @@ SUDO = str(rv) if (rv := pathlib.Path("/usr/bin/sudo")).exists() else ""
 USER = os.getenv("USER", "root")
 """"Environment Variable $USER or root if not USER variable"""
 
-IPYTHON_EXTENSIONS = ["autoreload", NODEPS_PROJECT_NAME, "storemagic", "rich"]
-"""Default IPython extensions to load"""
-IPYTHONDIR = str(NODEPS_PATH / "ipython")
-"""IPython Profile :mod:`ipython_profile.profile_default.ipython_config`: `export IPYTHONDIR="$(ipythondir)"`."""
 EMAIL = f"63794670+{GIT}@users.noreply.github.com"
 PW_ROOT = pwd.getpwnam("root")
 PW_USER = pwd.getpwnam(USER)
-PYTHONSTARTUP = str(NODEPS_PATH / "python_startup/__init__.py")
-"""Python Startup :mod:`python_startup.__init__`: `export PYTHONSTARTUP="$(pythonstartup)"`."""

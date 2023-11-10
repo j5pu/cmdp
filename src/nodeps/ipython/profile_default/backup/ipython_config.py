@@ -1,5 +1,4 @@
 """IPython Config."""  # noqa: INP001
-from nodeps import IPYTHON_EXTENSIONS, MyPrompt
 
 c = get_config()  # type: ignore[attr-defined]  # noqa: F821
 
@@ -324,16 +323,16 @@ c.TerminalIPythonApp.exec_PYTHONSTARTUP = True
 #  See also: InteractiveShellApp.exec_lines
 # '''
 c.TerminalIPythonApp.exec_lines = [
-   "IPYTHON = get_ipython()",
-   "extensions = IPYTHON.extension_manager.loaded",
-   "IPYTHON.find_line_magic('rehashx')(1)",
+    "IPYTHON = get_ipython()",
+    "extensions = IPYTHON.extension_manager.loaded",
+    "IPYTHON.find_line_magic('rehashx')(1)",
 ]
 
 """ A list of dotted module names of IPython extensions to load.
  See also: InteractiveShellApp.extensions
 """
 
-c.TerminalIPythonApp.extensions = IPYTHON_EXTENSIONS
+c.TerminalIPythonApp.extensions = ["autoreload"]
 
 """ Path to an extra config file to load.
  See also: BaseIPythonApplication.extra_config_file
@@ -906,7 +905,7 @@ c.TerminalInteractiveShell.highlighting_style = "monokai"
 """ Class used to generate Prompt token for prompt_toolkit
  Default: 'IPython.terminal.prompts.Prompts'
 """
-c.TerminalInteractiveShell.prompts_class = MyPrompt
+c.TerminalInteractiveShell.prompts_class = "> "
 
 """
  See also: InteractiveShell.quiet

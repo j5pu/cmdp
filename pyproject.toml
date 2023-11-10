@@ -18,8 +18,10 @@ email = "63794670+j5pu@users.noreply.github.com"
 
 
 
+
 [project.entry-points.pytest11]
 git-pytest = "nodeps.fixtures"
+
 
 
 
@@ -137,6 +139,7 @@ distribution = "nodeps.__main__:_distribution"
 diverge = "nodeps.__main__:_diverge"
 docs = "nodeps.__main__:_docs"
 extras = "nodeps.__main__:_extras"
+ipy = "nodeps.__main__:_ipy"
 ipythondir = "nodeps.__main__:_ipythondir"
 latest = "nodeps.__main__:_latest"
 mip = "nodeps.__main__:_mip"
@@ -165,6 +168,7 @@ venvs = "nodeps.__main__:_venvs"
 [project.urls]
 Homepage = "https://github.com/j5pu/nodeps"
 Documentation = "https://nodeps.readthedocs.io"
+
 
 
 

@@ -17,6 +17,7 @@ __all__ = (
     "_diverge",
     "_docs",
     "_extras",
+    "_ipy",
     "_ipythondir",
     "_latest",
     "_mip",
@@ -49,15 +50,14 @@ import sys
 from pathlib import Path
 from typing import Annotated
 
+from .ipython import IPYTHONDIR, PYTHONSTARTUP, ipy
 from .modules import (
     GIT,
     GITHUB_URL,
-    IPYTHONDIR,
     NODEPS_EXECUTABLE,
     NODEPS_PROJECT_NAME,
     PYTHON_DEFAULT_VERSION,
     PYTHON_VERSIONS,
-    PYTHONSTARTUP,
     Bump,
     Gh,
     GitUrl,
@@ -136,6 +136,7 @@ _distribution = typer.Typer(**_typer_options, name="distribution")
 _diverge = typer.Typer(**_typer_options, name="diverge")
 _docs = typer.Typer(**_typer_options, name="docs")
 _extras = typer.Typer(**_typer_options, name="extras")
+_ipy = typer.Typer(**_typer_options, name="ipy")
 _ipythondir = typer.Typer(**_typer_options, name="ipythondir")
 _latest = typer.Typer(**_typer_options, name="latest")
 _mip = typer.Typer(**_typer_options, name="mip")
@@ -636,6 +637,12 @@ def github_project_p(
     """GitHub repos API."""
     from rich import print_json
     print_json(data=Project(data, rm=rm).gh.github(rm=rm))
+
+
+@_ipy.command()
+def __ipy():
+    """Run IPython."""
+    ipy()
 
 
 @project_p.command()

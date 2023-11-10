@@ -20,7 +20,15 @@ import types
 from typing import ClassVar
 
 from nodeps.modules.classes import ColorLogger
-from nodeps.modules.constants import AUTHOR, EMAIL, GIT, NODEPS_PROJECT_NAME, PYTHON_DEFAULT_VERSION, PYTHON_VERSIONS
+from nodeps.modules.constants import (
+    AUTHOR,
+    EMAIL,
+    GIT,
+    NODEPS_PROJECT_NAME,
+    NODEPS_TOP,
+    PYTHON_DEFAULT_VERSION,
+    PYTHON_VERSIONS,
+)
 from nodeps.modules.enums import Bump, ProjectRepos
 from nodeps.modules.errors import CalledProcessError, InvalidArgumentError
 from nodeps.modules.functions import completions, dict_sort, findup, in_tox, suppress, urljson, which
@@ -470,18 +478,22 @@ class Project:
             archive: bool = False,
             rm: bool = False,
     ) -> list[Path] | list[str] | dict[str, Project | str] | None:
-        """Repo paths, names or Project instances under home and Archive.
+        """Repo paths, names or Project instances under home, Archive or parent of nodeps top.
 
         Examples:
             >>> from nodeps import Project
-            >>> from nodeps import NODEPS_PROJECT_NAME, MACOS, LOCAL
+            >>> from nodeps import NODEPS_PROJECT_NAME, Path, NODEPS_TOP
             >>>
-            >>> if MACOS and LOCAL:
-            ...     assert NODEPS_PROJECT_NAME in Project.repos()
-            ...     assert NODEPS_PROJECT_NAME in Project.repos(ProjectRepos.DICT)
-            ...     assert NODEPS_PROJECT_NAME in Project.repos(ProjectRepos.INSTANCES)
-            ...     assert NODEPS_PROJECT_NAME in Project.repos(ProjectRepos.PY)
+            >>> Project.repos()
+            >>> assert NODEPS_PROJECT_NAME in Project.repos()
+            >>> assert NODEPS_PROJECT_NAME in Project.repos(ProjectRepos.DICT)
+            >>> assert NODEPS_PROJECT_NAME in Project.repos(ProjectRepos.INSTANCES)
+            >>> assert NODEPS_PROJECT_NAME in Project.repos(ProjectRepos.PY)
+            >>>
+            >>> shrc = Path.home() / "shrc/.git"
+            >>> if shrc.is_dir():
             ...     assert "shrc" not in Project.repos(ProjectRepos.PY)
+            ...     assert "shrc" in Project.repos()
 
         Args:
             ret: return names, paths, dict or instances
@@ -489,8 +501,11 @@ class Project:
             archive: look for repos under ~/Archive
             rm: remove cache
         """
-        if rm or (rv := Path.pickle(name=cls.repos)) is None:
-            add = sorted(add.iterdir()) if (add := Path.home() / "Archive").is_dir() and archive else []
+        if rm or not (rv := Path.pickle(name=cls.repos)):
+            dev = home = Path.home()
+            add = sorted(add.iterdir()) if (add := home / "Archive").is_dir() and archive else []
+            dev = sorted(dev.iterdir()) if NODEPS_TOP and (dev := NODEPS_TOP.parent) != home else []
+            print(dev)
             rv = {
                 ProjectRepos.DICT: {},
                 ProjectRepos.INSTANCES: {},
@@ -498,7 +513,7 @@ class Project:
                 ProjectRepos.PATHS: [],
                 ProjectRepos.PY: {},
             }
-            for path in add + sorted(Path.home().iterdir()):
+            for path in add + dev + sorted(home.iterdir()):
                 if path.is_dir() and (path / ".git").exists() and Gh(path).admin(rm=rm):
                     instance = cls(path)
                     name = path.name

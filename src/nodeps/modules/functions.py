@@ -40,9 +40,6 @@ __all__ = (
     "gz",
     "in_tox",
     "indict",
-    "is_idlelib",
-    "is_repl",
-    "is_terminal",
     "iscoro",
     "map_with_args",
     "mip",
@@ -111,9 +108,7 @@ from nodeps.modules.errors import CalledProcessError, CmdError, CommandNotFoundE
 from nodeps.modules.path import AnyPath, FrameSimple, Path, toiter
 
 if TYPE_CHECKING:
-    from rich.console import Console  # type: ignore[name-defined]
-
-    from nodeps.modules.typings import ExcType, OpenIO, PathIsLiteral, RunningLoop
+    from nodeps.modules.typings import ExcType, PathIsLiteral, RunningLoop
 
 _KT = TypeVar("_KT")
 _T = TypeVar("_T")
@@ -1222,92 +1217,6 @@ def iscoro(data: Any) -> bool:
             inspect.iscoroutinefunction(data),
         ]
     )
-
-
-def is_idlelib() -> bool:
-    """Is idle repl."""
-    return hasattr(sys.stdin, "__module__") and sys.stdin.__module__.startswith("idlelib")
-
-
-def is_repl(syspath: bool = False) -> bool:
-    """Check if it is a repl.
-
-    Args:
-        syspath: set sys.path with cwd and cwd/src
-    """
-    rv = any([hasattr(sys, "ps1"), "pythonconsole" in sys.stdout.__class__.__module__, is_idlelib()])
-    if rv and syspath:
-        cwd = Path.cwd()
-        cwd.sys()
-        (cwd / "src").sys()
-    return rv
-
-
-def is_terminal(self: Console | OpenIO | None = None) -> bool:
-    """Patch for rich console is terminal.
-
-    Examples:
-        >>> import time
-        >>> from rich.console import Console
-        >>> from rich.json import JSON
-        >>> from rich import print_json
-        >>>
-        >>> c = Console()
-        >>> with c.status("Working...", spinner="material"):  # doctest: +SKIP
-        ...    time.sleep(2)
-        >>>
-        >>> c.log(JSON('["foo", "bar"]'))  # doctest: +SKIP
-        >>>
-        >>> print_json('["foo", "bar"]')  # doctest: +SKIP
-        >>>
-        >>> c.log("Hello, World!")  # doctest: +SKIP
-        >>> c.print([1, 2, 3])  # doctest: +SKIP
-        >>> c.print("[blue underline]Looks like a link")  # doctest: +SKIP
-        >>> c.print(locals())  # doctest: +SKIP
-        >>> c.print("FOO", style="white on blue")  # doctest: +SKIP
-        >>>
-        >>> blue_console = Console(style="white on blue")  # doctest: +SKIP
-        >>> blue_console.print("I'm blue. Da ba dee da ba di.")  # doctest: +SKIP
-        >>>
-        >>> c.input("What is [i]your[/i] [bold red]name[/]? :smiley: ")  # doctest: +SKIP
-
-    References:
-        Test with: `print("[italic red]Hello[/italic red] World!", locals())`
-
-        `Rich Inspect <https://rich.readthedocs.io/en/stable/traceback.html?highlight=sitecustomize>`_
-
-        ``rich.traceback.install(suppress=[click])``
-
-        To see the spinners: `python -m rich.spinner`
-        To print json from the comamand line: `python -m rich.json cats.json`
-
-        `Rich Console <https://rich.readthedocs.io/en/stable/console.html>`_
-
-        Input: `console.input("What is [i]your[/i] [bold red]name[/]? :smiley: ")`
-    """
-    if hasattr(self, "_force_terminal") and self._force_terminal is not None:
-        return self._force_terminal
-
-    if is_idlelib():
-        return False
-
-    if hasattr(self, "is_jupyter") and self.is_jupyter:
-        return False
-
-    if hasattr(self, "_force_terminal") and self._environ.get("FORCE_COLOR"):
-        self._force_terminal = True
-        return True
-
-    try:
-        return any(
-            [
-                is_repl(),
-                hasattr(self, "isatty") and self.isatty(),
-                hasattr(self, "file") and hasattr(self.file, "isatty") and self.file.isatty(),
-            ]
-        )
-    except ValueError:
-        return False
 
 
 def map_with_args(

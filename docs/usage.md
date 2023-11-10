@@ -69,6 +69,10 @@
     :prog: extras
     :nested: full
 
+.. click:: nodeps.__main__:_ipy_click
+    :prog: ipy
+    :nested: full
+
 .. click:: nodeps.__main__:_ipythondir_click
     :prog: ipythondir
     :nested: full

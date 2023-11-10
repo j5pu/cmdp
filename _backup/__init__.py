@@ -214,20 +214,6 @@ from typing import (
     cast,
 )
 
-# <editor-fold desc="nodeps[pretty] extras">
-try:
-    # nodeps[pretty] extras
-    import rich.console  # type: ignore[attr-defined]
-    import rich.pretty  # type: ignore[attr-defined]
-    import rich.traceback  # type: ignore[attr-defined]
-    CONSOLE = rich.console.Console(color_system="standard")
-    rich.pretty.install(CONSOLE, expand_all=True)  # type: ignore[attr-defined]
-    rich.traceback.install(show_locals=True,  # type: ignore[attr-defined]
-                           suppress={"click", "_pytest", "pluggy", "rich", })
-except ModuleNotFoundError:
-    Console = object
-    CONSOLE = None
-# </editor-fold>
 
 # <editor-fold desc="nodeps[pth] extras">
 try:
@@ -264,11 +250,6 @@ try:
 except ModuleNotFoundError:
     pip = object
 
-try:
-    from IPython.terminal.prompts import Prompts, Token  # type: ignore[attr-defined]
-except ModuleNotFoundError:
-    Prompts = Token = object
-
 
 if TYPE_CHECKING:
     from urllib.parse import ParseResult
@@ -289,45 +270,6 @@ _T = TypeVar("_T")
 _VT = TypeVar("_VT")
 P = ParamSpec("P")
 T = TypeVar("T")
-
-class MyPrompt(Prompts):
-    """IPython prompt."""
-
-    @property
-    def project(self) -> Project:
-        """Project instance."""
-        return Project()
-
-    def in_prompt_tokens(self, cli=None):
-        """In prompt tokens."""
-        return [
-            (Token, ""),
-            (Token.OutPrompt, pathlib.Path().absolute().stem),
-            (Token, " "),
-            (Token.Generic, "↪"),
-            (Token.Generic, self.project.gh.current()),
-            *((Token, " "), (Token.Prompt, "©") if os.environ.get("VIRTUAL_ENV") else (Token, "")),
-            (Token, " "),
-            (Token.Name.Class, "v" + platform.python_version()),
-            (Token, " "),
-            (Token.Name.Entity, self.project.gh.latest()),
-            (Token, " "),
-            (Token.Prompt, "["),
-            (Token.PromptNum, str(self.shell.execution_count)),
-            (Token.Prompt, "]: "),
-            (
-                Token.Prompt if self.shell.last_execution_succeeded else Token.Generic.Error,
-                "❯ ",  # noqa: RUF001
-            ),
-        ]
-
-    def out_prompt_tokens(self, cli=None):
-        """Out Prompt."""
-        return [
-            (Token.OutPrompt, "Out<"),
-            (Token.OutPromptNum, str(self.shell.execution_count)),
-            (Token.OutPrompt, ">: "),
-        ]
 
 class TempDir(tempfile.TemporaryDirectory):
     """Wrapper for :class:`tempfile.TemporaryDirectory` that provides Path-like.
@@ -481,57 +423,19 @@ def load_ipython_extension1(  # noqa: PLR0912, PLR0915
         - almost no globals
         - and only nodeps in sys.modules
     """
-    if ipython is None:
-        with contextlib.suppress(NameError):
-            ipython: InteractiveShell = get_ipython()  # type: ignore[attr-defined]  # noqa: F821
-
-    from_pycharm_console = "ipython-input" in sys._getframe(1).f_code.co_filename
-
-    if magic and ipython:
-        ipython.run_line_magic("reload_ext", NODEPS_PROJECT_NAME)
-        return None
-
     if ipython:
         config = ipython.config
         ipython.prompts = MyPrompt(ipython)
-        loaded = ipython.extension_manager.loaded
-        if NODEPS_PROJECT_NAME not in loaded:
-            extensions = [item.removeprefix("IPython.extensions.") for item in loaded]
-            for extension in IPYTHON_EXTENSIONS:
-                if extension not in extensions and extension != NODEPS_PROJECT_NAME:
-                    ipython.extension_manager.load_extension(extension)
-                    # print(extension)
-                    # ipython.run_line_magic("load_ext", extension)
-
-            from IPython.core.magic import Magics, line_magic, magics_class
-
-            @magics_class
-            class NodepsMagic(Magics):
-                """Nodeps magic class."""
-
-                @line_magic
-                def nodeps(self, _):
-                    """Nodeps magic."""
-                    self.shell.run_line_magic("reload_ext", NODEPS_PROJECT_NAME)
-                    self.shell.run_line_magic("autoreload", "3")
-                    self.shell.run_code(f"import {NODEPS_PROJECT_NAME}")
-                    self.shell.run_code(f"print({NODEPS_PROJECT_NAME})")
-
-            ipython.register_magics(NodepsMagic)
 
         if NODEPS_PROJECT_NAME not in sys.modules:
             imported = importlib.import_module(NODEPS_PROJECT_NAME)
         module = None
-        if env := os.environ.get("VIRTUAL_ENV"):
-            module = Path(env).parent.name
-            ipython.ex(f"from {module} import *")
 
         ipython.ex("'%autoreload 2'")
         ipython.extension_manager.shell.run_line_magic("autoreload", "3")
         if module != NODEPS_PROJECT_NAME:
             ipython.ex(f"import {NODEPS_PROJECT_NAME}")
         # rich.pretty.install(CONSOLE, expand_all=True)
-        warnings.filterwarnings("ignore", ".*To exit:.*", UserWarning)
     else:
         try:
             config = get_config()  # type: ignore[attr-defined]
@@ -540,37 +444,10 @@ def load_ipython_extension1(  # noqa: PLR0912, PLR0915
 
             config = Config()
 
-        config.TerminalIPythonApp.extensions = IPYTHON_EXTENSIONS
 
-    config.InteractiveShellApp.exec_lines = ["%autoreload 3", f"import {NODEPS_PROJECT_NAME}"]
-    config.BaseIPythonApplication.verbose_crash = True
-    config.TerminalIPythonApp.display_banner = False
-    config.TerminalIPythonApp.exec_PYTHONSTARTUP = True
-    config.InteractiveShell.automagic = True
-    config.InteractiveShell.banner1 = ""
-    config.InteractiveShell.banner2 = ""
-    config.InteractiveShell.sphinxify_docstring = True
-    config.TerminalInteractiveShell.auto_match = True
-    config.TerminalInteractiveShell.autoformatter = "black"
-    config.TerminalInteractiveShell.banner1 = ""
-    config.TerminalInteractiveShell.banner2 = ""
-    config.TerminalInteractiveShell.confirm_exit = False
-    config.TerminalInteractiveShell.highlighting_style = "monokai"
+    config.InteractiveShellApp.exec_lines = [f"import {NODEPS_PROJECT_NAME}"]
     if not from_pycharm_console and not magic:  # debug in console goes thu Prompt
         config.TerminalInteractiveShell.prompts_class = MyPrompt
-    config.TerminalInteractiveShell.term_title = True
-    config.PlainTextFormatter.max_seq_length = 0
-    config.Completer.auto_close_dict_keys = True
-    config.StoreMagics.autorestore = True
-    config.InteractiveShell.color_info = True
-    config.InteractiveShell.colors = "Linux"
-    config.TerminalInteractiveShell.true_color = True
-
-    if from_pycharm_console:
-        load_ipython_extension(ipython, magic=True)
-
-    import asyncio.base_events
-    asyncio.base_events.BaseEventLoop.slow_callback_duration = 1
 
     if ipython is None:
         return config
@@ -583,9 +460,6 @@ if "pip._internal.operations.install.wheel" in sys.modules:
     pip._internal.cli.base_command.Command.main = _pip_base_command
     pip._internal.req.req_install.InstallRequirement.uninstall = _pip_uninstall_req
 
-if "rich.console" in sys.modules:
-    # noinspection PyPropertyAccess,PyUnboundLocalVariable
-    rich.console.Console.is_terminal = property(is_terminal)
 
 if "setuptools.command.build_py" in sys.modules:
     setuptools.command.build_py._IncludePackageDataAbuse.warn = _setuptools_build_quiet
