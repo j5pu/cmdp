@@ -14,7 +14,7 @@ import urllib.error
 from typing import ClassVar, cast
 
 from nodeps.modules.classes import ColorLogger
-from nodeps.modules.constants import CI, DOCKER, GIT, GITHUB_TOKEN, GITHUB_URL, NODEPS_PROJECT_NAME
+from nodeps.modules.constants import CI, DOCKER, EMAIL, GIT, GITHUB_TOKEN, GITHUB_URL, NODEPS_PROJECT_NAME
 from nodeps.modules.datas import GitStatus
 from nodeps.modules.enums import Bump
 from nodeps.modules.errors import InvalidArgumentError
@@ -607,6 +607,12 @@ class Gh(GitUrl):
 
         self.git = f"git -C '{self._path}'"
         self.log = ColorLogger.logger(self.__class__.__qualname__)
+
+        if subprocess.run(f"{self.git} config user.email", capture_output=True, shell=True).returncode != 0:
+            self.git_check_call(f"config user.email {EMAIL}")
+
+        if subprocess.run(f"{self.git} config user.name", capture_output=True, shell=True).returncode != 0:
+            self.git_check_call(f"config user.name {GIT}")
 
     def info(self, msg: str):
         """Logger info."""

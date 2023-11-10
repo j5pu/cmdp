@@ -88,7 +88,7 @@ def test_github(invoke):
 @pytest.mark.parametrize("invoke", [[project_p, "ipythondir"]], indirect=True)
 def test_ipythondir(invoke):
     assert invoke.exit_code == 0
-    assert "ipython_profile" in invoke.stdout
+    assert "ipython" in invoke.stdout
 
 
 @pytest.mark.parametrize("invoke", [[project_p, "latest"]], indirect=True)

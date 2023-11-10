@@ -10,7 +10,6 @@ import dataclasses
 import datetime
 import importlib.metadata
 import importlib.util
-import os
 import pathlib
 import shutil
 import subprocess
@@ -22,6 +21,8 @@ from typing import ClassVar
 from nodeps.modules.classes import ColorLogger
 from nodeps.modules.constants import (
     AUTHOR,
+    CI,
+    DOCKER,
     EMAIL,
     GIT,
     NODEPS_PROJECT_NAME,
@@ -77,7 +78,7 @@ class Project:
 
     def __post_init__(self, rm: bool = False):  # noqa: PLR0912, PLR0915
         """Post init."""
-        self.ci = any([in_tox(), os.environ.get("CI")])
+        self.ci = any([in_tox(), CI, DOCKER])
         self.data = self.data if self.data else Path.cwd()
         data = Path(self.data.__file__ if isinstance(self.data, types.ModuleType) else self.data)
         if (
