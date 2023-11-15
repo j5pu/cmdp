@@ -1,9 +1,21 @@
 groups:
   - name: Docker
     commands:
-      - name: Docker tests
-        command: docker build --quiet -f tests.dockerfile -t nodeps.tests . && docker run --env TOKEN=$TOKEN --rm nodeps.tests pytest
-      - name: Docker mount sh
-        command: docker build --quiet -f tests.dockerfile -t nodeps.tests . && docker run --env TOKEN=$TOKEN -it -v $(pwd):/nodeps -v ~/.ssh:/root/.ssh --rm nodeps.tests sh -li
-      - name: Docker mount python
-        command: docker build --quiet -f tests.dockerfile -t nodeps.tests . && docker run --env TOKEN=$TOKEN -it -v $(pwd):/nodeps -v ~/.ssh:/root/.ssh --rm nodeps.tests
+      - name: publish
+        command: ./docker/docker.sh publish
+      - name: "bash: 3.11"
+        command: ./docker/docker.sh 3.11-bash
+      - name: "bash: 3.12"
+        command: ./docker/docker.sh 3.12-bash
+      - name: "bash: 3.11-slim"
+        command: ./docker/docker.sh 3.11-slim-bash
+      - name: "bash: 3.12-slim"
+        command: ./docker/docker.sh 3.12-slim-bash
+      - name: "pytest: 3.11"
+        command: ./docker/docker.sh 3.11
+      - name: "pytest: 3.12"
+        command: ./docker/docker.sh 3.12
+      - name: "pytest: 3.11-slim"
+        command: ./docker/docker.sh 3.11-slim
+      - name: "pytest: 3.12-slim"
+        command: ./docker/docker.sh 3.12-slim

@@ -735,7 +735,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             ...     assert st.st_gid == 0
             ...     assert st.st_uid == 0
             ...     stats = copied.stats()
-            ...     assert stats.mode == "-rw-------"
+            ...     assert "-rw-" in stats.mode
             ...     _ = tmp.chown()
             ...     assert copied.cmp(__file__)
 

@@ -1,18 +1,19 @@
 """GH Module."""
 __all__ = (
+    "GIT_CONFIG_GLOBAL",
     "GitUrl",
     "Gh",
     "aioclone",
     "clone",
+    "git_config_global",
 )
 
 import collections
 import dataclasses
 import subprocess
-import sys
 import tempfile
 import urllib.error
-from typing import ClassVar, cast
+from typing import ClassVar, Protocol, cast, runtime_checkable
 
 from nodeps.modules.classes import ColorLogger
 from nodeps.modules.constants import CI, DOCKER, EMAIL, GIT, GITHUB_TOKEN, GITHUB_URL, NODEPS_PROJECT_NAME
@@ -30,6 +31,22 @@ from nodeps.modules.platforms import (
     GitHubPlatform,
     GitLabPlatform,
 )
+
+GIT_CONFIG_GLOBAL = {
+    "init.defaultBranch": "main",
+    "pull.rebase": "false",
+    "user.email": EMAIL,
+    "user.name": GIT,
+}
+
+
+@runtime_checkable
+class _SupportsWorkingDir(Protocol):
+    """Protocol Class to support Repo class."""
+
+    @property
+    def working_dir(self):
+        return
 
 
 @dataclasses.dataclass
@@ -170,7 +187,8 @@ class GitUrl:
             >>> assert p.normalized == u
             >>> assert p.url == u
     """
-    data: dataclasses.InitVar[str | Path | None] = ""
+
+    data: dataclasses.InitVar[str | Path | _SupportsWorkingDir | None] = ""
     """Url, path or user (to be used with name), default None for cwd. Does not have .git unless is git+file"""
     repo: str = dataclasses.field(default="", hash=True)
     """Repo name. If not None it will use data as the owner if not None, otherwise $GIT."""
@@ -198,8 +216,9 @@ class GitUrl:
     username: str = dataclasses.field(default="", init=False)
     api_repos_url: ClassVar[str] = f"{GITHUB_URL['api']}/repos"
 
-    def __post_init__(self, data: str | Path | None):  # noqa: PLR0912
+    def __post_init__(self, data: str | Path | _SupportsWorkingDir | None):  # noqa: PLR0912
         """Post Init."""
+        data = data.working_dir if isinstance(data, _SupportsWorkingDir) else data
         self.url = "" if data is None else str(data)  # because of CLI g default Path is None
         parsed_info = collections.defaultdict(lambda: "")
         parsed_info["protocols"] = cast(str, [])
@@ -599,7 +618,7 @@ class Gh(GitUrl):
         InvalidArgumentError: if GitUrl is not initialized with path
     """
 
-    def __post_init__(self, data: str | Path | None = None):
+    def __post_init__(self, data: str | Path | _SupportsWorkingDir | None = None):
         """Post Init."""
         super().__post_init__(data=data)
         if not self._path:
@@ -609,11 +628,7 @@ class Gh(GitUrl):
         self.git = f"git -C '{self._path}'"
         self.log = ColorLogger.logger(self.__class__.__qualname__)
 
-        if subprocess.run(f"{self.git} config user.email", capture_output=True, shell=True).returncode != 0:
-            self.git_check_call(f"config user.email {EMAIL}")
-
-        if subprocess.run(f"{self.git} config user.name", capture_output=True, shell=True).returncode != 0:
-            self.git_check_call(f"config user.name {GIT}")
+        git_config_global()
 
     def info(self, msg: str):
         """Logger info."""
@@ -641,6 +656,11 @@ class Gh(GitUrl):
             self.git_check_call("add -A")
             self.git_check_call(f"commit -a {'--quiet' if quiet else ''} -m '{msg}'")
             self.info(self.commit.__name__)
+
+    def config_add(self, key: str, value: str) -> None:
+        """Add key and value to git repository config if not set."""
+        if subprocess.run(f"{self.git} config {key}", capture_output=True, shell=True).returncode != 0:
+            self.git_check_call(f"config {key} {value}")
 
     def current(self) -> str:
         """Current branch.
@@ -907,3 +927,10 @@ def clone(
             path.parent.mkdir()
         cmd("git", "clone", GitUrl(owner, repository).url, path)
     return path
+
+
+def git_config_global():
+    """Sets values in git global config if not set."""
+    for key, value in GIT_CONFIG_GLOBAL.items():
+        if subprocess.run(f"git config --global {key}", capture_output=True, shell=True).returncode != 0:
+            subprocess.check_call(f"git config --global {key} {value}", shell=True)

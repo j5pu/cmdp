@@ -37,6 +37,12 @@ class Repo(GitRepo):
     the log.
 
     'working_tree_dir' is the working tree directory, but will raise AssertionError if we are a bare repository.
+
+    Examples:
+        >>> from nodeps import Repo
+        >>>
+        >>> repo = Repo()  # doctest: +SKIP
+        >>> repo.config_writer().set_value("user", "name", "root").release()  # doctest: +SKIP
     """
 
     git: GitCmd = dataclasses.field(init=False)

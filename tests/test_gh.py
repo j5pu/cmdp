@@ -1,5 +1,3 @@
-import sys
-
 import pytest
 import typer
 from typer.testing import CliRunner
@@ -22,7 +20,7 @@ def test_commit(repos: Repos):
     def touch(n):
         Path(repos.local.top).touch(f"test{n}.text")
 
-    local = Gh(repos.local.top)
+    local = Gh(repos.local)
 
     assert local.latest() == "0.0.0"
     touch(1)
@@ -51,7 +49,7 @@ def test_commit(repos: Repos):
 
 
 def test_latest(repos: Repos):
-    local = Gh(repos.local.top)
+    local = Gh(repos.local)
 
     assert local.latest() == "0.0.0"
     assert invoke(gh_g, ["latest", str(repos.local.top)]).stdout == "0.0.0\n"
@@ -60,7 +58,7 @@ def test_latest(repos: Repos):
 
 
 def test_next(repos: Repos):
-    local = Gh(repos.local.top)
+    local = Gh(repos.local)
 
     assert local.next() == "0.0.0"
     assert invoke(gh_g, ["next", str(repos.local.top)]).stdout == "0.0.0\n"
@@ -77,11 +75,11 @@ def test_next(repos: Repos):
 def test_pull(repos: Repos):
     def push(n):
         Path(repos.clone.top).touch(f"test{n}.text")
-        clone = Gh(repos.clone.top)
+        clone = Gh(repos.clone)
         clone.commit()
         clone.push()
 
-    local = Gh(repos.local.top)
+    local = Gh(repos.local)
 
     push(1)
     assert local.status().pull is True
@@ -109,7 +107,7 @@ def test_push(repos: Repos):
         Path(repos.local.top).touch(f"test{n}.text")
         local.commit()
 
-    local = Gh(repos.local.top)
+    local = Gh(repos.local)
 
     commit(1)
     assert local.status().push is True
@@ -159,7 +157,7 @@ def test_secrets():
 
 
 def test_status(repos: Repos):
-    local = Gh(repos.local.top)
+    local = Gh(repos.local)
 
     # <editor-fold desc="Clean">
     status = local.status()
@@ -316,7 +314,7 @@ def test_status(repos: Repos):
 
 
 def test_superproject(repos: Repos):
-    local = Gh(repos.local.top)
+    local = Gh(repos.local)
 
     assert local.top
 
@@ -334,7 +332,7 @@ def test_superproject(repos: Repos):
 
 
 def test_sync(repos: Repos):
-    local = Gh(repos.local.top)
+    local = Gh(repos.local)
 
     status = local.status()
     assert status.dirty == status.diverge == status.pull == status.push is False
@@ -355,7 +353,7 @@ def test_sync(repos: Repos):
     assert status.dirty == status.diverge == status.pull == status.push is False
 
     Path(repos.clone.top).touch("test1.text")
-    clone = Gh(repos.clone.top)
+    clone = Gh(repos.clone)
     status = clone.status()
     assert status.dirty == status.diverge == status.pull is True
     assert status.push is False
@@ -394,7 +392,7 @@ def test_sync(repos: Repos):
 
 
 def test_tag(repos: Repos):
-    local = Gh(repos.local.top)
+    local = Gh(repos.local)
 
     local.tag("0.1.0")
     assert local.latest() == "0.1.0"
@@ -407,7 +405,7 @@ def test_tag(repos: Repos):
 
 
 def test_top(repos: Repos):
-    local = Gh(repos.local.top)
+    local = Gh(repos.local)
 
     assert local.top
 

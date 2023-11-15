@@ -24,25 +24,75 @@
 ## Features
 
 ### Globals to set with nodeps commands
+
 - IPython Profile :mod:`ipython_profile.profile_default.ipython_config`: `export IPYTHONDIR="$(ipythondir)"`
 - Python Startup :mod:`python_startup.__init__`: `export PYTHONSTARTUP="$(pythonstartup)"`
+
+### pytest fixtures
+
+```python
+import pytest
+from typer.testing import Result
+from nodeps.fixtures import skip_docker, Repos, Cli
+
+@skip_docker
+def test_skip_docker(local: bool):
+    """Fixture to see if or --local passed to pytest or not DOCKER COMMAND.
+
+    Examples:
+        pytest --local
+        pytest --local tests/test_fixture.py::test_fixture_local
+        pytest tests/test_fixture.py  # docker -> 2 skipped
+        pytest tests/test_fixture.py  # 0 skipped
+    """
+    assert local is False
+
+@pytest.mark.skipif("config.getoption('local') is True", reason='--local option provided')
+def test_func_skipif_local_docker(local: bool):
+    """Should run if local is False or not --local in command."""
+    assert local is False
+
+
+def test_fixture_repos(repos: Repos):
+    """Test that repos are created and pushed."""
+    assert (repos.local.top / "README.md").is_file()
+    assert repos.local.git.cat_file("-e", "origin/main:README.md") == ""
+    assert (repos.clone.top / "README.md").is_file()
+
+@pytest.mark.parametrize("cli", [["command", "--option"]], indirect=True)
+def test_current(cli: Cli):
+   assert cli.result.exit_code == 0
+   assert cli.result.stdout == "main"
+
+
+@pytest.mark.parametrize("clirun", [["command", "--option"]], indirect=True)
+def test_current(clirun: Result):
+   assert clirun.exit_code == 0
+   assert clirun.stdout == "main"
+```
+
+```bash
+pytest --local tests/test_docker.py  # in macos to skip
+pytest tests/test_docker.py # in docker to skip
+```
 
 ### IPython extension
 
 Add the following to PyCharm Console:
 
 ```python
-from nodeps import load_ipython_extension
-load_ipython_extension()
+# noinspection PyUnresolvedReferences
+import nodeps
 ```
 
 ```ìpython
-In [1]: %load_ext nodeps
-In [2]: %reload_ext nodeps
-In [3]: nodeps  # magic command
+In [1]: %load_ext reload
+In [2]: %reload_ext reload
+In [3]: reload  # magic command
 ```
 
 It is the same as:
+
 ```python
 import IPython
 IPython.start_ipython(["--ext=nodeps"])
@@ -50,9 +100,11 @@ IPython.start_ipython(["--ext=nodeps"])
 
 ### Env class and LOG
 
-#### Searches for `.env` in cwd and up using `envbash` function
+#### Searches for `.env` in cwd and up using `envsh` function
+
 Usage: `env = Env()`.
-- `LOGURU_LEVEL` will be set in `os.environ`. 
+
+- `LOGURU_LEVEL` will be set in `os.environ`.
 - `LOG_LEVEL` will be set and parsed to int for `logging` module. `logger.setLevel(env.LOG_LEVEL)`
 
 Posible values for `LOGURU_LEVEL` and `LOG_LEVEL`: "TRACE", "DEBUG", "INFO", "SUCCESS", "WARNING", "ERROR", "CRITICAL".
@@ -60,11 +112,13 @@ Posible values for `LOGURU_LEVEL` and `LOG_LEVEL`: "TRACE", "DEBUG", "INFO", "SU
 
 #### Searches for `settings.ini` in cwd and up. If file is found `python-decouple` is used.
 
-Usage: 
+Usage:
+
 - `var = Env()._config("VAR", default=False, cast=bool)`
 - `extensions = {*Env()._config('EXTENSIONS', default=str(extensions), cast=decouple.Csv(post_process=set)), *extensions}`
 
 To change decouple to use both `settings.ini` and `.env`:
+
 ```python
 import collections
 import decouple  # type: ignore[attr-defined]
@@ -85,11 +139,13 @@ EXTENSIONS = {
     *EXTENSIONS,
 }
 ```
+
 ### Automatic installation of packages
 
 `PipMetaPathFinder` is a `sys.meta_path` finder that automatically installs packages when they are imported.
 
 ### Task dependencies
+
 - `venv` runs `write` and `requirements`
 - `build` runs  `venv`, `completions`, `docs` and `clean`.
 - `tests` runs `build`, `ruff`, `pytest` and `tox`
@@ -108,10 +164,11 @@ To synchronize (push or pull) all repos under `~/Archive` and `$HOME` run: `repo
 
 #### Project
 
-Project section information in `pyproject.toml` is automatically updated when `Project.write()` is called, is key is not in project. 
+Project section information in `pyproject.toml` is automatically updated when `Project.write()` is called, is key is not in project.
 An empty `pyproject.toml` is needed.
 
 #### Extras
+
 To use all extras from nodeps to your project, add the following to your `pyproject.toml`:
 
 ```toml
@@ -230,6 +287,7 @@ write:
 ```
 
 ### Extras:
+
 - `ansi`: for `getstdout` and `strip` function using `strip-ansi` library
 - `cli`: for `typer` to have CLI for `p` command (autoinstall with `pipmetapathfinder`)
 - `echo`: for `echo` package using `click` library
@@ -237,13 +295,14 @@ write:
 - `log`: for `logger` function using `loguru` library
 - `pickle`: for `cache` function using `jsonpickle` and `structlog` libraries
 - `pth`: for `PTHBuildPy`, `PTHDevelop`, `PTHEasyInstall` and `PTHInstallLib` classes using `setuptools` library
-- `pretty`: for `rich` library install and `icecream.ic` configuration 
+- `pretty`: for `rich` library install and `icecream.ic` configuration
 - `repo`: for `Repo` class using `gitpython` library
 - `requests`: for `python_latest`, `python_versions` and `request_x_api_key_json` functions that use the `requests` and `beautifulsoup4` libraries
 
 `tomlkit` package is autoinstall with `pipmetapathfinder` for `pyproject.toml` file manipulation in `Project` class and `__main__.py`.
 
 *Aggregated extras*:
+
 - nodeps[all] includes all extras except dev.
 - nodeps[dev] includes all dev extras.
 - nodeps[full] includes all extras including dev [all,dev].

@@ -362,49 +362,6 @@ def _setuptools_build_quiet(self, importable) -> None:
         self._already_warned.add(importable)
 
 
-def ins(obj: Any, *, _console: Console | None = None, title: str | None = None, _help: bool = False,
-        methods: bool = True, docs: bool = False, private: bool = True,
-        dunder: bool = False, sort: bool = True, _all: bool = False, value: bool = True, ):
-    """Wrapper :func:`rich.inspect` for :class:`rich._inspect.Inspect`.
-
-    Changing defaults to: ``docs=False, methods=True, private=True``.
-
-    Inspect any Python object.
-
-    Examples:
-        >>> from nodeps import ins
-        >>>
-        >>> # to see summarized info.
-        >>> ins(ins)  # doctest: +SKIP
-        >>> # to not see methods.
-        >>> ins(ins, methods=False)  # doctest: +SKIP
-        >>> # to see full (non-abbreviated) help.
-        >>> ins(ins, help=True)  # doctest: +SKIP
-        >>> # to not see private attributes (single underscore).
-        >>> ins(ins, private=False)  # doctest: +SKIP
-        >>> # to see attributes beginning with double underscore.
-        >>> ins(ins, dunder=True)  # doctest: +SKIP
-        >>> # to see all attributes.
-        >>> ins(ins, _all=True)  # doctest: +SKIP
-        '
-
-    Args:
-        obj (Any): An object to inspect.
-        _console (Console, optional): Rich Console.
-        title (str, optional): Title to display over inspect result, or None use type. Defaults to None.
-        _help (bool, optional): Show full help text rather than just first paragraph. Defaults to False.
-        methods (bool, optional): Enable inspection of callables. Defaults to False.
-        docs (bool, optional): Also render doc strings. Defaults to True.
-        private (bool, optional): Show private attributes (beginning with underscore). Defaults to False.
-        dunder (bool, optional): Show attributes starting with double underscore. Defaults to False.
-        sort (bool, optional): Sort attributes alphabetically. Defaults to True.
-        _all (bool, optional): Show all attributes. Defaults to False.
-        value (bool, optional): Pretty print value. Defaults to True.
-    """
-    rich.inspect(obj=obj, console=_console or CONSOLE, title=title, help=_help, methods=methods, docs=docs,
-                 private=private, dunder=dunder, sort=sort, all=_all, value=value)
-
-
 def load_ipython_extension1(  # noqa: PLR0912, PLR0915
     ipython: InteractiveShell | None = None, magic: bool = False
 ) -> Config | None:

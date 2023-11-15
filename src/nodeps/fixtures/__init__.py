@@ -1,28 +1,62 @@
-"""Pytest fixtures."""
+"""Pytest fixtures.
+
+Pytest functions execution order:
+    pytest_addoption
+    pytest_configure
+    pytest_sessionstart
+    pytest_generate_tests
+    pytest_collection_modifyitems
+"""
+from __future__ import annotations
+
 __all__ = (
+    "Cli",
     "Repos",
+    "cli",
+    "clirun",
+    "local",
+    "pytest_addoption",
+    "pytest_collection_modifyitems",
+    "pytest_configure",
+    "pytest_generate_tests",
+    "pytest_sessionstart",
     "repos",
+    "skip_docker",
 )
 
+import contextlib
 import dataclasses
 import logging
 import shutil
-from collections.abc import Generator
+from typing import TYPE_CHECKING
 
 import pytest
+from typer.testing import CliRunner, Result
 
-from ..extras import Repo
-from ..modules.constants import DOCKER_COMMAND
-from ..modules.path import Path
+from nodeps.extras import Repo
+from nodeps.modules.constants import DOCKER_COMMAND
+from nodeps.modules.gh import git_config_global
+from nodeps.modules.path import Path
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from _pytest import nodes
+    from _pytest.config import Config
+    from _pytest.config.argparsing import Parser
+    from _pytest.fixtures import FixtureRequest, SubRequest
+    from _pytest.main import Session
+    from _pytest.python import Metafunc
 
 LOGGER = logging.getLogger(__name__)
+runner: CliRunner = CliRunner(mix_stderr=False)
 
 
-def _config(*args):
-    for arg in args:
-        arg.config_writer().set_value("user", "name", "root").release()
-        arg.config_writer().set_value("user", "email", "root@example.com").release()
-        arg.config_writer().set_value("pull", "rebase", "false").release()
+@dataclasses.dataclass
+class Cli:
+    """Helper class for CLI runner test fixture."""
+    result: Result
+    runner: CliRunner = dataclasses.field(default=runner, init=False)
 
 
 @dataclasses.dataclass
@@ -39,53 +73,94 @@ class Repos:
     remote: Repo
 
 
-def pytest_collection_modifyitems(config, items):
-    """Mark skip_docker if --local or not DOCKER_COMMAND.
+@pytest.fixture()
+def cli(request: SubRequest) -> Cli:
+    r"""CLI runner invoke fixture.
 
     Examples:
-        >>> @pytest.mark.skip
-        >>> def test_skip_docker(local: bool):
-        ...     assert local is False
+        >>> @pytest.mark.parametrize("cli", [["command", "--option"]], indirect=True)
+        ... def test_current(cli: Cli):
+        ...    assert cli.result.exit_code == 0
+        ...    assert cli.result.stdout == "main"
     """
-    # TODO: https://docs.pytest.org/en/7.1.x/example/markers.html#custom-marker-and-command-line-option-to-control-test-runs
-    skip_docker = pytest.mark.skip(reason="Only run when --local or not DOCKER_COMMAND")
-    for item in items:
-        if config.getoption("local") is True or not DOCKER_COMMAND:
-            item.add_marker(skip_docker)
-        # skip_docker = pytest.mark.skip(reason="Only run when --local or not DOCKER_COMMAND")
-        # for item in items:
-        #     if "skip_docker" in item.keywords:
-        #         item.add_marker(skip_docker)
+    return Cli(runner.invoke(request.param[0], request.param[1:], catch_exceptions=False))
+
+
+@pytest.fixture()
+def clirun(request: SubRequest) -> Result:
+    """Invoke cli.
+
+    Examples:
+        >>> @pytest.mark.parametrize("clirun", [["command", "--option"]], indirect=True)
+        ... def test_current(clirun: Result):
+        ...    assert clirun.exit_code == 0
+        ...    assert clirun.stdout == "main"
+    """
+    return runner.invoke(request.param[0], request.param[1:], catch_exceptions=False)
+
+
+@pytest.fixture(scope="session")
+def local(request: FixtureRequest) -> bool:
+    """Fixture to see if or --local passed to pytest or not DOCKER COMMAND.
+
+    Examples:
+        pytest --local
+        pytest --local tests/test_fixture.py::test_fixture_local
+        pytest tests/test_fixture.py  # docker -> 2 skipped
+        pytest tests/test_fixture.py  # 0 skipped
+    """
+    return request.config.getoption('local', False) or not DOCKER_COMMAND
 
 
 @pytest.hookimpl
-def pytest_addoption(parser):
+def pytest_addoption(parser: Parser) -> None:
     """Use config local to skip tests.
 
     Example:
+        >>> @skip_docker
+        ... def test_func_docker(local: bool):
+        ...     assert local is False
         >>> @pytest.mark.skipif("config.getoption('local') is True", reason='--local option provided')
-        >>> def test_func_docker(local: bool):
+        ... def test_func_docker(local: bool):
         ...     assert local is False
     """
-    parser.addoption('--local', action='store_true', dest="local", default=False, help='Run local tests.')
+    with contextlib.suppress(ValueError):
+        # when installed pytest_addoption is executed by load_setuptools_entrypoints
+        parser.addoption('--local', action='store_true', dest="local", default=False, help='Run local tests.')
 
-@pytest.fixture()
-def local(request) -> bool:
-    """Fixture to see if --local option passed to pytest.
 
-    Examples:
-        pytest --local tests/test_fixture.py::test_fixture_local
-    """
-    return request.config.getoption('local')
+# noinspection PyUnusedLocal
+@pytest.hookimpl
+def pytest_collection_modifyitems(items: list[nodes.Item], config: Config) -> None:
+    """Pytest_collection_modifyitems. config.option.local = True."""
+
+
+@pytest.hookimpl
+def pytest_configure(config: Config) -> None:
+    """Pytest configure. config.option.local = True."""
+    if not DOCKER_COMMAND:
+        config.option.local = True
+
+
+# noinspection PyUnusedLocal
+@pytest.hookimpl
+def pytest_generate_tests(metafunc: Metafunc) -> None:
+    """This is called for every test. Only get/set command line arguments. metafunc.config.option.local = True."""
+
+
+# noinspection PyUnusedLocal
+@pytest.hookimpl
+def pytest_sessionstart(session: Session) -> None:
+    """Pytest session start: session.config.option.local = True."""
 
 
 @pytest.fixture()
 def repos(tmp_path: Path) -> Generator[Repos]:
     """Provides an instance of :class:`nodeps._repo.Repo` for a local and a remote repository."""
+    git_config_global()
     tmp = tmp_path / "repos"
     local = Repo.init(tmp / "local", initial_branch="main")
     remote = Repo.init(tmp / "remote.git", bare=True)
-    _config(local, remote)
     local.create_remote('origin', remote.git_dir)
     origin = local.remote(name='origin')
     top = Path(local.top)
@@ -95,7 +170,6 @@ def repos(tmp_path: Path) -> Generator[Repos]:
     local.git.push("--set-upstream", "origin", "main")
     origin.push()
     clone = remote.clone(tmp / "clone", branch="main")
-    _config(clone)
 
     LOGGER.debug(f"clone: {clone.top}")  # noqa: G004
     LOGGER.debug(f"local: {top}")  # noqa: G004
@@ -104,3 +178,9 @@ def repos(tmp_path: Path) -> Generator[Repos]:
     yield Repos(clone=clone, local=local, remote=remote)
 
     shutil.rmtree(tmp, ignore_errors=True)
+
+
+skip_docker = pytest.mark.skipif(
+    "config.getoption('local', False) is True",
+    reason="--local option or not DOCKER_COMMAND",
+)

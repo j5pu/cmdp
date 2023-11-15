@@ -4,11 +4,25 @@ import logging
 import sys
 
 import pytest
+from click.testing import Result
 
 from nodeps import DOCKER_COMMAND
-from nodeps.fixtures import Repos, repos
+from nodeps.__main__ import project_p
+from nodeps.fixtures import Cli, Repos, repos, skip_docker
 
 LOGGER = logging.getLogger(__name__)
+
+
+@pytest.mark.parametrize("cli", [[project_p]], indirect=True)
+def test_cli(cli: Cli):
+    assert cli.result.exit_code == 0
+    assert "Show this message and exit" in cli.result.stdout
+
+
+@pytest.mark.parametrize("clirun", [[project_p]], indirect=True)
+def test_clirun(clirun: Result):
+    assert clirun.exit_code == 0
+    assert "Show this message and exit" in clirun.stdout
 
 
 def test_fixture_repos(repos: Repos):
@@ -20,13 +34,17 @@ def test_fixture_repos(repos: Repos):
 
 def test_fixture_local(local: bool):
     """Test that --local option fixture has value."""
-    print(local, file=sys.stderr)
+    if not DOCKER_COMMAND or "--local" in sys.argv:
+        assert local is True
+    else:
+        assert local is False
     assert isinstance(local, bool)
 
 
-@pytest.mark.skipif()
+@skip_docker
 def test_skip_docker(local: bool):
-    assert local is False or not DOCKER_COMMAND
+    """pytest --local tests/test_fixture.py::test_skip_docker."""
+    assert local is False
 
 
 @pytest.mark.skipif("config.getoption('local') is True", reason='--local option provided')
