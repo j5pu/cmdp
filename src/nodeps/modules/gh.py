@@ -10,6 +10,7 @@ __all__ = (
 
 import collections
 import dataclasses
+import os
 import subprocess
 import tempfile
 import urllib.error
@@ -64,11 +65,9 @@ class GitUrl:
             >>> from nodeps import NODEPS_PROJECT_NAME, Env, CI
             >>> from nodeps import NODEPS_PATH
             >>>
-            >>> env = Env()
-            >>> file = env.GITHUB_WORKSPACE if env.GITHUB_WORKSPACE else nodeps.__file__
             >>>
             >>> p = GitUrl()
-            >>> p1 = GitUrl(file)
+            >>> p1 = GitUrl(nodeps.__file__)
             >>> p2 = GitUrl(repo=NODEPS_PROJECT_NAME)
             >>> p.host, p.owner, p.repo, p.protocol, p.protocols, p.platform, p.pathname, p.ownerrepo
             ('github.com', 'j5pu', 'nodeps', 'https', ['https'], 'github', '/j5pu/nodeps', 'j5pu/nodeps')
@@ -216,7 +215,7 @@ class GitUrl:
     username: str = dataclasses.field(default="", init=False)
     api_repos_url: ClassVar[str] = f"{GITHUB_URL['api']}/repos"
 
-    def __post_init__(self, data: str | Path | _SupportsWorkingDir | None):  # noqa: PLR0912
+    def __post_init__(self, data: str | Path | _SupportsWorkingDir | None):  # noqa: PLR0912, PLR0915
         """Post Init."""
         data = data.working_dir if isinstance(data, _SupportsWorkingDir) else data
         self.url = "" if data is None else str(data)  # because of CLI g default Path is None
@@ -231,7 +230,10 @@ class GitUrl:
             self._path = Path.cwd().absolute()
         elif (_path := Path(self.url)).exists():
             if _path.installed():  # GitHub Action and docker is using the installed path.
-                self._path = Path.cwd().absolute()
+                if workspace := os.environ.get("GITHUB_WORKSPACE"):
+                    self._path = Path(workspace)
+                else:
+                    self._path = Path.cwd().absolute()
             else:
                 self._path = _path.to_parent()
         self.url = stdout(f"git -C {self._path} config --get remote.origin.url") if self._path else self.url
