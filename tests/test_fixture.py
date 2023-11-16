@@ -34,7 +34,7 @@ def test_fixture_repos(repos: Repos):
 
 def test_fixture_local(local: bool):
     """Test that --local option fixture has value."""
-    if not DOCKER or "--local" in sys.argv:
+    if DOCKER or "--local" in sys.argv:
         assert local is True
     else:
         assert local is False

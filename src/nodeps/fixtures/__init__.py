@@ -101,7 +101,7 @@ def clirun(request: SubRequest) -> Result:
 
 @pytest.fixture(scope="session")
 def local(request: FixtureRequest) -> bool:
-    """Fixture to see if or --local passed to pytest or not DOCKER COMMAND.
+    """Fixture to see if or --local passed to pytest or DOCKER.
 
     Examples:
         pytest --local
@@ -109,7 +109,7 @@ def local(request: FixtureRequest) -> bool:
         pytest tests/test_fixture.py  # docker -> 2 skipped
         pytest tests/test_fixture.py  # 0 skipped
     """
-    return request.config.getoption('local', False) or not DOCKER
+    return request.config.getoption('local', False) or DOCKER
 
 
 @pytest.hookimpl
@@ -138,7 +138,7 @@ def pytest_collection_modifyitems(items: list[nodes.Item], config: Config) -> No
 @pytest.hookimpl
 def pytest_configure(config: Config) -> None:
     """Pytest configure. config.option.local = True."""
-    if not DOCKER:
+    if DOCKER:
         config.option.local = True
 
 
@@ -182,5 +182,5 @@ def repos(tmp_path: Path) -> Generator[Repos]:
 
 skip_docker = pytest.mark.skipif(
     "config.getoption('local', False) is True",
-    reason="--local option or not DOCKER",
+    reason="--local option or DOCKER",
 )

@@ -144,7 +144,7 @@ def test_remote(repos: Repos):
     assert rv.stdout
 
 
-@pytest.mark.skipif(CI or DOCKER, reason="must be local")
+@pytest.mark.skipif(CI or DOCKER, reason="secrets: must be local")
 def test_secrets():
     assert invoke(gh_g, ["secrets"]).exit_code == 0
     assert "TOKEN" in invoke(gh_g, ["secrets-names"]).stdout.splitlines()

@@ -37,7 +37,7 @@ from nodeps.fixtures import skip_docker, Repos, Cli
 
 @skip_docker
 def test_skip_docker(local: bool):
-    """Fixture to see if or --local passed to pytest or not DOCKER COMMAND.
+    """Fixture to see if or --local passed to pytest or DOCKER.
 
     Examples:
         pytest --local
