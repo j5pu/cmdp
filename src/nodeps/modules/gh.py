@@ -65,7 +65,6 @@ class GitUrl:
             >>> from nodeps import NODEPS_PROJECT_NAME, Env, CI
             >>> from nodeps import NODEPS_PATH
             >>>
-            >>>
             >>> p = GitUrl()
             >>> p1 = GitUrl(nodeps.__file__)
             >>> p2 = GitUrl(repo=NODEPS_PROJECT_NAME)
