@@ -30,7 +30,7 @@ import tokenize
 from collections.abc import Iterable, Iterator
 from typing import IO, TYPE_CHECKING, Any, AnyStr, Generic, Literal, TypeAlias, TypeVar, cast
 
-from nodeps.modules.constants import MACOS, SUDO
+from nodeps.modules.constants import MACOS, SUDO, USER
 from nodeps.modules.errors import InvalidArgumentError
 from nodeps.modules.typings import PathIsLiteral, StrOrBytesPath
 
@@ -95,7 +95,7 @@ class Passwd:
         user: str
             Username
     """
-    data: dataclasses.InitVar[AnyPath | str | int] = None
+    data: dataclasses.InitVar[Passwd | AnyPath | str | int] = USER
     gid: int = dataclasses.field(default=None, init=False)
     gecos: str = dataclasses.field(default=None, init=False)
     group: str = dataclasses.field(default=None, init=False)
@@ -105,7 +105,7 @@ class Passwd:
     uid: int = dataclasses.field(default=None, init=False)
     user: str = dataclasses.field(default=None, init=False)
 
-    def __post_init__(self, data: int | str):
+    def __post_init__(self, data: Passwd | AnyPath | int | str = USER):
         """Instance of :class:`nodeps:Passwd`  from either `uid` or `user` (default: :func:`os.getuid`).
 
         Uses completed/real id's (os.getgid, os.getuid) instead effective id's (os.geteuid, os.getegid) as default.
@@ -159,6 +159,10 @@ class Passwd:
         Returns:
             Instance of :class:`nodeps:Passwd`
         """
+        if isinstance(data, self.__class__):
+            self.__dict__.update(data.__dict__)
+            return
+
         if (isinstance(data, str) and not data.isnumeric()) or isinstance(data, pathlib.PurePosixPath):
             passwd = pwd.getpwnam(cast(str, getattr(data, "owner", lambda: None)() or data))
         else:
@@ -218,9 +222,9 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             self,
             name: AnyPath = "",
             file: PathIsLiteral = "is_dir",
-            passwd: Passwd | None = None,
+            passwd: Passwd | AnyPath | str | int | None = None,
             mode: int | str | None = None,
-            effective_ids: bool = False,
+            effective_ids: bool = True,
             follow_symlinks: bool = False,
     ) -> Path:
         """Make dir or touch file and create subdirectories as needed.
@@ -340,7 +344,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             os_mode: int = os.W_OK,
             *,
             dir_fd: int | None = None,
-            effective_ids: bool = False,
+            effective_ids: bool = True,
             follow_symlinks: bool = False,
     ) -> bool | None:
         # noinspection LongLine
@@ -364,10 +368,10 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             ... else:
             ...     assert Path('/usr/bin').access() is False
             >>> assert Path('/tmp').access(follow_symlinks=True) is True
-            >>> assert Path('/tmp').access(effective_ids=True, follow_symlinks=True) is True
+            >>> assert Path('/tmp').access(effective_ids=False, follow_symlinks=True) is True
             >>> if MACOS and LOCAL:
-            ...     assert Path('/etc/bashrc').access(effective_ids=True) is False
-            ...     assert Path('/etc/sudoers').access(effective_ids=True, os_mode=os.R_OK) is False
+            ...     assert Path('/etc/bashrc').access(effective_ids=False) is False
+            ...     assert Path('/etc/sudoers').access(effective_ids=False, os_mode=os.R_OK) is False
 
 
         Args:
@@ -553,7 +557,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
     def chmod(
             self,
             mode: int | str | None = None,
-            effective_ids: bool = False,
+            effective_ids: bool = True,
             exception: bool = True,
             follow_symlinks: bool = False,
             recursive: bool = False,
@@ -610,8 +614,8 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
 
     def chown(
             self,
-            passwd=None,
-            effective_ids: bool = False,
+            passwd: Passwd | AnyPath | str | int = None,
+            effective_ids: bool = True,
             exception: bool = True,
             follow_symlinks: bool = False,
             recursive: bool = False,
@@ -666,11 +670,10 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             msg = f"path does not exist: {self}"
             raise FileNotFoundError(msg)
 
-        if isinstance(passwd, str) and ":" not in passwd:
-            msg = f"passwd must be string with user:group, or 'Passwd' instance, got {passwd}"
-            raise ValueError(msg)
-
-        passwd = passwd or Passwd.from_login()
+        if isinstance(passwd, str) and ":" in passwd:
+            pass
+        else:
+            passwd = Passwd(passwd)
 
         subprocess.run(
             [
@@ -716,7 +719,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             self,
             dest: AnyPath,
             contents: bool = False,
-            effective_ids: bool = False,
+            effective_ids: bool = True,
             follow_symlinks: bool = False,
             preserve: bool = False,
     ) -> Path:
@@ -1023,9 +1026,9 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
     def mkdir(
             self,
             name: AnyPath = "",
-            passwd: Passwd | None = None,
+            passwd: Passwd | AnyPath | str | int | None = None,
             mode: int | str | None = None,
-            effective_ids: bool = False,
+            effective_ids: bool = True,
             follow_symlinks: bool = False,
     ) -> Path:
         """Add directory, make directory, change mode and return new Path.
@@ -1201,7 +1204,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
                 return data
         return None
 
-    def privileges(self, effective_ids: bool = False):
+    def privileges(self, effective_ids: bool = True):
         """Return privileges of file.
 
         Args:
@@ -1253,7 +1256,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return self.relative_to(p) if self.absolute().is_relative_to(p) else None
 
     def rm(
-            self, *args: str, effective_ids: bool = False, follow_symlinks: bool = False, missing_ok: bool = True
+            self, *args: str, effective_ids: bool = True, follow_symlinks: bool = False, missing_ok: bool = True
     ) -> None:
         """Delete a folder/file (even if the folder is not empty).
 
@@ -1337,7 +1340,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             self,
             name: bool | str | None = None,
             uid: bool = True,
-            effective_ids: bool = False,
+            effective_ids: bool = True,
             follow_symlinks: bool = False,
     ) -> Path:
         """Sets the set-user-ID-on-execution or set-group-ID-on-execution bits.
@@ -1512,7 +1515,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             force: bool = False,
             to_list: bool = True,
             os_mode: int = os.W_OK,
-            effective_ids: bool = False,
+            effective_ids: bool = True,
             follow_symlinks: bool = False,
     ) -> list[str] | str | None:
         """Returns sudo command if path or ancestors exist and is not own by user and sudo command not installed.
@@ -1756,9 +1759,9 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
     def touch(
             self,
             name: AnyPath = "",
-            passwd: Passwd | None = None,
+            passwd: Passwd | Path | str | int | None = None,
             mode: int | str | None = None,
-            effective_ids: bool = False,
+            effective_ids: bool = True,
             follow_symlinks: bool = False,
     ) -> Path:
         """Add file, touch and return post_init Path. Parent paths are created.

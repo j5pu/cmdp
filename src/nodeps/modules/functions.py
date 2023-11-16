@@ -596,7 +596,7 @@ complete -o default -F _{name}_completion {name}
     path = Path("/usr/local/etc/bash_completion.d" if MACOS else "/etc/bash_completion.d").mkdir()
     # if not MACOS and not os.access(path, os.W_OK, effective_ids=True):
     #     elevate()
-
+    path.chown()
     file = Path(path, f"{NODEPS_PROJECT_NAME}:{name}.bash")
     if uninstall:
         file.unlink(missing_ok=True)
