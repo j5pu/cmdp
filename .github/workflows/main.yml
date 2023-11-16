@@ -21,9 +21,6 @@ jobs:
         python: [ "3.11", "3.12" ]
 
     steps:
-      - shell: bash
-        run: echo $TOKEN
-
       - uses: actions/checkout@main
         with:
           fetch-depth: 0
@@ -34,9 +31,6 @@ jobs:
           python-version: ${{ matrix.python }}
           cache: 'pip'
 
-      - run: |
-          echo $PYTHONPATH
-
       - name: Install dependencies
         run: |
           pip install .[full]
@@ -46,6 +40,4 @@ jobs:
 #        run: pytest src/nodeps/modules/project.py
 #        run: pytest tests/test_cli_project_p.py::test_build_path
         run: |
-          echo $PYTHONPATH
-          ls $PYTHONPATH
-#          pytest
+          pytest
