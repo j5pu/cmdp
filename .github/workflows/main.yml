@@ -13,6 +13,8 @@ jobs:
   tests:
     name: Python ${{ matrix.os}} ${{ matrix.python-version }} tests
     runs-on: ${{ matrix.os}}
+    env:
+      PYTHONPATH: ${{ github.workspace }} /src
     strategy:
       matrix:
         os: [ ubuntu-latest, macos-latest ]
@@ -33,8 +35,7 @@ jobs:
           cache: 'pip'
 
       - run: |
-          echo ${{ env.GITHUB_WORKSPACE }}
-          ls ${{ env.GITHUB_WORKSPACE }}
+          echo $PYTHONPATH
 
       - name: Install dependencies
         run: |
@@ -42,11 +43,9 @@ jobs:
           pip uninstall -y nodeps
 
       - name: pytest
-        env:
-          PYTHONPATH: ${{ env.GITHUB_WORKSPACE }}/src
 #        run: pytest src/nodeps/modules/project.py
 #        run: pytest tests/test_cli_project_p.py::test_build_path
         run: |
           echo $PYTHONPATH
           ls $PYTHONPATH
-          pytest
+#          pytest
