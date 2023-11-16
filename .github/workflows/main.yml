@@ -14,7 +14,7 @@ jobs:
     name: Python ${{ matrix.os}} ${{ matrix.python-version }} tests
     runs-on: ${{ matrix.os}}
     env:
-      PYTHONPATH: ${{ github.workspace }} /src
+      PYTHONPATH: ${{ github.workspace }}/src
     strategy:
       matrix:
         os: [ ubuntu-latest, macos-latest ]
