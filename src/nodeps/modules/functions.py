@@ -727,7 +727,8 @@ def elevate():
         return
 
     # commands = ["sudo", sys.executable, *sys.argv]
-    os.execv(SUDO, sys.argv)  # noqa: S606
+    # os.execv(SUDO, sys.argv)  # noqa: S606
+    subprocess.check_call(SUDO, *sys.argv)
 
     # for args in commands:
     #     try:
