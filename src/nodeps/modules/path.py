@@ -656,7 +656,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             ValueError: passwd must be string with user:group.
 
         Args:
-            passwd: user/group passwd to use, or string with user:group (default: None).
+            passwd: user/group passwd to use, or string with user:group (default: None for USER).
             effective_ids: If True, access will use the effective uid/gid instead of
                 the real uid/gid (default: False).
             exception: raise exception if self does not exist (default: True).
@@ -673,7 +673,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         if isinstance(passwd, str) and ":" in passwd:
             pass
         else:
-            passwd = Passwd(passwd)
+            passwd = Passwd(passwd or USER)
 
         subprocess.run(
             [
