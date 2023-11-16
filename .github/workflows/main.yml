@@ -32,6 +32,10 @@ jobs:
           python-version: ${{ matrix.python }}
           cache: 'pip'
 
+      - run: |
+          echo ${{ env.GITHUB_WORKSPACE }}
+          ls ${{ env.GITHUB_WORKSPACE }}
+
       - name: Install dependencies
         run: |
           pip install .[full]
