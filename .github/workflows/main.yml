@@ -37,10 +37,9 @@ jobs:
           pip install .[full]
           pip uninstall -y nodeps
 
-      - name: whoami
-        run: whoami
-
       - name: pytest
+        env:
+          PYTHONPATH: ${{ env.GITHUB_WORKSPACE }}/src
 #        run: pytest src/nodeps/modules/project.py
 #        run: pytest tests/test_cli_project_p.py::test_build_path
         run: pytest
