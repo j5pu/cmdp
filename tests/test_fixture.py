@@ -6,7 +6,7 @@ import sys
 import pytest
 from click.testing import Result
 
-from nodeps import DOCKER
+from nodeps import CI, DOCKER
 from nodeps.__main__ import project_p
 from nodeps.fixtures import Cli, Repos, repos, skip_docker
 
@@ -34,7 +34,7 @@ def test_fixture_repos(repos: Repos):
 
 def test_fixture_local(local: bool):
     """Test that --local option fixture has value."""
-    if DOCKER or "--local" in sys.argv:
+    if DOCKER or CI or "--local" in sys.argv:
         assert local is True
     else:
         assert local is False
