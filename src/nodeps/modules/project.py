@@ -16,6 +16,7 @@ import subprocess
 import sys
 import sysconfig
 import types
+from contextvars import ContextVar
 from typing import ClassVar
 
 from nodeps.modules.classes import ColorLogger
@@ -37,7 +38,7 @@ from nodeps.modules.gh import Gh
 from nodeps.modules.metapath import pipmetapathfinder
 from nodeps.modules.path import FileConfig, Path, toiter
 
-NODEPS_QUIET = True
+NODEPS_QUIET: ContextVar[bool] = ContextVar('NODEPS_QUIET', default=True)
 """Global variable to supress warn in setuptools"""
 
 
@@ -188,8 +189,7 @@ class Project:
             version: python version
             quiet: quiet mode (default: True)
         """
-        global NODEPS_QUIET  # noqa: PLW0603
-        NODEPS_QUIET = quiet
+        ContextVar('NODEPS_QUIET').set(quiet)
 
         if not self.docsdir:
             return 0
@@ -216,8 +216,7 @@ class Project:
             rm: remove cache
         """
         # HACER: el pth sale si execute en terminal pero no en run
-        global NODEPS_QUIET  # noqa: PLW0603
-        NODEPS_QUIET = quiet
+        ContextVar('NODEPS_QUIET').set(quiet)
 
         if not self.pyproject_toml.file:
             return None
@@ -247,8 +246,7 @@ class Project:
             quiet: quiet mode (default: True)
             rm: remove cache
         """
-        global NODEPS_QUIET  # noqa: PLW0603
-        NODEPS_QUIET = quiet
+        ContextVar('NODEPS_QUIET').set(quiet)
 
         if self.ci:
             self.build(quiet=quiet, rm=rm)
@@ -320,8 +318,7 @@ class Project:
             version: python version
             quiet: quiet mode (default: True)
         """
-        global NODEPS_QUIET  # noqa: PLW0603
-        NODEPS_QUIET = quiet
+        ContextVar('NODEPS_QUIET').set(quiet)
 
         if not self.docsdir:
             return 0
@@ -417,8 +414,7 @@ class Project:
             quiet: quiet mode (default: True)
             rm: remove cache
         """
-        global NODEPS_QUIET  # noqa: PLW0603
-        NODEPS_QUIET = quiet
+        ContextVar('NODEPS_QUIET').set(quiet)
 
         self.tests(ruff=ruff, tox=tox, quiet=quiet)
         self.gh.commit()
@@ -542,8 +538,7 @@ class Project:
             rm: bool = False,
     ) -> list[str] | int:
         """Dependencies and optional dependencies from pyproject.toml or distribution."""
-        global NODEPS_QUIET  # noqa: PLW0603
-        NODEPS_QUIET = quiet
+        ContextVar('NODEPS_QUIET').set(quiet)
 
         req = sorted({*self.dependencies() + self.extras(as_list=True, rm=rm)})
         req = [item for item in req if not item.startswith(f"{self.name}[")]
@@ -562,8 +557,7 @@ class Project:
             rm: bool = False,
     ) -> None:
         """Install dependencies and optional dependencies from pyproject.toml or distribution for python versions."""
-        global NODEPS_QUIET  # noqa: PLW0603
-        NODEPS_QUIET = quiet
+        ContextVar('NODEPS_QUIET').set(quiet)
 
         if self.ci:
             self.requirement(install=True, upgrade=upgrade, quiet=quiet, rm=rm)
@@ -592,8 +586,7 @@ class Project:
             tox: run tox (default: True)
             quiet: quiet mode (default: True)
         """
-        global NODEPS_QUIET  # noqa: PLW0603
-        NODEPS_QUIET = quiet
+        ContextVar('NODEPS_QUIET').set(quiet)
 
         self.build(version=version, quiet=quiet)
         if ruff and (rc := self.ruff(version=version) != 0):
@@ -615,8 +608,7 @@ class Project:
             tox: runs tox
             quiet: quiet mode (default: True)
         """
-        global NODEPS_QUIET  # noqa: PLW0603
-        NODEPS_QUIET = quiet
+        ContextVar('NODEPS_QUIET').set(quiet)
 
         rc = 0
         if self.ci:
@@ -698,8 +690,7 @@ class Project:
             quiet: quiet
             rm: remove cache
         """
-        global NODEPS_QUIET  # noqa: PLW0603
-        NODEPS_QUIET = quiet
+        ContextVar('NODEPS_QUIET').set(quiet)
 
         version = "" if self.ci else version
         if not self.pyproject_toml.file:
@@ -723,8 +714,7 @@ class Project:
             rm: bool = False,
     ):
         """Installs venv for all python versions in :data:`PYTHON_VERSIONS`."""
-        global NODEPS_QUIET  # noqa: PLW0603
-        NODEPS_QUIET = quiet
+        ContextVar('NODEPS_QUIET').set(quiet)
 
         if self.ci:
             self.venv(upgrade=upgrade, quiet=quiet, rm=rm)

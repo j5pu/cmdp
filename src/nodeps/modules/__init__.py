@@ -1,5 +1,19 @@
 """NoDeps Modules Module."""
-from . import classes, constants, datas, enums, env, errors, functions, gh, metapath, path, project, seteuid, typings
+from . import (
+    classes,
+    constants,
+    datas,
+    enums,
+    env,
+    errors,
+    functions,
+    gh,
+    metapath,
+    path,
+    project,
+    seteuid,
+    typings,
+)
 from .classes import *
 from .constants import *
 from .datas import *
