@@ -34,7 +34,7 @@ import pytest
 from typer.testing import CliRunner, Result
 
 from nodeps.extras import Repo
-from nodeps.modules.constants import DOCKER_COMMAND
+from nodeps.modules.constants import DOCKER
 from nodeps.modules.gh import git_config_global
 from nodeps.modules.path import Path
 
@@ -109,7 +109,7 @@ def local(request: FixtureRequest) -> bool:
         pytest tests/test_fixture.py  # docker -> 2 skipped
         pytest tests/test_fixture.py  # 0 skipped
     """
-    return request.config.getoption('local', False) or not DOCKER_COMMAND
+    return request.config.getoption('local', False) or not DOCKER
 
 
 @pytest.hookimpl
@@ -138,7 +138,7 @@ def pytest_collection_modifyitems(items: list[nodes.Item], config: Config) -> No
 @pytest.hookimpl
 def pytest_configure(config: Config) -> None:
     """Pytest configure. config.option.local = True."""
-    if not DOCKER_COMMAND:
+    if not DOCKER:
         config.option.local = True
 
 
@@ -182,5 +182,5 @@ def repos(tmp_path: Path) -> Generator[Repos]:
 
 skip_docker = pytest.mark.skipif(
     "config.getoption('local', False) is True",
-    reason="--local option or not DOCKER_COMMAND",
+    reason="--local option or not DOCKER",
 )

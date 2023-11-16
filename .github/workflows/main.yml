@@ -30,9 +30,12 @@ jobs:
         uses: actions/setup-python@main
         with:
           python-version: ${{ matrix.python }}
+          cache: 'pip'
 
       - name: Install dependencies
-        run: pip install .[full]
+        run: |
+          pip install .[full]
+          pip uninstall nodeps
 
       - name: whoami
         run: whoami
