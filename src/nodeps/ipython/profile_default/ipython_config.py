@@ -367,10 +367,12 @@ def load_ipython_extension(i: TerminalInteractiveShell | None = None):
         # i.run_line_magic("store", "test_rich")
         i.run_line_magic("autoreload", "3")
         # i.run_cell("print('ipython run_cell: hello!')")
+        # HACER: does not import in pycharm __all__, however user_ns gets updated and modules
         if env := os.environ.get("VIRTUAL_ENV"):
             module = Path(env).parent.name
+            # i.run_cell(f"from {module} import *")
             i.ex(f"from {module} import *")
-        if _src.is_dir():
+        elif _src.is_dir():
             top = _src.parent
             if (top / "pyproject.toml").is_file():
                 i.ex(f"from {top.name} import *")

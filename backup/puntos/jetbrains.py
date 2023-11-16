@@ -28,7 +28,7 @@ __all__ = (
 # https://github.com/0xbf00/dmglib/blob/master/docs/example.rst
 # https://stackoverflow.com/questions/6357914/how-do-i-install-a-dmg-file-from-the-command-line/6358679
 # https://serverfault.com/questions/13587/how-to-silently-install-dmg-in-macos
-# TODO: la url, el repository, el enable, el de que sea el appcode para la plataforma., pyedit
+# HACER: la url, el repository, el enable, el de que sea el appcode para la plataforma., pyedit
 
 REPO = "JetBrains"
 JETBRAINS = Path(os.getenv("JETBRAINS", Path.home() / REPO)).expanduser()

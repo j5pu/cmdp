@@ -215,7 +215,7 @@ class Project:
             quiet: quiet mode (default: True)
             rm: remove cache
         """
-        # TODO: el pth sale si execute en terminal pero no en run
+        # HACER: el pth sale si execute en terminal pero no en run
         global NODEPS_QUIET  # noqa: PLW0603
         NODEPS_QUIET = quiet
 
@@ -579,7 +579,7 @@ class Project:
             return rv
         return 0
 
-    # TODO: delete all tags and pypi versions
+    # HACER: delete all tags and pypi versions
 
     def test(
             self, version: str = PYTHON_DEFAULT_VERSION, ruff: bool = True, tox: bool = False, quiet: bool = True

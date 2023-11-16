@@ -70,7 +70,6 @@ __all__ = (
 import asyncio
 import collections
 import contextlib
-import errno
 import fnmatch
 import getpass
 import grp
@@ -595,6 +594,9 @@ _{name}_completion() {{
 complete -o default -F _{name}_completion {name}
 """
     path = Path("/usr/local/etc/bash_completion.d" if MACOS else "/etc/bash_completion.d").mkdir()
+    if not MACOS and not os.access(path, os.W_OK, effective_ids=True):
+        elevate()
+
     file = Path(path, f"{NODEPS_PROJECT_NAME}:{name}.bash")
     if uninstall:
         file.unlink(missing_ok=True)
@@ -724,14 +726,15 @@ def elevate():
     if os.getuid() == 0 or not SUDO:
         return
 
-    commands = ["sudo", sys.executable, *sys.argv]
+    # commands = ["sudo", sys.executable, *sys.argv]
+    os.execv(SUDO, sys.argv)  # noqa: S606
 
-    for args in commands:
-        try:
-            os.execl(args[0], *args)
-        except OSError as e:
-            if e.errno != errno.ENOENT or args[0] == "sudo":
-                raise
+    # for args in commands:
+    #     try:
+    #         os.execl(args[0], *args)
+    #     except OSError as e:
+    #         if e.errno != errno.ENOENT or args[0] == "sudo":
+    #             raise
 
 
 def envsh(

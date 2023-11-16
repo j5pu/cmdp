@@ -1,5 +1,5 @@
 """NoDeps Modules Module."""
-from . import classes, constants, datas, enums, env, errors, functions, gh, metapath, path, project, typings
+from . import classes, constants, datas, enums, env, errors, functions, gh, metapath, path, project, seteuid, typings
 from .classes import *
 from .constants import *
 from .datas import *
@@ -11,6 +11,7 @@ from .gh import *
 from .metapath import *
 from .path import *
 from .project import *
+from .seteuid import *
 from .typings import *
 
 __all__ = (
@@ -25,5 +26,6 @@ __all__ = (
         metapath.__all__ +
         path.__all__ +
         project.__all__ +
+        seteuid.__all__ +
         typings.__all__
 )

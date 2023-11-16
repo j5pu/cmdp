@@ -2,7 +2,6 @@ import pathlib
 import subprocess
 
 from nodeps import DOCKER_COMMAND, PY_MAJOR_MINOR
-from nodeps import Path
 from nodeps.fixtures import skip_docker
 
 

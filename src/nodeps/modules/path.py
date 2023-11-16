@@ -1005,7 +1005,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         Args:
             dest: The location of the symlink itself.
         """
-        # TODO: examples and check if exists and merge with ln with absolute argument.
+        # HACER: examples and check if exists and merge with ln with absolute argument.
         target = self
         destination = self.__class__(dest)
         target_dir = destination.parent
@@ -1408,73 +1408,19 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             )
         return target
 
-    def setid_cp(
-            self,
-            name: bool | str | None = None,
-            uid: bool = True,
-            effective_ids: bool = False,
-            follow_symlinks: bool = False,
-    ) -> Path:
-        """Sets the set-user-ID-on-execution or set-group-ID-on-execution bits.
+    @classmethod
+    def setid_executable_is(cls) -> bool:
+        """True if Set user ID execution bit is set."""
+        return cls(sys.executable).resolve().stat().st_mode & stat.S_ISUID == stat.S_ISUID
 
-        Examples:
-            >>> from nodeps import Path
-            >>>
-            >>> with Path.tempdir() as p:
-            ...     a = p.touch('a')
-            ...     _ = a.setid()
-            ...     assert a.stats().suid is True
-            ...     _ = a.setid(uid=False)
-            ...     assert a.stats().sgid is True
-            ...
-            ...     a.rm()
-            ...
-            ...     _ = a.touch()
-            ...     b = a.setid('b')
-            ...     assert b.stats().suid is True
-            ...     assert a.cmp(b) is True
-            ...
-            ...     _ = b.setid('b', uid=False)
-            ...     assert b.stats().sgid is True
-            ...
-            ...     _ = a.write_text('a')
-            ...     assert a.cmp(b) is False
-            ...     b = a.setid('b')
-            ...     assert b.stats().suid is True
-            ...     assert a.cmp(b) is True
-
-        Args:
-            name: name to rename if provided.
-            uid: True to set UID bit, False to set GID bit (default: True).
-            effective_ids: If True, access will use the effective uid/gid instead of
-                the real uid/gid (default: False).
-            follow_symlinks: True for resolved, False for absolute and None for relative
-                or doesn't exist (default: True).
+    @classmethod
+    def setid_executable(cls) -> Path:
+        """Sets the set-user-ID-on-execution bits for sys.executable.
 
         Returns:
             Updated Path.
         """
-        change = False
-        chmod = f'{"u" if uid else "g"}+s,+x'
-        mod = (stat.S_ISUID if uid else stat.S_ISGID) | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
-        target = self.with_name(name) if name else self
-        if name and (not target.exists() or not self.cmp(target)):
-            self.cp(target, effective_ids=effective_ids, follow_symlinks=follow_symlinks)
-            change = True
-        elif target.stats().result.st_mode & mod != mod:
-            change = True
-        if target.owner() != "root":
-            change = True
-        if change:
-            # First: chown, second: chmod
-            target.chown(passwd=Passwd.from_root(), follow_symlinks=follow_symlinks)
-            target.chmod(
-                mode=chmod,
-                effective_ids=effective_ids,
-                follow_symlinks=follow_symlinks,
-                recursive=True,
-            )
-        return target
+        return cls(sys.executable).resolve().setid()
 
     @classmethod
     def setid_executable_cp(cls, name: str | None = None, uid: bool = True) -> Path:
@@ -1483,14 +1429,17 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         Examples:
             >>> import shutil
             >>> import subprocess
-            >>> from nodeps import Path
+            >>> from nodeps import Path, MACOS, USER
             >>> def test():
             ...     f = Path.setid_executable_cp('setid_python_test')
             ...     assert subprocess.check_output([f, '-c', 'import os;print(os.geteuid())'], text=True) == '0\n'
-            ...     assert subprocess.check_output([f, '-c', 'import os;print(os.getuid())'], text=True) != '0\n'
+            ...     if USER != "root":
+            ...         assert subprocess.check_output([f, '-c', 'import os;print(os.getuid())'], text=True) != '0\n'
+            ...     else:
+            ...         assert subprocess.check_output([f, '-c', 'import os;print(os.getuid())'], text=True) == '0\n'
             ...     f.rm()
             ...     assert f.exists() is False
-            >>> test() # doctest: +SKIP
+            >>> test()
 
         Args:
             name: name to rename if provided or False to add 'r' to original name (default: False).
@@ -1499,11 +1448,8 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         Returns:
             Updated Path.
         """
-        # FIXME: https://developer.apple.com/documentation/security/hardened_runtime
-        #  https://gist.github.com/macshome/15f995a4e849acd75caf14f2e50e7e98
-
         path = cls(sys.executable)
-        return path.setid_cp(name=name if name else f"r{path.name}", uid=uid)
+        return path.setid(name=name if name else f"r{path.name}", uid=uid)
 
     def stats(self, follow_symlinks: bool = False) -> PathStat:
         """Return result of the stat() system call on this path, like os.stat() with extra parsing for bits and root.

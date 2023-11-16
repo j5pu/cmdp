@@ -61,7 +61,7 @@ def scan_home(start=None):
         unlink(dest)
 
 
-# TODO: Check que son identical with filecmp.cmp and filecmp.dircmp
+# HACER: Check que son identical with filecmp.cmp and filecmp.dircmp
 
 try:
     DRY = True

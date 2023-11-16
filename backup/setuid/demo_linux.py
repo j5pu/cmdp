@@ -17,7 +17,6 @@ HOME USER me da el usuario que ha entrado, pero si cambio entonces...
 no cambia
 """
 
-# TODO: aqui lo dejo. hacer el instalador. y luego el context manager según access o porque si
 import os
 
 from pathlib import Path
