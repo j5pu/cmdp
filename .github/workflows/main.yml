@@ -36,5 +36,4 @@ jobs:
 
       - name: pytest
 #        run: pytest src/nodeps/modules/project.py
-#        run: pytest tests/test_pipmetapathfinder.py
-        run: pytest
+        run: pytest tests/test_cli_project_p.py::test_build_path
