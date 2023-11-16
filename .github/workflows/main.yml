@@ -35,7 +35,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install .[full]
-          pip uninstall nodeps
+          pip uninstall -y nodeps
 
       - name: whoami
         run: whoami
