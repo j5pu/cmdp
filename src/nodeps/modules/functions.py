@@ -24,6 +24,7 @@ __all__ = (
     "dmg",
     "effect",
     "elementadd",
+    "elevate",
     "envsh",
     "exec_module_from_file",
     "filterm",
@@ -69,6 +70,7 @@ __all__ = (
 import asyncio
 import collections
 import contextlib
+import errno
 import fnmatch
 import getpass
 import grp
@@ -101,6 +103,7 @@ from nodeps.modules.constants import (
     NODEPS_PROJECT_NAME,
     PW_ROOT,
     PW_USER,
+    SUDO,
     USER,
 )
 from nodeps.modules.datas import GroupUser, IdName
@@ -711,6 +714,24 @@ def elementadd(name: str | tuple[str, ...], closing: bool | None = False) -> str
         Str
     """
     return "".join(f'<{"/" if closing else ""}{i}>' for i in ((name,) if isinstance(name, str) else name))
+
+
+def elevate():
+    """Other https://github.com/netinvent/command_runner/blob/master/command_runner/elevate.py.
+
+    :return:
+    """
+    if os.getuid() == 0 or not SUDO:
+        return
+
+    commands = ["sudo", sys.executable, *sys.argv]
+
+    for args in commands:
+        try:
+            os.execl(args[0], *args)
+        except OSError as e:
+            if e.errno != errno.ENOENT or args[0] == "sudo":
+                raise
 
 
 def envsh(

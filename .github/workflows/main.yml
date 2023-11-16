@@ -34,6 +34,9 @@ jobs:
       - name: Install dependencies
         run: pip install .[full]
 
+      - name: whoami
+        run: whoami
+
       - name: pytest
 #        run: pytest src/nodeps/modules/project.py
         run: pytest tests/test_cli_project_p.py::test_build_path
