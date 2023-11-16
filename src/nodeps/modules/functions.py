@@ -719,23 +719,12 @@ def elementadd(name: str | tuple[str, ...], closing: bool | None = False) -> str
 
 
 def elevate():
-    """Other https://github.com/netinvent/command_runner/blob/master/command_runner/elevate.py.
-
-    :return:
-    """
+    """Other https://github.com/netinvent/command_runner/blob/master/command_runner/elevate.py."""
     if os.getuid() == 0 or not SUDO:
         return
 
-    # commands = ["sudo", sys.executable, *sys.argv]
     os.execv(SUDO, sys.argv)  # noqa: S606
     # subprocess.check_call(SUDO, *sys.argv)
-
-    # for args in commands:
-    #     try:
-    #         os.execl(args[0], *args)
-    #     except OSError as e:
-    #         if e.errno != errno.ENOENT or args[0] == "sudo":
-    #             raise
 
 
 def envsh(

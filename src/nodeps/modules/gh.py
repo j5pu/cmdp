@@ -230,7 +230,10 @@ class GitUrl:
         elif not self.url:
             self._path = Path.cwd().absolute()
         elif (_path := Path(self.url)).exists():
-            self._path = _path.to_parent()
+            if _path.installed():  # GitHub Action and docker is using the installed path.
+                self._path = Path.cwd().absolute()
+            else:
+                self._path = _path.to_parent()
         self.url = stdout(f"git -C {self._path} config --get remote.origin.url") if self._path else self.url
 
         if self.url is None:
