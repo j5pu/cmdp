@@ -2,10 +2,10 @@
 from __future__ import annotations
 
 __all__ = (
-    "PTHBuildPy",
-    "PTHDevelop",
-    "PTHEasyInstall",
-    "PTHInstallLib",
+    "BuildPy",
+    "Develop",
+    "EasyInstall",
+    "InstallLib",
 )
 
 import filecmp
@@ -59,7 +59,7 @@ _NODEPS_PIP_POST_INSTALL = {}
 """Holds the context with wheels installed and paths to package installed to be used in post install"""
 
 
-class PTHBuildPy(build_py):
+class BuildPy(build_py):
     """Build py with pth files installed."""
 
     def run(self):
@@ -73,7 +73,7 @@ class PTHBuildPy(build_py):
         return itertools.chain(build_py.get_outputs(self, 0), self.outputs)
 
 
-class PTHDevelop(develop):
+class Develop(develop):
     """PTH Develop Install."""
 
     def run(self):
@@ -82,7 +82,7 @@ class PTHDevelop(develop):
         _copy_pths(self, self.install_dir)
 
 
-class PTHEasyInstall(easy_install):
+class EasyInstall(easy_install):
     """PTH Easy Install."""
 
     def run(self, *args, **kwargs):
@@ -91,7 +91,7 @@ class PTHEasyInstall(easy_install):
         _copy_pths(self, self.install_dir)
 
 
-class PTHInstallLib(install_lib):
+class InstallLib(install_lib):
     """PTH Install Library."""
 
     def run(self):
@@ -105,10 +105,10 @@ class PTHInstallLib(install_lib):
         return itertools.chain(install_lib.get_outputs(self), self.outputs)
 
 
-def _copy_pths(self: PTHBuildPy | PTHDevelop | PTHEasyInstall | PTHInstallLib, directory: str) -> list[str]:
+def _copy_pths(self: BuildPy | Develop | EasyInstall | InstallLib, directory: str) -> list[str]:
     log = ColorLogger.logger()
     outputs = []
-    data = self.get_outputs() if isinstance(self, (PTHBuildPy | PTHInstallLib)) else self.outputs
+    data = self.get_outputs() if isinstance(self, (BuildPy | InstallLib)) else self.outputs
     for source in data:
         if source.endswith(".pth"):
             destination = Path(directory, Path(source).name)

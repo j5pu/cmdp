@@ -173,7 +173,7 @@ Documentation = "https://nodeps.readthedocs.io"
 
 [build-system]
 requires = [
-    "nodeps",
+#    "nodeps",
     "setuptools >= 68.2.2, <69",
     "setuptools_scm >= 8.0.3, <9",
     "wheel >= 0.41.2, <1"

@@ -28,6 +28,9 @@ completions:
 coverage:
 	@python3 -m $(PACKAGE) $@
 
+docker:
+	@python3 -m $(PACKAGE) $@
+
 docs:
 	@python3 -m $(PACKAGE) $@
 

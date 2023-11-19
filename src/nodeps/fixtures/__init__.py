@@ -35,6 +35,7 @@ from typer.testing import CliRunner, Result
 
 from nodeps.extras import Repo
 from nodeps.modules.constants import CI, DOCKER
+from nodeps.modules.functions import in_tox
 from nodeps.modules.gh import git_config_global
 from nodeps.modules.path import Path
 
@@ -109,7 +110,7 @@ def local(request: FixtureRequest) -> bool:
         pytest tests/test_fixture.py  # docker -> 2 skipped
         pytest tests/test_fixture.py  # 0 skipped
     """
-    return request.config.getoption('local', False) or DOCKER or CI
+    return request.config.getoption('local', False) or DOCKER or CI or in_tox()
 
 
 @pytest.hookimpl
@@ -182,5 +183,5 @@ def repos(tmp_path: Path) -> Generator[Repos]:
 
 skip_docker = pytest.mark.skipif(
     "config.getoption('local', False) is True",
-    reason="--local option or DOCKER or CI",
+    reason="--local option or DOCKER or CI or tox",
 )

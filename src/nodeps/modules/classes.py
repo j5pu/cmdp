@@ -4,6 +4,7 @@ from __future__ import annotations
 __all__ = (
     "Chain",
     "ColorLogger",
+    "ConfigParser",
     "dd",
     "dictsort",
     "getter",
@@ -15,6 +16,7 @@ __all__ = (
 
 import abc
 import collections
+import configparser
 import logging
 import string
 import types
@@ -315,6 +317,28 @@ class ColorLogger(logging.Formatter):
             handler.setFormatter(cls())
             l.addHandler(handler)
         return l
+
+
+class ConfigParser(configparser.ConfigParser):
+    """Config parser to get list from setup.cfg."""
+
+    def getlist(self, section: str = "options", option: str = "scripts") -> list:
+        """Get list."""
+        value = None
+        if self.has_section(section):
+            value = self.get(section, option) if self.has_option(section, option) else None
+        return list(filter(None, (x.strip() for x in value.splitlines()))) if value else []
+
+    def setlist(self, section: str = "options", option: str = "scripts", value: list | None = None):
+        """Set list."""
+        if value:
+            newline = "\n"
+            value = f"\n{newline.join(value)}"
+            if not self.has_section(section):
+                self.add_section(section)
+            self.set(section=section, option=option, value=value)
+        else:
+            self.remove_option(section=section, option=option)
 
 
 # noinspection PyPep8Naming

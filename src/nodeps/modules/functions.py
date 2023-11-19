@@ -602,9 +602,14 @@ complete -o default -F _{name}_completion {name}
         file.unlink(missing_ok=True)
         return None
     if install:
-        if not file.is_file() or (file.read_text() != completion):
+        if not file.is_file():
             file.write_text(completion)
             return str(file)
+        with Path.tempfile() as tmp:
+            tmp.write_text(completion)
+            if not tmp.cmp(file):
+                shutil.move(tmp, file)
+                return str(file)
         return None
     print(completion)
     return None

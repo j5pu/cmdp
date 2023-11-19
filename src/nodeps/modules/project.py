@@ -1,9 +1,7 @@
 """Project Module."""
 from __future__ import annotations
 
-__all__ = (
-    "Project",
-)
+__all__ = ("Project",)
 
 import copy
 import dataclasses
@@ -19,11 +17,12 @@ import types
 from contextvars import ContextVar
 from typing import ClassVar
 
-from nodeps.modules.classes import ColorLogger
+from nodeps.modules.classes import ColorLogger, ConfigParser
 from nodeps.modules.constants import (
     AUTHOR,
     CI,
     DOCKER,
+    DOCKER_COMMAND,
     EMAIL,
     GIT,
     NODEPS_PROJECT_NAME,
@@ -38,7 +37,7 @@ from nodeps.modules.gh import Gh
 from nodeps.modules.metapath import pipmetapathfinder
 from nodeps.modules.path import FileConfig, Path, toiter
 
-NODEPS_QUIET: ContextVar[bool] = ContextVar('NODEPS_QUIET', default=True)
+NODEPS_QUIET: ContextVar[bool] = ContextVar("NODEPS_QUIET", default=True)
 """Global variable to supress warn in setuptools"""
 
 
@@ -86,8 +85,9 @@ class Project:
                 (isinstance(self.data, str) and len(toiter(self.data, split="/")) == 1)
                 or (isinstance(self.data, pathlib.PosixPath) and len(self.data.parts) == 1)
         ) and (str(self.data) != "/"):
-            if r := self.repos(ret=ProjectRepos.DICT, rm=rm).get(self.data
-                                                                 if isinstance(self.data, str) else self.data.name):
+            if r := self.repos(ret=ProjectRepos.DICT, rm=rm).get(
+                self.data if isinstance(self.data, str) else self.data.name
+            ):
                 self.directory = r
         elif data.is_dir():
             self.directory = data.absolute()
@@ -99,8 +99,9 @@ class Project:
 
         if self.directory:
             self.git = f"git -C '{self.directory}'"
-            if ((path := findup(self.directory, name="pyproject.toml", uppermost=True))
-                    and (path.parent / ".git").exists()):
+            if (path := findup(self.directory, name="pyproject.toml", uppermost=True)) and (
+                    path.parent / ".git"
+            ).exists():
                 path = path[0] if isinstance(path, list) else path
                 with pipmetapathfinder():
                     import tomlkit
@@ -108,8 +109,9 @@ class Project:
                     self.pyproject_toml = FileConfig(path, tomlkit.load(f))
                 self.name = self.pyproject_toml.config.get("project", {}).get("name")
                 self.root = path.parent
-            elif ((path := findup(self.directory, name=".git", kind="exists", uppermost=True))
-                  and (path.parent / ".git").exists()):
+            elif (path := findup(self.directory, name=".git", kind="exists", uppermost=True)) and (
+                    path.parent / ".git"
+            ).exists():
                 self.root = path.parent
                 self.name = self.root.name
 
@@ -189,7 +191,7 @@ class Project:
             version: python version
             quiet: quiet mode (default: True)
         """
-        ContextVar('NODEPS_QUIET').set(quiet)
+        ContextVar("NODEPS_QUIET").set(quiet)
 
         if not self.docsdir:
             return 0
@@ -200,7 +202,8 @@ class Project:
 
         if (
                 subprocess.check_call(
-                    f"{self.executable(version=version)} -m sphinx_autobuild {q} {self.docsdir} {build_dir}", shell=True
+                    f"{self.executable(version=version)} -m sphinx_autobuild {q} {self.docsdir} {build_dir}",
+                    shell=True
                 )
                 == 0
         ):
@@ -216,7 +219,7 @@ class Project:
             rm: remove cache
         """
         # HACER: el pth sale si execute en terminal pero no en run
-        ContextVar('NODEPS_QUIET').set(quiet)
+        ContextVar("NODEPS_QUIET").set(quiet)
 
         if not self.pyproject_toml.file:
             return None
@@ -246,7 +249,7 @@ class Project:
             quiet: quiet mode (default: True)
             rm: remove cache
         """
-        ContextVar('NODEPS_QUIET').set(quiet)
+        ContextVar("NODEPS_QUIET").set(quiet)
 
         if self.ci:
             self.build(quiet=quiet, rm=rm)
@@ -290,10 +293,10 @@ class Project:
         """Runs coverage."""
         if (
                 self.pyproject_toml.file
-                and subprocess.check_call(f"{self.executable()} -m coverage run -m pytest {self.root}", shell=True) == 0
+                and subprocess.check_call(f"{self.executable()} -m coverage run -m pytest {self.root}",
+                                          shell=True) == 0
                 and subprocess.check_call(f"{self.executable()} -m coverage report "
-                                          f"--data-file={self.root}/reports/.coverage", shell=True)
-                == 0
+                                          f"--data-file={self.root}/reports/.coverage", shell=True) == 0
         ):
             self.info(self.coverage.__name__)
         return 0
@@ -311,6 +314,35 @@ class Project:
         """Distribution."""
         return suppress(importlib.metadata.Distribution.from_name, self.name)
 
+    def docker(self, quiet: bool = True) -> int:
+        """Docker push.
+
+        Arguments:
+            quiet: quiet mode (default: True)
+        """
+        ContextVar("NODEPS_QUIET").set(quiet)
+
+        rc = 0
+        if not DOCKER and DOCKER_COMMAND and (dockerfile := self.root / "Dockerfile").is_file():
+            for version in PYTHON_VERSIONS:
+                tag = f"{GIT}/{self.name}:{version}"
+                latest = f"-t {GIT}/{self.name}" if version == PYTHON_DEFAULT_VERSION else ""
+                quiet = "--quiet" if quiet else ""
+                command = (
+                    f"docker build -f {dockerfile} {quiet} --build-arg='PY_VERSION={version}' "
+                    f"-t {tag} {latest} {self.root}"
+                )
+                if rc := subprocess.run(command, stdout=subprocess.PIPE, shell=True).returncode != 0:
+                    return rc
+                latest = latest.strip("-t ")
+                for image in [tag, latest]:
+                    if image:
+                        command = f"docker push {quiet} {image}"
+                        if rc := subprocess.run(command, stdout=subprocess.PIPE, shell=True).returncode != 0:
+                            return rc
+                        self.info(f"{self.docker.__name__}: {image}")
+        return int(rc)
+
     def docs(self, version: str = PYTHON_DEFAULT_VERSION, quiet: bool = True) -> int:
         """Build the documentation.
 
@@ -318,7 +350,7 @@ class Project:
             version: python version
             quiet: quiet mode (default: True)
         """
-        ContextVar('NODEPS_QUIET').set(quiet)
+        ContextVar("NODEPS_QUIET").set(quiet)
 
         if not self.docsdir:
             return 0
@@ -414,7 +446,7 @@ class Project:
             quiet: quiet mode (default: True)
             rm: remove cache
         """
-        ContextVar('NODEPS_QUIET').set(quiet)
+        ContextVar("NODEPS_QUIET").set(quiet)
 
         self.tests(ruff=ruff, tox=tox, quiet=quiet)
         self.gh.commit()
@@ -424,6 +456,8 @@ class Project:
             if rc := self.twine(rm=rm) != 0:
                 sys.exit(rc)
             self.info(f"{self.publish.__name__}: {l} -> {n}")
+            if rc := self.docker(quiet=quiet) != 0:
+                sys.exit(rc)
         else:
             self.warning(f"{self.publish.__name__}: {n} -> nothing to do")
 
@@ -538,7 +572,7 @@ class Project:
             rm: bool = False,
     ) -> list[str] | int:
         """Dependencies and optional dependencies from pyproject.toml or distribution."""
-        ContextVar('NODEPS_QUIET').set(quiet)
+        ContextVar("NODEPS_QUIET").set(quiet)
 
         req = sorted({*self.dependencies() + self.extras(as_list=True, rm=rm)})
         req = [item for item in req if not item.startswith(f"{self.name}[")]
@@ -557,7 +591,7 @@ class Project:
             rm: bool = False,
     ) -> None:
         """Install dependencies and optional dependencies from pyproject.toml or distribution for python versions."""
-        ContextVar('NODEPS_QUIET').set(quiet)
+        ContextVar("NODEPS_QUIET").set(quiet)
 
         if self.ci:
             self.requirement(install=True, upgrade=upgrade, quiet=quiet, rm=rm)
@@ -586,7 +620,7 @@ class Project:
             tox: run tox (default: True)
             quiet: quiet mode (default: True)
         """
-        ContextVar('NODEPS_QUIET').set(quiet)
+        ContextVar("NODEPS_QUIET").set(quiet)
 
         self.build(version=version, quiet=quiet)
         if ruff and (rc := self.ruff(version=version) != 0):
@@ -608,7 +642,7 @@ class Project:
             tox: runs tox
             quiet: quiet mode (default: True)
         """
-        ContextVar('NODEPS_QUIET').set(quiet)
+        ContextVar("NODEPS_QUIET").set(quiet)
 
         rc = 0
         if self.ci:
@@ -690,7 +724,7 @@ class Project:
             quiet: quiet
             rm: remove cache
         """
-        ContextVar('NODEPS_QUIET').set(quiet)
+        ContextVar("NODEPS_QUIET").set(quiet)
 
         version = "" if self.ci else version
         if not self.pyproject_toml.file:
@@ -714,7 +748,7 @@ class Project:
             rm: bool = False,
     ):
         """Installs venv for all python versions in :data:`PYTHON_VERSIONS`."""
-        ContextVar('NODEPS_QUIET').set(quiet)
+        ContextVar("NODEPS_QUIET").set(quiet)
 
         if self.ci:
             self.venv(upgrade=upgrade, quiet=quiet, rm=rm)
@@ -722,12 +756,98 @@ class Project:
             for version in PYTHON_VERSIONS:
                 self.venv(version=version, upgrade=upgrade, quiet=quiet, rm=rm)
 
-    def write(self, rm: bool = False):
-        """Updates pyproject.toml and docs conf.py.
+    def write(self, rm: bool = False):  # noqa: PLR0912, PLR0915
+        """Updates setup.cfg (cmdclass, scripts), pyproject.toml and docs conf.py.
+
+        [options.data_files]
+        bin =
+            bin/*
+        ;/etc/gitconfig =
+        ;    .gitconfig
+        ;/etc/profile.d =
+        ;    lib/*
+        ;etc/gh =
+        ;    gh/*
 
         Args:
             rm: remove cache
         """
+        setup_cfg = self.root / "setup.cfg"
+        if self.root and self.pyproject_toml.file and not setup_cfg.is_file():
+            setup_cfg.touch()
+        if self.root and setup_cfg.is_file():
+            config = ConfigParser()
+            config.read(setup_cfg)
+
+            changed = False
+            if (bindir := self.root / "bin").is_dir():
+                scripts = config.getlist()
+                new_scripts = [str(item.relative(self.root)) for item in sorted(bindir.iterdir()) if
+                               not item.name.startswith(".")]
+                if new_scripts != scripts:
+                    changed = True
+                    config.setlist(value=new_scripts)
+
+            cmdclass = config.getlist(option="cmdclass")
+            new_cmdclass = [
+                f"build_py = {NODEPS_PROJECT_NAME}.BuildPy",
+                f"develop = {NODEPS_PROJECT_NAME}.Develop",
+                f"easy_install = {NODEPS_PROJECT_NAME}.EasyInstall",
+                f"install_lib = {NODEPS_PROJECT_NAME}.InstallLib",
+            ]
+            if new_cmdclass != cmdclass:
+                changed = True
+                config.setlist(option="cmdclass", value=new_cmdclass)
+
+            options = [
+                ("options.package_data", self.name, "*.pth"),
+                ("options.package_data", f"{self.name}.data", "*"),
+                ("options", "package_dir", "= src"),
+            ]
+            for item in options:
+                section_name = item[0]
+                option = item[1]
+                option_value_item = item[2]
+                if not config.has_section(section_name):
+                    changed = True
+                    config.add_section(section_name)
+
+                if config.has_option(section_name, option):
+                    option_value = config.getlist(section_name, option)
+                    if option_value_item not in option_value:
+                        option_value.insert(0, option_value_item)
+                        config.setlist(section_name, option, option_value)
+                        changed = True
+                else:
+                    config.setlist(section_name, option, [option_value_item])
+                    changed = True
+
+            options = [
+                ("global", "quiet", "1"),
+                ("global", "verbose", "0"),
+                ("global", "show_warnings", "false"),
+                ("egg_info", "egg_base", "/tmp"),  # noqa: S108
+                ("options", "include_package_data", "True"),
+                ("options", "packages", "find:"),
+                ("options.packages.find", "where", "src"),
+            ]
+            for item in options:
+                section_name = item[0]
+                option = item[1]
+                option_value_item = item[2]
+                if not config.has_section(section_name):
+                    changed = True
+                    config.add_section(section_name)
+
+                if not config.has_option(section_name, option):
+                    config.set(section_name, option, option_value_item)
+                    changed = True
+
+            if changed is True:
+                with setup_cfg.open(mode="w", encoding="utf-8") as cfgfile:
+                    config.write(cfgfile)
+                self.info(f"{self.write.__name__}: {setup_cfg}")
+
         if self.pyproject_toml.file:
             original_project = copy.deepcopy(self.pyproject_toml.config.get("project", {}))
             github = self.gh.github(rm=rm)
@@ -754,6 +874,7 @@ class Project:
                 with self.pyproject_toml.file.open("w") as f:
                     with pipmetapathfinder():
                         import tomlkit
+
                         tomlkit.dump(self.pyproject_toml.config, f)
                     self.info(f"{self.write.__name__}: {self.pyproject_toml.file}")
 

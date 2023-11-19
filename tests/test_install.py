@@ -1,9 +1,9 @@
 import sysconfig
 from pathlib import Path
 
-import pytest
 
 import nodeps
+from nodeps.fixtures import skip_docker
 
 from pip._internal.cli.main import main as _main
 
@@ -23,7 +23,7 @@ def teardown_module():
         _main(["uninstall", "-q", "-y", PACKAGE])
 
 
-@pytest.mark.skipif(nodeps.in_tox(), reason="in tox")
+@skip_docker
 def test_install() -> None:
     """Test that the package is installed."""
     paths = sysconfig.get_paths()

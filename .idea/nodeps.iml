@@ -19,6 +19,7 @@
       <excludeFolder url="file://$MODULE_DIR$/src/nodeps/ipython/profile_default/log" />
       <excludeFolder url="file://$MODULE_DIR$/src/nodeps/ipython/profile_default/pid" />
       <excludeFolder url="file://$MODULE_DIR$/src/nodeps/ipython/profile_default/security" />
+      <excludeFolder url="file://$MODULE_DIR$/.tox" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.12 (nodeps)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

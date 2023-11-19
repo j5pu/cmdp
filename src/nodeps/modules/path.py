@@ -35,6 +35,7 @@ from nodeps.modules.errors import InvalidArgumentError
 from nodeps.modules.typings import PathIsLiteral, StrOrBytesPath
 
 if TYPE_CHECKING:
+    import configparser
     import types
 
 _T = TypeVar("_T")
@@ -45,7 +46,7 @@ class FileConfig:
     """FileConfig class."""
 
     file: Path | None = None
-    config: dict = dataclasses.field(default_factory=dict)
+    config: dict | configparser.ConfigParser = dataclasses.field(default_factory=dict)
 
 
 @dataclasses.dataclass

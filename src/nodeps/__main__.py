@@ -556,6 +556,22 @@ def diverge(
 
 
 @project_p.command()
+def docker(
+        data: Annotated[
+            Path,
+            typer.Argument(
+                help="Path/file to project or name of project",
+                autocompletion=_repos_completions,
+            ),
+        ] = _cwd,
+        quiet: bool = True,
+        rm: bool = typer.Option(False, help="Remove cache"),
+):
+    """Build and push to docker hub for python versions, latest will be PYTHON_DEFAULT_VERSION."""
+    Project(data, rm=rm).docker(quiet=quiet)
+
+
+@project_p.command()
 @_docs.command()
 def docs(
         data: Annotated[
