@@ -506,7 +506,7 @@ class Project:
             cls,
             ret: ProjectRepos = ProjectRepos.NAMES,
             sync: bool = False,
-            sub: bool = False,
+            archive: bool = False,
             rm: bool = False,
     ) -> list[Path] | list[str] | dict[str, Project | str] | None:
         """Repo paths, names or Project instances under home, Archive or parent of nodeps top.
@@ -528,12 +528,14 @@ class Project:
         Args:
             ret: return names, paths, dict or instances
             sync: push or pull all repos
-            sub: look for repos under ~/Archive and git with submodules
+            archive: look for repos under ~/Archive
             rm: remove cache
         """
+        if archive:
+            rm = True
         if rm or not (rv := Path.pickle(name=cls.repos)):
             dev = home = Path.home()
-            add = sorted(add.iterdir()) if (add := home / "Archive").is_dir() and sub else []
+            add = sorted(add.iterdir()) if (add := home / "Archive").is_dir() and archive else []
             dev = sorted(dev.iterdir()) if NODEPS_TOP and (dev := NODEPS_TOP.parent) != home else []
             rv = {
                 ProjectRepos.DICT: {},
@@ -552,7 +554,8 @@ class Project:
                     rv[ProjectRepos.PATHS].append(path)
                     if instance.pyproject_toml.file:
                         rv[ProjectRepos.PY] |= {name: instance}
-            Path.pickle(name=cls.repos, data=rv, rm=rm)
+            if not archive:
+                Path.pickle(name=cls.repos, data=rv, rm=rm)
 
         if not rv:
             rv: dict[ProjectRepos, dict[str, Project] | list[str | Path]] = Path.pickle(name=cls.repos)
