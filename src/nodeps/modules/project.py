@@ -506,7 +506,7 @@ class Project:
             cls,
             ret: ProjectRepos = ProjectRepos.NAMES,
             sync: bool = False,
-            archive: bool = False,
+            sub: bool = False,
             rm: bool = False,
     ) -> list[Path] | list[str] | dict[str, Project | str] | None:
         """Repo paths, names or Project instances under home, Archive or parent of nodeps top.
@@ -528,12 +528,12 @@ class Project:
         Args:
             ret: return names, paths, dict or instances
             sync: push or pull all repos
-            archive: look for repos under ~/Archive
+            sub: look for repos under ~/Archive and git with submodules
             rm: remove cache
         """
         if rm or not (rv := Path.pickle(name=cls.repos)):
             dev = home = Path.home()
-            add = sorted(add.iterdir()) if (add := home / "Archive").is_dir() and archive else []
+            add = sorted(add.iterdir()) if (add := home / "Archive").is_dir() and sub else []
             dev = sorted(dev.iterdir()) if NODEPS_TOP and (dev := NODEPS_TOP.parent) != home else []
             rv = {
                 ProjectRepos.DICT: {},
@@ -555,11 +555,13 @@ class Project:
             Path.pickle(name=cls.repos, data=rv, rm=rm)
 
         if not rv:
-            rv = Path.pickle(name=cls.repos)
+            rv: dict[ProjectRepos, dict[str, Project] | list[str | Path]] = Path.pickle(name=cls.repos)
 
         if sync:
             for item in rv[ProjectRepos.INSTANCES].values():
-                item.sync()
+                msg = f"{cls.repos.__name__}: sync -> {item.name}"
+                item.log.info(msg)
+                item.gh.sync()
             return None
         return rv[ret]
 
