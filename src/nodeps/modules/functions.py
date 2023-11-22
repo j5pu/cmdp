@@ -94,7 +94,7 @@ import urllib.request
 from collections.abc import Callable, Generator, Iterable, Iterator, MutableMapping
 from typing import TYPE_CHECKING, Any, AnyStr, ParamSpec, TextIO, TypeVar, Union, cast
 
-from nodeps.modules.constants import (
+from .constants import (
     EXECUTABLE,
     EXECUTABLE_SITE,
     GITHUB_TOKEN,
@@ -105,12 +105,12 @@ from nodeps.modules.constants import (
     SUDO,
     USER,
 )
-from nodeps.modules.datas import GroupUser, IdName
-from nodeps.modules.errors import CalledProcessError, CmdError, CommandNotFoundError
-from nodeps.modules.path import AnyPath, FrameSimple, Path, toiter
+from .datas import GroupUser, IdName
+from .errors import CalledProcessError, CmdError, CommandNotFoundError
+from .path import AnyPath, FrameSimple, Path, toiter
 
 if TYPE_CHECKING:
-    from nodeps.modules.typings import ExcType, PathIsLiteral, RunningLoop
+    from .typings import ExcType, PathIsLiteral, RunningLoop
 
 _KT = TypeVar("_KT")
 _T = TypeVar("_T")

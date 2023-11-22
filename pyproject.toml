@@ -11,22 +11,8 @@ requires-python = ">=3.11"
 name = "José Antonio Puértolas Montañés"
 email = "63794670+j5pu@users.noreply.github.com"
 
-
-
-
-
-
-
-
-
 [project.entry-points.pytest11]
 git-pytest = "nodeps.fixtures"
-
-
-
-
-
-
 
 [project.license]
 text = "MIT"
@@ -163,17 +149,9 @@ venvs = "nodeps.__main__:_venvs"
 Homepage = "https://github.com/j5pu/nodeps"
 Documentation = "https://nodeps.readthedocs.io"
 
-
-
-
-
-
-
-
-
 [build-system]
 requires = [
-#    "nodeps",
+    #    "nodeps",
     "setuptools >= 68.2.2, <69",
     "setuptools_scm >= 8.0.3, <9",
     "wheel >= 0.41.2, <1"

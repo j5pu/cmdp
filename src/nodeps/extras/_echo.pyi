@@ -20,10 +20,13 @@ __all__ = (
 
 COLORIZE: str | None = ...
 
+
 def msg_click_typer(): ...
+
 
 class EnumLower(enum.Enum):
     def _generate_next_value_(self: str, *args): ...
+
 
 class _Color(EnumLower):
     # noinspection PyShadowingBuiltins
@@ -44,6 +47,7 @@ class _Color(EnumLower):
                  strikethrough: bool | None = ...,
                  reset: bool = ...,
                  colorize: bool | None = None) -> ...: ...
+
 
 class Color(_Color):
     BLACK = ...

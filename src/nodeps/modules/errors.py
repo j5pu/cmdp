@@ -11,7 +11,7 @@ import subprocess
 from collections.abc import Sequence
 from typing import AnyStr
 
-from nodeps.modules.typings import StrOrBytesPath
+from .typings import StrOrBytesPath
 
 
 class _NoDepsBaseError(Exception):

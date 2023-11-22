@@ -17,8 +17,8 @@ import types
 from contextvars import ContextVar
 from typing import ClassVar
 
-from nodeps.modules.classes import ColorLogger, ConfigParser
-from nodeps.modules.constants import (
+from .classes import ColorLogger, ConfigParser
+from .constants import (
     AUTHOR,
     CI,
     DOCKER,
@@ -30,12 +30,12 @@ from nodeps.modules.constants import (
     PYTHON_DEFAULT_VERSION,
     PYTHON_VERSIONS,
 )
-from nodeps.modules.enums import Bump, ProjectRepos
-from nodeps.modules.errors import CalledProcessError, InvalidArgumentError
-from nodeps.modules.functions import completions, dict_sort, findup, in_tox, suppress, urljson, which
-from nodeps.modules.gh import Gh
-from nodeps.modules.metapath import pipmetapathfinder
-from nodeps.modules.path import FileConfig, Path, toiter
+from .enums import Bump, ProjectRepos
+from .errors import CalledProcessError, InvalidArgumentError
+from .functions import completions, dict_sort, findup, in_tox, suppress, urljson, which
+from .gh import Gh
+from .metapath import pipmetapathfinder
+from .path import FileConfig, Path, toiter
 
 NODEPS_QUIET: ContextVar[bool] = ContextVar("NODEPS_QUIET", default=True)
 """Global variable to supress warn in setuptools"""

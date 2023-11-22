@@ -110,7 +110,6 @@ PYTHONSTARTUP = str(_dir / "python_startup.py")
 NODEPS_SRC = str(_dir.parent.parent.parent)
 """Nodeps src directory."""
 
-
 if str(_dir) not in sys.path:
     sys.path.insert(0, str(_dir))
 
@@ -391,7 +390,7 @@ ipython: TerminalInteractiveShell = get_ipython()
 if config is not None:
     # AttributeError: 'PickleShareDB' object has no attribute 'keys'
     # If not db.keys() already then config.StoreMagics.autorestore will fail
-    db = PickleShareDB(Path(IPYTHONDIR) / "profile_default/db") if PickleShareDB else None
+    db = PickleShareDB(Path(IPYTHONDIR) / "profile_default/db") if callable(PickleShareDB) else None
     config.BaseIPythonApplication.ipython_dir = IPYTHONDIR
     config.BaseIPythonApplication.verbose_crash = True
     config.Completer.auto_close_dict_keys = True

@@ -7,6 +7,7 @@ import pytest
 from click.testing import Result
 
 from nodeps import CI, DOCKER
+from nodeps import Path
 from nodeps.__main__ import project_p
 from nodeps.fixtures import Cli, Repos, repos, skip_docker
 
@@ -39,6 +40,10 @@ def test_fixture_local(local: bool):
     else:
         assert local is False
     assert isinstance(local, bool)
+
+
+def test_rootpath(rootpath: Path):
+    assert rootpath == Path(__file__).parent.parent
 
 
 @skip_docker

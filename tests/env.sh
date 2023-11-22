@@ -1,6 +1,7 @@
 # shellcheck shell=sh disable=SC2015,SC2034
 TEST_MACOS="$(uname -a | grep -i darwin 2>/dev/null)"
-TEST_LOGNAME="$( if test -n "${TEST_MACOS}"; then stat -f "%Su" /dev/console; else logname 2>/dev/null || echo "root"; fi)"
+TEST_LOGNAME="$(if test -n "${TEST_MACOS}"; then stat -f "%Su" /dev/console; \
+  else logname 2>/dev/null || echo "root"; fi)"
 TEST_LOGNAMEHOME="$( eval echo ~"${TEST_LOGNAME}" )"
 TEST_ROOTHOME="$( eval echo ~root )"
 

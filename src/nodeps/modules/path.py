@@ -30,9 +30,9 @@ import tokenize
 from collections.abc import Iterable, Iterator
 from typing import IO, TYPE_CHECKING, Any, AnyStr, Generic, Literal, TypeAlias, TypeVar, cast
 
-from nodeps.modules.constants import MACOS, SUDO, USER
-from nodeps.modules.errors import InvalidArgumentError
-from nodeps.modules.typings import PathIsLiteral, StrOrBytesPath
+from .constants import MACOS, SUDO, USER
+from .errors import InvalidArgumentError
+from .typings import PathIsLiteral, StrOrBytesPath
 
 if TYPE_CHECKING:
     import configparser
@@ -128,7 +128,7 @@ class Passwd:
             >>> default = Passwd()
             >>> login = Passwd.from_login()
             >>>
-            >>> assert default == Passwd(Path()) == Passwd(pathlib.Path())  == Passwd(USER) == Passwd(os.getuid()) == \
+            >>> assert default == Passwd(Path()) == Passwd(pathlib.Path())  == Passwd() == Passwd(os.getuid()) == \
                     login
             >>> if SUDO:
             ...     assert default != Passwd().from_root()

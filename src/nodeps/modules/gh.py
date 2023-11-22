@@ -16,14 +16,14 @@ import tempfile
 import urllib.error
 from typing import ClassVar, Protocol, cast, runtime_checkable
 
-from nodeps.modules.classes import ColorLogger
-from nodeps.modules.constants import CI, DOCKER, EMAIL, GIT, GITHUB_TOKEN, GITHUB_URL, NODEPS_PROJECT_NAME
-from nodeps.modules.datas import GitStatus
-from nodeps.modules.enums import Bump
-from nodeps.modules.errors import InvalidArgumentError
-from nodeps.modules.functions import aiocmd, cmd, stdout, urljson
-from nodeps.modules.path import Path
-from nodeps.modules.platforms import (
+from .classes import ColorLogger
+from .constants import CI, DOCKER, EMAIL, GIT, GITHUB_TOKEN, GITHUB_URL, NODEPS_PROJECT_NAME
+from .datas import GitStatus
+from .enums import Bump
+from .errors import InvalidArgumentError
+from .functions import aiocmd, cmd, stdout, urljson
+from .path import Path
+from .platforms import (
     PLATFORMS,
     AssemblaPlatform,
     BasePlatform,

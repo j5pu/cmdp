@@ -17,10 +17,10 @@ import venv
 from ipaddress import IPv4Address, IPv6Address
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from nodeps.modules.functions import envsh
-from nodeps.modules.gh import GitUrl
-from nodeps.modules.metapath import pipmetapathfinder
-from nodeps.modules.path import Path
+from .functions import envsh
+from .gh import GitUrl
+from .metapath import pipmetapathfinder
+from .path import Path
 
 if TYPE_CHECKING:
     import types

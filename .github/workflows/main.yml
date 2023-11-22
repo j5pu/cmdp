@@ -37,7 +37,4 @@ jobs:
           pip uninstall -y nodeps
 
       - name: pytest
-#        run: pytest src/nodeps/modules/project.py
-#        run: pytest tests/test_cli_project_p.py::test_build_path
-        run: |
-          pytest
+        run: pytest

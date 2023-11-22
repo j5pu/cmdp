@@ -1,12 +1,19 @@
 import os
 
+import pytest
+from _pytest.fixtures import FixtureRequest
+
 from nodeps import envsh, Path
 
-tests_envsh = Path(__file__).parent / "env.sh"
 keys = [f'TEST_{_i}' for _i in ['MACOS', 'LOGNAME', 'LOGNAMEHOME', 'ROOTHOME', 'LOGGEDINUSER',
                                 'LOGNAMEREALNAME', 'MULTILINE']]
 
 EnvironOS = type(os.environ)
+
+
+@pytest.fixture(scope="session")
+def tests_envsh(request: FixtureRequest) -> Path:
+    return Path(__file__).parent / "env.sh"
 
 
 def check(env, environ=True):
@@ -42,11 +49,11 @@ def test_envsh_env_override():
         del os.environ["LOG_LEVEL"]
 
 
-def test_envsh_envsh_override():
+def test_envsh_envsh_override(tests_envsh: Path):
     rv = envsh(tests_envsh)
     check(rv)
 
 
-def test_envsh_envsh_not_override():
+def test_envsh_envsh_not_override(tests_envsh: Path):
     rv = envsh(tests_envsh)
     check(rv, False)

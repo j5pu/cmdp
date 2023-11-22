@@ -90,9 +90,9 @@ unfixable = [
 
 [per-file-ignores]
 "src/nodeps/nodeps.pth" = [
-    "D100",  # Missing docstring in public module
-    "I001",  # Import block is un-sorted or un-formatted
-    "E702",  # Multiple statements on one line (semicolon)
+    "D100", # Missing docstring in public module
+    "I001", # Import block is un-sorted or un-formatted
+    "E702", # Multiple statements on one line (semicolon)
 ]
 
 [flake8-tidy-imports]

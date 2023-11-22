@@ -23,7 +23,7 @@ import types
 from collections.abc import Callable, Iterable, MutableMapping
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar, Union
 
-from nodeps.modules.functions import toiter
+from .functions import toiter
 
 if TYPE_CHECKING:
     from collections.abc import Hashable

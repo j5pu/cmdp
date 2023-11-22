@@ -11,7 +11,7 @@ import os
 import sys
 from typing import TYPE_CHECKING, ParamSpec, TypeVar
 
-from nodeps.modules.path import Path
+from .path import Path
 
 if TYPE_CHECKING:
     from collections.abc import Callable

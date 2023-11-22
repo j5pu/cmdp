@@ -15,12 +15,14 @@ __all__ = (
     "cli",
     "clirun",
     "local",
+    "logger",
     "pytest_addoption",
     "pytest_collection_modifyitems",
     "pytest_configure",
     "pytest_generate_tests",
     "pytest_sessionstart",
     "repos",
+    "rootpath",
     "skip_docker",
 )
 
@@ -113,6 +115,16 @@ def local(request: FixtureRequest) -> bool:
     return request.config.getoption('local', False) or DOCKER or CI or in_tox()
 
 
+@pytest.fixture(scope="session")
+def logger(request: FixtureRequest) -> bool:
+    """To show log for fixtures.
+
+    Examples:
+        pytest --logger
+    """
+    return request.config.getoption('logger', False)
+
+
 @pytest.hookimpl
 def pytest_addoption(parser: Parser) -> None:
     """Use config local to skip tests.
@@ -128,6 +140,7 @@ def pytest_addoption(parser: Parser) -> None:
     with contextlib.suppress(ValueError):
         # when installed pytest_addoption is executed by load_setuptools_entrypoints
         parser.addoption('--local', action='store_true', dest="local", default=False, help='Run local tests.')
+        parser.addoption('--logger', action='store_true', dest="logger", default=False, help='Show fixtures log.')
 
 
 # noinspection PyUnusedLocal
@@ -156,7 +169,7 @@ def pytest_sessionstart(session: Session) -> None:
 
 
 @pytest.fixture()
-def repos(tmp_path: Path) -> Generator[Repos]:
+def repos(tmp_path: Path, logger: bool) -> Generator[Repos]:
     """Provides an instance of :class:`nodeps._repo.Repo` for a local and a remote repository."""
     git_config_global()
     tmp = tmp_path / "repos"
@@ -172,13 +185,21 @@ def repos(tmp_path: Path) -> Generator[Repos]:
     origin.push()
     clone = remote.clone(tmp / "clone", branch="main")
 
-    LOGGER.debug(f"clone: {clone.top}")  # noqa: G004
-    LOGGER.debug(f"local: {top}")  # noqa: G004
-    LOGGER.debug(f"remote: {remote.top}")  # noqa: G004
+    if logger:
+        LOGGER.setLevel(logging.DEBUG)
+        LOGGER.debug(f"clone: {clone.top}")  # noqa: G004
+        LOGGER.debug(f"local: {top}")  # noqa: G004
+        LOGGER.debug(f"remote: {remote.top}")  # noqa: G004
 
     yield Repos(clone=clone, local=local, remote=remote)
 
     shutil.rmtree(tmp, ignore_errors=True)
+
+
+@pytest.fixture(scope="session")
+def rootpath(request: FixtureRequest) -> Path:
+    """The path to the :ref:`rootdir <rootdir>`."""
+    return Path(request.config.rootpath)
 
 
 skip_docker = pytest.mark.skipif(

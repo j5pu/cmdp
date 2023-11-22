@@ -12,6 +12,5 @@ if not sys.argv:
     # python startup
     ipy()
 
-
 if __name__ == "__main__":
     ipy()
