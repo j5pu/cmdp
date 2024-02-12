@@ -25,6 +25,7 @@ from .constants import (
     DOCKER_COMMAND,
     EMAIL,
     GIT,
+    NODEPS_PIP_POST_INSTALL_FILENAME,
     NODEPS_PROJECT_NAME,
     NODEPS_TOP,
     PYTHON_DEFAULT_VERSION,
@@ -32,7 +33,7 @@ from .constants import (
 )
 from .enums import Bump, ProjectRepos
 from .errors import CalledProcessError, InvalidArgumentError
-from .functions import completions, dict_sort, findup, in_tox, suppress, urljson, which
+from .functions import completions, dict_sort, exec_module_from_file, findfile, findup, in_tox, suppress, urljson, which
 from .gh import Gh
 from .metapath import pipmetapathfinder
 from .path import FileConfig, Path, toiter
@@ -178,6 +179,7 @@ class Project:
                     "--quiet",
                     f"--file={self.brewfile}",
                 ],
+                stdout=subprocess.PIPE,
                 shell=False,
             ).returncode
             self.info(self.brew.__name__)
@@ -426,6 +428,18 @@ class Project:
     def nodeps(cls) -> Project:
         """Project Instance of nodeps."""
         return cls(__file__)
+
+    def post(self, uninstall: bool = False) -> None:
+        """Run post install for package: completions, brew and _post_install.py."""
+        if uninstall:
+            self.completions(uninstall=True)
+            return
+        self.completions()
+        self.brew()
+        for file in findfile(NODEPS_PIP_POST_INSTALL_FILENAME, self.root or self.source or self.directory):
+            if ".tox" not in file:
+                self.info(f"{self.post.__name__}: {file}")
+                exec_module_from_file(file)
 
     def publish(
             self,

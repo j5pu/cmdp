@@ -5,7 +5,7 @@ import nodeps.__main__
 project = "nodeps"
 author = "José Antonio Puértolas Montañés"
 # noinspection PyShadowingBuiltins
-copyright = "2023, José Antonio Puértolas Montañés"
+copyright = "2024, José Antonio Puértolas Montañés"
 extensions = [
     "myst_parser",
     "sphinx.ext.autodoc",

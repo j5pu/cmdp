@@ -6,6 +6,7 @@ __all__ = (
     "NODEPS_EXTENSION",
     "NODEPS_EXTENSIONS",
     "PYTHONSTARTUP",
+    "NODEPS_SRC",
     "ins",
     "ipy",
     "is_idlelib",
@@ -29,8 +30,7 @@ try:
     from IPython.core.magic import Magics, line_magic, magics_class  # type: ignore[attr-defined]
     from IPython.terminal.prompts import Prompts, Token  # type: ignore[attr-defined]
     from traitlets.config.application import get_config  # type: ignore[attr-defined]
-except ModuleNotFoundError as e:
-    print(e)
+except ModuleNotFoundError:
     get_config = get_ipython = line_magic = magics_class = lambda *args: None
     Magics = Prompts = Token = object
 
@@ -100,10 +100,11 @@ if TYPE_CHECKING:
 
 _cwd = Path.cwd()
 _dir = Path(__file__).parent
+_ipython_dir = _dir.parent
 
-IPYTHONDIR = str(_dir.parent)
+IPYTHONDIR = str(_ipython_dir)
 """IPython Profile: `export IPYTHONDIR="$(ipythondir)"`."""
-NODEPS_EXTENSION = Path(__file__).stem
+NODEPS_EXTENSION = _ipython_dir.parent.name
 NODEPS_EXTENSIONS = ["IPython.extensions.autoreload", NODEPS_EXTENSION, "IPython.extensions.storemagic", "rich"]
 PYTHONSTARTUP = str(_dir / "python_startup.py")
 """Python Startup :mod:`python_startup.__init__`: `export PYTHONSTARTUP="$(pythonstartup)"`."""

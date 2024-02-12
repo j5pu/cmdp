@@ -1,6 +1,7 @@
+import subprocess
+import sys
 import sysconfig
 from pathlib import Path
-
 
 import nodeps
 from nodeps.fixtures import skip_docker
@@ -32,3 +33,4 @@ def test_install() -> None:
     assert (purelib / f"{PACKAGE}.pth").is_file()
     assert (scripts / f"git-mod-add").is_file()
     assert (purelib / f"{PACKAGE}/data/Brewfile").is_file()
+    assert subprocess.getoutput(f"{sys.executable} -c \"import sys; print('{PACKAGE}' in sys.modules)\"") == "True"

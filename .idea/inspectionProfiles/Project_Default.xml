@@ -136,31 +136,7 @@
     <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoredIdentifiers">
         <list>
-          <option value="pyicloud.services" />
-          <option value="photoscript._version" />
-          <option value="pathlib._NormalAccessor" />
-          <option value="enum._auto_null" />
           <option value="sys._getframe" />
-          <option value="fitz.fitz.Page.search_for" />
-          <option value="fitz.fitz.Page.apply_redactions" />
-          <option value="asyncio.events.AbstractEventLoop._selector" />
-          <option value="importlib._bootstrap" />
-          <option value="fitz.fitz.Page.get_text" />
-          <option value="fitz.fitz.Document.new_page" />
-          <option value="fitz.fitz.Page.insert_image" />
-          <option value="fitz.fitz.Document.*" />
-          <option value="fitz.fitz.Page.*" />
-          <option value="type._asdict" />
-          <option value="asyncio.events._RunningLoop" />
-          <option value="setuptools.command.build_py._IncludePackageDataAbuse" />
-          <option value="setuptools.build_meta._BuildMetaBackend" />
-          <option value="setuptools.build_meta.LEGACY_EDITABLE" />
-          <option value="setuptools.build_meta._BuildMetaLegacyBackend" />
-          <option value="openai.APIConnectionError" />
-          <option value="loguru.Logger._core" />
-          <option value="nodeps.extras._repo.Repo.init" />
-          <option value="nodeps.extras._repo.Repo.remote" />
-          <option value="nodeps.extras.repo.Repo.*" />
         </list>
       </option>
     </inspection_tool>

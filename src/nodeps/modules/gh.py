@@ -801,9 +801,11 @@ class Gh(GitUrl):
                     self.info(self.secrets.__name__)
         return 0
 
-    def secrets_names(self):
+    def secrets_names(self) -> list[str]:
         """List GitHub repository secrets names."""
-        return self.gh_stdout("secret list --jq .[].name  --json name").splitlines()
+        if rv := self.gh_stdout("secret list --jq .[].name  --json name"):
+            return rv.splitlines()
+        return []
 
     def status(self, quiet: bool = True) -> GitStatus:
         """Git status instance and fetch if necessary."""

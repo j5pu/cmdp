@@ -807,6 +807,22 @@ def __next(
     print(Project(data=data).gh.next(part=part, force=force))
 
 
+@project_p.command()
+def post(
+        data: Annotated[
+            Path,
+            typer.Argument(
+                help="Path/file to project or name of project",
+                autocompletion=_repos_completions,
+            ),
+        ] = _cwd,
+        rm: bool = typer.Option(False, help="Remove cache"),
+        uninstall: bool = typer.Option(False, help="Uninstall"),
+):
+    """Run post install for package: completions, brew and _post_install.py.."""
+    Project(data=data, rm=rm).post(uninstall=uninstall)
+
+
 @gh_g.command(name="public")
 def public_gh_g(
         data: Annotated[

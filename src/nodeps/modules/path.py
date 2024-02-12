@@ -200,8 +200,8 @@ class Passwd:
         """Returns instance of :class:`nodeps:Passwd` from '/dev/console' on macOS and `os.getlogin()` on Linux."""
         try:
             user = Path("/dev/console").owner() if MACOS else os.getlogin()
-        except OSError:
-            user = Path("/proc/self/loginuid").owner()
+        except (OSError, FileNotFoundError):
+            user = p.owner() if (p := Path("/proc/self/loginuid")).exists() else USER
         return cls(user)
 
     @classmethod
@@ -1334,6 +1334,9 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         """
         for directory, _, _ in os.walk(self, topdown=False):
             d = self.__class__(directory).absolute()
+            ds_store = d / ".DS_Store"
+            if ds_store.exists():
+                ds_store.rm()
             if len(list(d.iterdir())) == 0 and (not preserve or (d != self.absolute() and preserve)):
                 self.__class__(d).rmdir()
 
@@ -1633,12 +1636,13 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             try:
                 yield tmpdir
             finally:
-                pass
+                with contextlib.suppress(FileNotFoundError):
+                    pass
 
     @classmethod
     @contextlib.contextmanager
     def tempdir(
-            cls, suffix: AnyStr | None = None, prefix: AnyStr | None = None, directory: AnyPath | None = None
+            cls, suffix: AnyStr | None = None, prefix: AnyStr | None = None, directory: AnyPath | AnyStr | None = None
     ) -> Path:
         """Create and return tmp directory.  This has the same behavior as mkdtemp but can be used as a context manager.
 
@@ -1669,7 +1673,8 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             try:
                 yield cls(tmp)
             finally:
-                pass
+                with contextlib.suppress(FileNotFoundError):
+                    pass
 
     @classmethod
     @contextlib.contextmanager
@@ -1742,7 +1747,8 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             try:
                 yield cls(tmp.name)
             finally:
-                pass
+                with contextlib.suppress(FileNotFoundError):
+                    pass
 
     def to_parent(self) -> Path:
         """Return Parent if is file and exists or self.

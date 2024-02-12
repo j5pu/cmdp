@@ -49,11 +49,25 @@ try:
 except ModuleNotFoundError:
     pip = object
 
-from ..modules import NODEPS_PIP_POST_INSTALL_FILENAME, ColorLogger, Path, Project, exec_module_from_file, findfile
+try:
+    # nodeps[pth] extras
+    import pipx.commands.common  # type: ignore[attr-defined]
+    from pipx.commands.common import run_post_install_actions as pipx_run_post_install  # type: ignore[attr-defined]
+except ModuleNotFoundError:
+    pass
+
+from ..modules import ColorLogger, Path, Project
 
 if TYPE_CHECKING:
+    import pathlib
+
     # noinspection PyCompatibility
     from pip._internal.cli.base_command import Command
+
+    try:  # noqa: SIM105
+        from pipx.venv import Venv  # type: ignore[attr-defined]
+    except ModuleNotFoundError:
+        pass
 
 _NODEPS_PIP_POST_INSTALL = {}
 """Holds the context with wheels installed and paths to package installed to be used in post install"""
@@ -124,20 +138,28 @@ def _copy_pths(self: BuildPy | Develop | EasyInstall | InstallLib, directory: st
     return outputs
 
 
+def _run_post_install_actions(
+        venv: Venv,
+        package_name: str,
+        local_bin_dir: pathlib.Path,
+        venv_dir: pathlib.Path,
+        include_dependencies: bool,
+        *,
+        force: bool) -> None:
+    pipx_run_post_install(venv=venv, package_name=package_name, local_bin_dir=local_bin_dir,
+                          venv_dir=venv_dir, include_dependencies=include_dependencies, force=force)
+    print(venv, package_name, local_bin_dir, venv_dir)
+    # Project(app_paths).post()
+
+
 def _pip_base_command(self: Command, args: list[str]) -> int:
     """Post install pip patch."""
     try:
-        log = ColorLogger.logger()
         with self.main_context():
             rv = self._main(args)
             if rv == 0 and self.__class__.__name__ == "InstallCommand":
-                for key, value in _NODEPS_PIP_POST_INSTALL.items():
-                    p = Project(key)
-                    p.completions()
-                    p.brew()
-                    for file in findfile(NODEPS_PIP_POST_INSTALL_FILENAME, value):
-                        log.info(self.__class__.__name__, extra={"extra": f"post install '{key}': {file}"})
-                        exec_module_from_file(file)
+                for path in _NODEPS_PIP_POST_INSTALL.values():
+                    Project(path).post()
             return rv
     finally:
         logging.shutdown()
@@ -172,8 +194,7 @@ def _pip_install_wheel(
 def _pip_uninstall_req(self, auto_confirm: bool = False, verbose: bool = False):
     """Pip uninstall patch to post install."""
     assert self.req  # noqa: S101
-    p = Project(self.req.name)
-    p.completions(uninstall=True)
+    Project(self.req.name).post(uninstall=True)
 
     dist = pip._internal.metadata.get_default_environment().get_distribution(self.req.name)
     if not dist:
@@ -198,6 +219,10 @@ if "pip._internal.operations.install.wheel" in sys.modules:
     pip._internal.operations.install.wheel.install_wheel = _pip_install_wheel
     pip._internal.cli.base_command.Command.main = _pip_base_command
     pip._internal.req.req_install.InstallRequirement.uninstall = _pip_uninstall_req
+
+if "pipx.commands.common" in sys.modules:
+    # noinspection PyUnboundLocalVariable
+    pipx.commands.common.run_post_install_actions = _run_post_install_actions
 
 if "setuptools.command.build_py" in sys.modules:
     setuptools.command.build_py._IncludePackageDataAbuse.warn = _setuptools_build_quiet
