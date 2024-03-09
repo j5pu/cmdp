@@ -173,15 +173,15 @@ def repos(tmp_path: Path, logger: bool) -> Generator[Repos]:
     """Provides an instance of :class:`nodeps._repo.Repo` for a local and a remote repository."""
     git_config_global()
     tmp = tmp_path / "repos"
-    local = Repo.init(tmp / "local", initial_branch="main")
+    l = Repo.init(tmp / "local", initial_branch="main")
     remote = Repo.init(tmp / "remote.git", bare=True)
-    local.create_remote('origin', remote.git_dir)
-    origin = local.remote(name='origin')
-    top = Path(local.top)
+    l.create_remote('origin', remote.git_dir)
+    origin = l.remote(name='origin')
+    top = Path(l.top)
     top.touch("README.md")
-    local.git.add(".")
-    local.git.commit("-a", "-m", "First commit.")
-    local.git.push("--set-upstream", "origin", "main")
+    l.git.add(".")
+    l.git.commit("-a", "-m", "First commit.")
+    l.git.push("--set-upstream", "origin", "main")
     origin.push()
     clone = remote.clone(tmp / "clone", branch="main")
 
@@ -191,7 +191,7 @@ def repos(tmp_path: Path, logger: bool) -> Generator[Repos]:
         LOGGER.debug(f"local: {top}")  # noqa: G004
         LOGGER.debug(f"remote: {remote.top}")  # noqa: G004
 
-    yield Repos(clone=clone, local=local, remote=remote)
+    yield Repos(clone=clone, local=l, remote=remote)
 
     shutil.rmtree(tmp, ignore_errors=True)
 

@@ -16,18 +16,21 @@ __all__ = (
 )
 
 import contextlib
+import inspect
 import os
 import pathlib
 import platform
 import sys
 import warnings
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 try:
     import IPython.core.shellapp  # type: ignore[attr-defined]
+    import IPython.extensions.storemagic  # type: ignore[attr-defined]
+    import IPython.terminal.interactiveshell  # type: ignore[attr-defined]
     from IPython.core.getipython import get_ipython  # type: ignore[attr-defined]
     from IPython.core.magic import Magics, line_magic, magics_class  # type: ignore[attr-defined]
+    from IPython.extensions.storemagic import refresh_variables  # type: ignore[attr-defined]
     from IPython.terminal.prompts import Prompts, Token  # type: ignore[attr-defined]
     from traitlets.config.application import get_config  # type: ignore[attr-defined]
 except ModuleNotFoundError:
@@ -98,18 +101,42 @@ if TYPE_CHECKING:
     except ModuleNotFoundError:
         Config = Console = Prompts = Token = object
 
-_cwd = Path.cwd()
-_dir = Path(__file__).parent
+_cwd = pathlib.Path.cwd()
+_dir = pathlib.Path(__file__).parent
 _ipython_dir = _dir.parent
 
 IPYTHONDIR = str(_ipython_dir)
 """IPython Profile: `export IPYTHONDIR="$(ipythondir)"`."""
-NODEPS_EXTENSION = _ipython_dir.parent.name
-NODEPS_EXTENSIONS = ["IPython.extensions.autoreload", NODEPS_EXTENSION, "IPython.extensions.storemagic", "rich"]
+# NODEPS_EXTENSION = _ipython_dir.parent.name
+NODEPS_EXTENSION = pathlib.Path(__file__).stem
+NODEPS_EXTENSIONS = ["IPython.extensions.autoreload", NODEPS_EXTENSION, "IPython.extensions.storemagic",
+                     "rich"]
 PYTHONSTARTUP = str(_dir / "python_startup.py")
 """Python Startup :mod:`python_startup.__init__`: `export PYTHONSTARTUP="$(pythonstartup)"`."""
 NODEPS_SRC = str(_dir.parent.parent.parent)
 """Nodeps src directory."""
+
+_functions = [_i.function for _i in inspect.stack()]
+if "start_client" in _functions:
+    # both PyCharm and ipython,
+    pass
+if "load_extension" in _functions:
+    # started with ipython, enters before with start_client
+    pass
+if "do_import" in _functions:
+    # started with PyCharm it only enter once
+    pass
+
+
+def _refresh_variables(ip: TerminalInteractiveShell):
+    """Patch.
+
+    AttributeError: 'PickleShareDB' object has no attribute 'keys'
+    If not db.keys() already then config.StoreMagics.autorestore will fail
+    """
+    if hasattr(ip.db, "keys"):
+        refresh_variables(ip)
+
 
 if str(_dir) not in sys.path:
     sys.path.insert(0, str(_dir))
@@ -350,32 +377,35 @@ def load_ipython_extension(i: TerminalInteractiveShell | None = None):
         - almost no globals
         - and only nodeps in sys.modules
     """
-    # load_ipython_extension() called in <module >
-    load = __file__ == sys._getframe(1).f_code.co_filename
     i = i or ipython
-
     if i:
         i.register_magics(ReloadMagic)
         loaded = i.extension_manager.loaded
-        if NODEPS_EXTENSION not in loaded:
-            for extension in NODEPS_EXTENSIONS:
-                if (extension not in loaded and
-                        (extension != NODEPS_EXTENSION or (extension == NODEPS_EXTENSION and load))):
+        for extension in NODEPS_EXTENSIONS:
+            if extension not in loaded:
+                if extension == NODEPS_EXTENSION:
+                    if "do_import" in _functions:
+                        # Mark as loaded for PyCharm
+                        i.extension_manager.loaded.add(NODEPS_EXTENSION)
+                else:
                     i.extension_manager.load_extension(extension)
         i.prompts = MyPrompt(i)
         i.user_ns["test_rich"] = [True, 1, "a"]
+        i.user_ns["IPYTHON"] = i
         # i.run_line_magic("store", "test_rich")
         i.run_line_magic("autoreload", "3")
         # i.run_cell("print('ipython run_cell: hello!')")
         # HACER: does not import in pycharm __all__, however user_ns gets updated and modules
         if env := os.environ.get("VIRTUAL_ENV"):
-            module = Path(env).parent.name
+            module = pathlib.Path(env).parent.name
             # i.run_cell(f"from {module} import *")
-            i.ex(f"from {module} import *")
+            with contextlib.suppress(ModuleNotFoundError):
+                i.ex(f"from {module} import *")
         elif _src.is_dir():
             top = _src.parent
             if (top / "pyproject.toml").is_file():
-                i.ex(f"from {top.name} import *")
+                with contextlib.suppress(ModuleNotFoundError):
+                    i.ex(f"from {top.name} import *")
 
     rich.pretty.install(CONSOLE, expand_all=True)  # type: ignore[attr-defined]
     rich.traceback.install(show_locals=True, suppress=RICH_SUPPRESS)  # type: ignore[attr-defined]
@@ -388,10 +418,12 @@ def load_ipython_extension(i: TerminalInteractiveShell | None = None):
 config: Config = get_config()
 ipython: TerminalInteractiveShell = get_ipython()
 
-if config is not None:
+if "local_config" in _functions or "do_import" in _functions:
+    # "local_config" for ipython and "do_import" for PyCharm
+
     # AttributeError: 'PickleShareDB' object has no attribute 'keys'
     # If not db.keys() already then config.StoreMagics.autorestore will fail
-    db = PickleShareDB(Path(IPYTHONDIR) / "profile_default/db") if callable(PickleShareDB) else None
+    db = PickleShareDB(pathlib.Path(IPYTHONDIR) / "profile_default/db") if callable(PickleShareDB) else None
     config.BaseIPythonApplication.ipython_dir = IPYTHONDIR
     config.BaseIPythonApplication.verbose_crash = True
     config.Completer.auto_close_dict_keys = True
@@ -427,14 +459,68 @@ if config is not None:
     if ipython:
         ipython.config = config
 
-    if "IPython.core.shellapp" in sys.modules:
-        # noinspection PyUnboundLocalVariable
-        IPython.core.shellapp.InteractiveShellApp.extensions = NODEPS_EXTENSIONS
+if config is not None:
+    # AttributeError: 'PickleShareDB' object has no attribute 'keys'
+    # If not db.keys() already then config.StoreMagics.autorestore will fail
+    # db = PickleShareDB(pathlib.Path(IPYTHONDIR) / "profile_default/db") if callable(PickleShareDB) else None
+    # config.BaseIPythonApplication.ipython_dir = IPYTHONDIR
+    # config.BaseIPythonApplication.verbose_crash = True
+    # config.Completer.auto_close_dict_keys = True
+    # config.InteractiveShell.automagic = True
+    # config.InteractiveShell.banner1 = ""
+    # config.InteractiveShell.banner2 = ""
+    # config.InteractiveShell.colors = "Linux"
+    # config.InteractiveShell.history_length = 30000
+    # config.InteractiveShell.sphinxify_docstring = True
+    # config.TerminalIPythonApp.exec_lines = [
+    #     "%autoreload 3",
+    #     # "print('exec_lines: hello!')",
+    # ]
+    # config.InteractiveShellApp.extensions = NODEPS_EXTENSIONS
+    # config.InteractiveShellApp.exec_PYTHONSTARTUP = False
+    # config.IPCompleter.omit__names = 0
+    # config.MagicsManager.auto_magic = True
+    # config.PlainTextFormatter.max_seq_length = 0
+    # if hasattr(db, "keys"):
+    #     config.StoreMagics.autorestore = True
+    # config.TerminalInteractiveShell.auto_match = True
+    # config.TerminalInteractiveShell.autoformatter = "black"
+    # config.TerminalInteractiveShell.confirm_exit = False
+    # config.TerminalInteractiveShell.highlighting_style = "monokai"
+    # config.TerminalInteractiveShell.prompts_class = MyPrompt
+    # config.TerminalInteractiveShell.simple_prompt = False
+    # config.TerminalInteractiveShell.true_color = True
+    # config.TerminalIPythonApp.display_banner = False
+    # config.Completer.auto_close_dict_keys = True
+    # config.IPCompleter.omit__names = 0
+    # config.MagicsManager.auto_magic = True
+    # config.PlainTextFormatter.max_seq_length = 0
+    # if ipython:
+    #     ipython.config = config
+    #
+    pass
 
-with contextlib.suppress(ValueError):
-    if "do_import" in sys._getframe(8).f_code.co_name:
-        load_ipython_extension()
+if "IPython.core.shellapp" in sys.modules:
+    # Only works with ipython
+    # noinspection PyUnboundLocalVariable
+    IPython.core.shellapp.InteractiveShellApp.extensions = NODEPS_EXTENSIONS
+
+if "do_import" in _functions:
+    load_ipython_extension()
 
 if "rich.console" in sys.modules:
     # noinspection PyPropertyAccess,PyUnboundLocalVariable
     rich.console.Console.is_terminal = property(is_terminal)
+
+if "IPython.extensions.storemagic" in sys.modules:
+    IPython.extensions.storemagic.refresh_variables = _refresh_variables
+
+if __name__ == "__main__":
+    import sys
+
+    print(sys.path)
+    print("cd /tmp")
+    print(". venv/bin/activate")
+    print(f"export IPYTHONDIR={IPYTHONDIR}")
+    print(f"export PYTHONSTARTUP={PYTHONSTARTUP}")
+    print("ipython")
