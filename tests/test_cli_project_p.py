@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pytest
 
+from nodeps import IPYTHONDIR
+from nodeps import PYTHONSTARTUP
 from nodeps.__main__ import project_p
 from nodeps import NODEPS_PROJECT_NAME
 from nodeps.fixtures import Cli
@@ -83,8 +85,8 @@ def test_github(cli: Cli):
 
 @pytest.mark.parametrize("cli", [[project_p, "ipythondir"]], indirect=True)
 def test_ipythondir(cli: Cli):
-    assert cli.result.exit_code == 0
-    assert "ipython" in cli.result.stdout
+    assert cli.exit_code == 0
+    assert str(IPYTHONDIR) == cli.stdout.strip("\n")
 
 
 @pytest.mark.parametrize("cli", [[project_p, "latest"]], indirect=True)
@@ -111,7 +113,7 @@ def test_public(cli: Cli):
 @pytest.mark.parametrize("cli", [[project_p, "pythonstartup"]], indirect=True)
 def test_pythonstartup(cli: Cli):
     assert cli.result.exit_code == 0
-    assert "python_startup" in cli.result.stdout
+    assert str(PYTHONSTARTUP) == cli.stdout.strip("\n")
 
 
 @pytest.mark.parametrize("cli", [[project_p, "remote"]], indirect=True)

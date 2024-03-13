@@ -63,7 +63,7 @@ class GitUrl:
             >>> from nodeps import GitUrl
             >>> from nodeps import Path
             >>> from nodeps import NODEPS_PROJECT_NAME, CI
-            >>> from nodeps import NODEPS_PATH
+            >>> from nodeps import NODEPS_MODULE_PATH
             >>>
             >>> p = GitUrl()
             >>> p1 = GitUrl(nodeps.__file__)
@@ -72,7 +72,7 @@ class GitUrl:
             ('github.com', 'j5pu', 'nodeps', 'https', ['https'], 'github', '/j5pu/nodeps', 'j5pu/nodeps')
             >>> assert p2.url == p1.url == p.url == "https://github.com/j5pu/nodeps"
             >>> if not CI:
-            ...     assert NODEPS_PATH == p1._path
+            ...     assert NODEPS_MODULE_PATH == p1._path
             >>>
             >>> u = 'git@bitbucket.org:AaronO/some-repo.git'
             >>> p = GitUrl(u)

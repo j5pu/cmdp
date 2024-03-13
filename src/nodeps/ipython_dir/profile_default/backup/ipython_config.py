@@ -1,6 +1,28 @@
 """IPython Config."""  # noqa: INP001
 
 c = get_config()  # type: ignore[attr-defined]  # noqa: F821
+# IPython.core.interactiveshell.InteractiveShell.automagic = Bool(
+#     default_value=True, help="""Enable magic commands to be called without the leading %."""
+# ).tag(config=True)
+# IPython.core.interactiveshell.InteractiveShell.banner1 = ""
+# IPython.core.interactiveshell.InteractiveShell.banner2 = ""
+# IPython.core.interactiveshell.InteractiveShell.colors = "Linux"
+# IPython.core.interactiveshell.InteractiveShell.history_length = 30000
+# IPython.core.interactiveshell.InteractiveShell.sphinxify_docstring = False
+# IPython.core.interactiveshell.InteractiveShell.user_ns = {
+#     "test_rich": [True, 1, "a"],
+# }
+#
+# IPython.terminal.interactiveshell.TerminalInteractiveShell.auto_match = False
+# IPython.terminal.interactiveshell.TerminalInteractiveShell.autoformatter = "black"
+# IPython.terminal.interactiveshell.TerminalInteractiveShell.highlighting_style = "monokai"
+# if IPYTHON:
+#     IPython.terminal.interactiveshell.TerminalInteractiveShell.prompts = MyPrompt(IPYTHON)
+# IPython.terminal.interactiveshell.TerminalInteractiveShell.prompts_class = Type(
+#     MyPrompt, help='Class used to generate Prompt token for prompt_toolkit'
+# ).tag(config=True)
+# IPython.terminal.interactiveshell.TerminalInteractiveShell.simple_prompt = True
+# IPython.terminal.interactiveshell.TerminalInteractiveShell.warn_venv = False
 
 # ------------------------------------------------------------------------------
 # InteractiveShellApp(Configurable) configuration

@@ -27,18 +27,16 @@ import sys
 import sysconfig
 import tempfile
 import tokenize
-from collections.abc import Iterable, Iterator
-from typing import IO, TYPE_CHECKING, Any, AnyStr, Generic, Literal, TypeAlias, TypeVar, cast
+from collections.abc import Iterable
+from typing import IO, TYPE_CHECKING, Any, AnyStr, TypeAlias, cast
 
 from .constants import MACOS, SUDO, USER
 from .errors import InvalidArgumentError
-from .typings import PathIsLiteral, StrOrBytesPath
+from .typings import StrOrBytesPath
 
 if TYPE_CHECKING:
     import configparser
     import types
-
-_T = TypeVar("_T")
 
 
 @dataclasses.dataclass
@@ -106,7 +104,7 @@ class Passwd:
     uid: int = dataclasses.field(default=None, init=False)
     user: str = dataclasses.field(default=None, init=False)
 
-    def __post_init__(self, data: Passwd | AnyPath | int | str = USER):
+    def __post_init__(self, data=USER):
         """Instance of :class:`nodeps:Passwd`  from either `uid` or `user` (default: :func:`os.getuid`).
 
         Uses completed/real id's (os.getgid, os.getuid) instead effective id's (os.geteuid, os.getegid) as default.
@@ -181,22 +179,22 @@ class Passwd:
         self.groups = {grp.getgrgid(gid).gr_name: gid for gid in os.getgrouplist(self.user, self.gid)}
 
     @property
-    def is_su(self) -> bool:
+    def is_su(self):
         """Returns True if login as root, uid=0 and not `SUDO_USER`."""
         return self.uid == 0 and not bool(os.environ.get("SUDO_USER"))
 
     @property
-    def is_sudo(self) -> bool:
+    def is_sudo(self):
         """Returns True if SUDO_USER is set."""
         return bool(os.environ.get("SUDO_USER"))
 
     @property
-    def is_user(self) -> bool:
+    def is_user(self):
         """Returns True if user and not `SUDO_USER`."""
         return self.uid != 0 and not bool(os.environ.get("SUDO_USER"))
 
     @classmethod
-    def from_login(cls) -> Passwd:
+    def from_login(cls):
         """Returns instance of :class:`nodeps:Passwd` from '/dev/console' on macOS and `os.getlogin()` on Linux."""
         try:
             user = Path("/dev/console").owner() if MACOS else os.getlogin()
@@ -205,29 +203,29 @@ class Passwd:
         return cls(user)
 
     @classmethod
-    def from_sudo(cls) -> Passwd:
+    def from_sudo(cls):
         """Returns instance of :class:`nodeps:Passwd` from `SUDO_USER` if set or current user."""
         uid = os.environ.get("SUDO_UID", os.getuid())
         return cls(uid)
 
     @classmethod
-    def from_root(cls) -> Passwd:
+    def from_root(cls):
         """Returns instance of :class:`nodeps:Passwd` for root."""
         return cls(0)
 
 
-class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
+class Path(pathlib.Path, pathlib.PurePosixPath):
     """Path helper class."""
 
     def __call__(
             self,
-            name: AnyPath = "",
-            file: PathIsLiteral = "is_dir",
-            passwd: Passwd | AnyPath | str | int | None = None,
-            mode: int | str | None = None,
-            effective_ids: bool = True,
-            follow_symlinks: bool = False,
-    ) -> Path:
+            name="",
+            file="is_dir",
+            passwd=None,
+            mode=None,
+            effective_ids=True,
+            follow_symlinks=False,
+    ):
         """Make dir or touch file and create subdirectories as needed.
 
         Examples:
@@ -262,7 +260,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             follow_symlinks=follow_symlinks,
         )
 
-    def __contains__(self, value: Iterable) -> bool:
+    def __contains__(self, value):
         """Checks all items in value exist in self.resolve().
 
         To check only parts use self.has.
@@ -287,7 +285,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         value = self.__class__(value) if isinstance(value, str) and "/" in value else toiter(value)
         return all(item in self.resolve().parts for item in value)
 
-    def __eq__(self, other: Path) -> bool:
+    def __eq__(self, other):
         """Equal based on parts.
 
         Examples:
@@ -299,11 +297,11 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             return NotImplemented
         return tuple(self.parts) == tuple(other.parts)
 
-    def __hash__(self) -> int:
+    def __hash__(self):
         """Hash based on parts."""
         return self._hash if hasattr(self, "_hash") else hash(tuple(self.parts))
 
-    def __iter__(self) -> Iterator[_T]:
+    def __iter__(self):
         """Iterate over path parts.
 
         Examples:
@@ -316,25 +314,25 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         """
         return iter(self.parts)
 
-    def __lt__(self, other: Path) -> bool:
+    def __lt__(self, other):
         """Less than based on parts."""
         if not isinstance(other, self.__class__):
             return NotImplemented
         return self.parts < other.parts
 
-    def __le__(self, other: Path) -> bool:
+    def __le__(self, other):
         """Less than or equal based on parts."""
         if not isinstance(other, self.__class__):
             return NotImplemented
         return self.parts <= other.parts
 
-    def __gt__(self, other: Path) -> bool:
+    def __gt__(self, other):
         """Greater than based on parts."""
         if not isinstance(other, self.__class__):
             return NotImplemented
         return self.parts > other.parts
 
-    def __ge__(self, other: Path) -> bool:
+    def __ge__(self, other):
         """Greater than or equal based on parts."""
         if not isinstance(other, self.__class__):
             return NotImplemented
@@ -342,12 +340,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
 
     def access(
             self,
-            os_mode: int = os.W_OK,
+            os_mode=os.W_OK,
             *,
-            dir_fd: int | None = None,
-            effective_ids: bool = True,
-            follow_symlinks: bool = False,
-    ) -> bool | None:
+            dir_fd=None,
+            effective_ids=True,
+            follow_symlinks=False,
+    ):
         # noinspection LongLine
         """Checks if file or directory exists and has access (returns None if file/directory does not exist.
 
@@ -417,7 +415,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             follow_symlinks=follow_symlinks,
         )
 
-    def add(self, *args: str, exception: bool = False) -> Path:
+    def add(self, *args, exception=False):
         """Add args to self.
 
         Examples:
@@ -452,7 +450,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             path = path / arg
         return path
 
-    def append_text(self, text: str, encoding: str | None = None, errors: str | None = None) -> str:
+    def append_text(self, text, encoding=None, errors=None):
         """Open the file in text mode, append to it, and close the file (creates file if not file).
 
         Examples:
@@ -478,7 +476,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return self.read_text()
 
     @contextlib.contextmanager
-    def cd(self) -> Path:
+    def cd(self):
         """Change dir context manager to self if dir or parent if file and exists.
 
         Examples:
@@ -501,7 +499,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         finally:
             oldpwd.chdir()
 
-    def chdir(self) -> Path:
+    def chdir(self):
         """Change to self if dir or file parent if file and file exists.
 
         Examples:
@@ -528,11 +526,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         os.chdir(path)
         return path
 
-    def checksum(
-            self,
-            algorithm: Literal["md5", "sha1", "sha224", "sha256", "sha384", "sha512"] = "sha256",
-            block_size: int = 65536,
-    ) -> str:
+    def checksum(self, algorithm="sha256", block_size=65536):
         """Calculate the checksum of a file.
 
         Examples:
@@ -557,12 +551,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
 
     def chmod(
             self,
-            mode: int | str | None = None,
-            effective_ids: bool = True,
-            exception: bool = True,
-            follow_symlinks: bool = False,
-            recursive: bool = False,
-    ) -> Path:
+            mode=None,
+            effective_ids=True,
+            exception=True,
+            follow_symlinks=False,
+            recursive=False,
+    ):
         """Change mode of self.
 
         Examples:
@@ -615,12 +609,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
 
     def chown(
             self,
-            passwd: Passwd | AnyPath | str | int = None,
-            effective_ids: bool = True,
-            exception: bool = True,
-            follow_symlinks: bool = False,
-            recursive: bool = False,
-    ) -> Path:
+            passwd=None,
+            effective_ids=True,
+            exception=True,
+            follow_symlinks=False,
+            recursive=False,
+    ):
         """Change owner of path.
 
         Examples:
@@ -694,7 +688,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
 
         return self
 
-    def cmp(self, other: AnyPath) -> bool:
+    def cmp(self, other):
         """Determine, whether two files provided to it are the same or not.
 
         By the same means that their contents are the same or not (excluding any metadata).
@@ -718,12 +712,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
 
     def cp(
             self,
-            dest: AnyPath,
-            contents: bool = False,
-            effective_ids: bool = True,
-            follow_symlinks: bool = False,
-            preserve: bool = False,
-    ) -> Path:
+            dest,
+            contents=False,
+            effective_ids=True,
+            follow_symlinks=False,
+            preserve=False,
+    ):
         """Wrapper for shell `cp` command to copy file recursivily and adding sudo if necessary.
 
         Examples:
@@ -815,7 +809,8 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
 
         return dest
 
-    def exists(self) -> bool:
+    # noinspection PyMethodOverriding
+    def exists(self):
         """Check if file exists or is a broken link (super returns False if it is a broken link, we return True).
 
         Examples:
@@ -839,7 +834,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return self.is_symlink()
 
     @classmethod
-    def expandvars(cls, path: str | None = None) -> Path:
+    def expandvars(cls, path=None):
         """Return a Path instance from expanded environment variables in path.
 
         Expand shell variables of form $var and ${var}.
@@ -858,7 +853,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         """
         return cls(os.path.expandvars(path) if path is not None else "")
 
-    def file_in_parents(self, exception: bool = True, follow_symlinks: bool = False) -> Path | None:
+    def file_in_parents(self, exception=True, follow_symlinks=False):
         """Find up until file with name is found.
 
         Examples:
@@ -895,7 +890,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             ) == self.__class__("/"):
                 return None
 
-    def find_up(self, uppermost: bool = False) -> Path | None:
+    def find_up(self, uppermost=False):
         """Find file or dir up.
 
         Examples:
@@ -928,7 +923,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             if start == Path("/"):
                 return latest if latest is not None and latest.exists() else found
 
-    def has(self, value: Iterable) -> bool:
+    def has(self, value):
         """Checks all items in value exist in `self.parts` (not absolute and not relative).
 
         Only checks parts and not resolved as checked by __contains__ or absolute.
@@ -950,7 +945,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         value = self.__class__(value) if isinstance(value, str) and "/" in value else toiter(value)
         return all(item in self.parts for item in value)
 
-    def installed(self) -> bool:
+    def installed(self):
         """Check if file is installed.
 
         Examples:
@@ -961,7 +956,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         """
         return self.is_relative_to(self.purelib())
 
-    def ln(self, dest: AnyPath, force: bool = True) -> Path:
+    def ln(self, dest, force=True):
         """Wrapper for super `symlink_to` to return the new path and changing the argument.
 
         If symbolic link already exists and have the same source, it will not be overwritten.
@@ -1003,7 +998,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         os.symlink(self, dest)
         return dest
 
-    def ln_rel(self, dest: AnyPath) -> Path:
+    def ln_rel(self, dest):
         """Create a symlink pointing to ``target`` from ``location``.
 
         Args:
@@ -1026,12 +1021,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
 
     def mkdir(
             self,
-            name: AnyPath = "",
-            passwd: Passwd | AnyPath | str | int | None = None,
-            mode: int | str | None = None,
-            effective_ids: bool = True,
-            follow_symlinks: bool = False,
-    ) -> Path:
+            name="",
+            passwd=None,
+            mode=None,
+            effective_ids=True,
+            follow_symlinks=False,
+    ):
         """Add directory, make directory, change mode and return new Path.
 
         Examples:
@@ -1093,7 +1088,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
                 )
         return path
 
-    def mv(self, dest: AnyPath) -> Path:
+    def mv(self, dest):
         """Move.
 
         Examples:
@@ -1127,13 +1122,13 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
 
     def open(  # noqa: A003
             self,
-            mode: str = "r",
-            buffering: int = -1,
-            encoding: str | None = None,
-            errors: str | None = None,
-            newline: str | None = None,
-            token: bool = False,
-    ) -> IO[AnyStr] | None:
+            mode="r",
+            buffering=-1,
+            encoding=None,
+            errors=None,
+            newline=None,
+            token=False,
+    ):
         """Open the file pointed by this path and return a file object, as the built-in open function does."""
         if token:
             return tokenize.open(self.text) if self.is_file() else None
@@ -1146,7 +1141,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         )
 
     @classmethod
-    def pickle(cls, data: _T | None = None, name: Any = None, rm: bool = False) -> _T | None:
+    def pickle(cls, data=None, name=None, rm=False):
         """Load or dumps pickle file from ~/.pickle directory.
 
         Examples:
@@ -1205,7 +1200,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
                 return data
         return None
 
-    def privileges(self, effective_ids: bool = True):
+    def privileges(self, effective_ids=True):
         """Return privileges of file.
 
         Args:
@@ -1217,11 +1212,11 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         """
 
     @classmethod
-    def purelib(cls) -> Path:
+    def purelib(cls):
         """Returns sysconfig purelib path."""
         return cls(sysconfig.get_paths()["purelib"])
 
-    def realpath(self, exception: bool = False) -> Path:
+    def realpath(self, exception=False):
         """Return the canonical path of the specified filename, eliminating any symbolic links encountered in the path.
 
         Examples:
@@ -1237,7 +1232,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         """
         return self.__class__(os.path.realpath(self, strict=not exception))
 
-    def relative(self, path: AnyPath) -> Path | None:
+    def relative(self, path):
         """Return relative to path if is relative to path else None.
 
         Examples:
@@ -1256,9 +1251,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         p = Path(path).absolute()
         return self.relative_to(p) if self.absolute().is_relative_to(p) else None
 
-    def rm(
-            self, *args: str, effective_ids: bool = True, follow_symlinks: bool = False, missing_ok: bool = True
-    ) -> None:
+    def rm(self, *args, effective_ids=True, follow_symlinks=False, missing_ok=True):
         """Delete a folder/file (even if the folder is not empty).
 
         Examples:
@@ -1306,7 +1299,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
                 capture_output=True,
             )
 
-    def rm_empty(self, preserve: bool = True) -> None:
+    def rm_empty(self, preserve=True):
         """Remove empty directories recursive.
 
         Examples:
@@ -1342,11 +1335,11 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
 
     def setid(
             self,
-            name: bool | str | None = None,
-            uid: bool = True,
-            effective_ids: bool = True,
-            follow_symlinks: bool = False,
-    ) -> Path:
+            name=None,
+            uid=True,
+            effective_ids=True,
+            follow_symlinks=False,
+    ):
         """Sets the set-user-ID-on-execution or set-group-ID-on-execution bits.
 
         Works if interpreter binary is setuid `u+s,+x` (-rwsr-xr-x), and:
@@ -1416,12 +1409,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return target
 
     @classmethod
-    def setid_executable_is(cls) -> bool:
+    def setid_executable_is(cls):
         """True if Set user ID execution bit is set."""
         return cls(sys.executable).resolve().stat().st_mode & stat.S_ISUID == stat.S_ISUID
 
     @classmethod
-    def setid_executable(cls) -> Path:
+    def setid_executable(cls):
         """Sets the set-user-ID-on-execution bits for sys.executable.
 
         Returns:
@@ -1430,7 +1423,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         return cls(sys.executable).resolve().setid()
 
     @classmethod
-    def setid_executable_cp(cls, name: str | None = None, uid: bool = True) -> Path:
+    def setid_executable_cp(cls, name=None, uid=True):
         r"""Sets the set-user-ID-on-execution or set-group-ID-on-execution bits for sys.executable.
 
         Examples:
@@ -1458,7 +1451,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         path = cls(sys.executable)
         return path.setid(name=name if name else f"r{path.name}", uid=uid)
 
-    def stats(self, follow_symlinks: bool = False) -> PathStat:
+    def stats(self, follow_symlinks=False):
         """Return result of the stat() system call on this path, like os.stat() with extra parsing for bits and root.
 
         Examples:
@@ -1516,12 +1509,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
 
     def sudo(
             self,
-            force: bool = False,
-            to_list: bool = True,
-            os_mode: int = os.W_OK,
-            effective_ids: bool = True,
-            follow_symlinks: bool = False,
-    ) -> list[str] | str | None:
+            force=False,
+            to_list=True,
+            os_mode=os.W_OK,
+            effective_ids=True,
+            follow_symlinks=False,
+    ):
         """Returns sudo command if path or ancestors exist and is not own by user and sudo command not installed.
 
         Examples:
@@ -1570,7 +1563,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
                     break
         return ([rv] if rv else []) if to_list else rv
 
-    def sys(self) -> None:
+    def sys(self):
         """Insert self absolute if exists to sys.path 0 if it is not in sys.path.
 
         Examples:
@@ -1586,7 +1579,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             sys.path.insert(0, absolute.__str__())
 
     @property
-    def text(self) -> str:
+    def text(self):
         """Path as text.
 
         Examples:
@@ -1601,9 +1594,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
 
     @classmethod
     @contextlib.contextmanager
-    def tempcd(
-            cls, suffix: AnyStr | None = None, prefix: AnyStr | None = None, directory: AnyPath | None = None
-    ) -> Path:
+    def tempcd(cls, suffix=None, prefix=None, directory=None):
         """Create temporaly directory, change to it and return it.
 
         This has the same behavior as mkdtemp but can be used as a context manager.
@@ -1632,18 +1623,17 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
         Returns:
             Directory Path.
         """
-        with cls.tempdir(suffix=suffix, prefix=prefix, directory=directory) as tmpdir, tmpdir.cd():
+        with cls.tempdir(suffix=suffix, prefix=prefix, directory=directory) as tempdir:
+            tempdir.cd()
             try:
-                yield tmpdir
+                yield tempdir
             finally:
                 with contextlib.suppress(FileNotFoundError):
                     pass
 
     @classmethod
     @contextlib.contextmanager
-    def tempdir(
-            cls, suffix: AnyStr | None = None, prefix: AnyStr | None = None, directory: AnyPath | AnyStr | None = None
-    ) -> Path:
+    def tempdir(cls, suffix=None, prefix=None, directory=None):
         """Create and return tmp directory.  This has the same behavior as mkdtemp but can be used as a context manager.
 
         Upon exiting the context, the directory and everything contained in it are removed.
@@ -1680,34 +1670,17 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
     @contextlib.contextmanager
     def tempfile(
             cls,
-            mode: Literal[
-                "r",
-                "w",
-                "a",
-                "x",
-                "r+",
-                "w+",
-                "a+",
-                "x+",
-                "rt",
-                "wt",
-                "at",
-                "xt",
-                "r+t",
-                "w+t",
-                "a+t",
-                "x+t",
-            ] = "w",
-            buffering: int = -1,
-            encoding: str | None = None,
-            newline: str | None = None,
-            suffix: AnyStr | None = None,
-            prefix: AnyStr | None = None,
-            directory: AnyPath | None = None,
-            delete: bool = True,
+            mode="w",
+            buffering=-1,
+            encoding=None,
+            newline=None,
+            suffix=None,
+            prefix=None,
+            directory=None,
+            delete=True,
             *,
-            errors: str | None = None,
-    ) -> Path:
+            errors=None,
+    ):
         """Create and return a temporary file.
 
         Examples:
@@ -1750,7 +1723,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
                 with contextlib.suppress(FileNotFoundError):
                     pass
 
-    def to_parent(self) -> Path:
+    def to_parent(self):
         """Return Parent if is file and exists or self.
 
         Examples:
@@ -1765,12 +1738,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
 
     def touch(
             self,
-            name: AnyPath = "",
-            passwd: Passwd | Path | str | int | None = None,
-            mode: int | str | None = None,
-            effective_ids: bool = True,
-            follow_symlinks: bool = False,
-    ) -> Path:
+            name="",
+            passwd=None,
+            mode=None,
+            effective_ids=True,
+            follow_symlinks=False,
+    ):
         """Add file, touch and return post_init Path. Parent paths are created.
 
         Examples:
@@ -1838,7 +1811,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
                 )
         return path
 
-    def with_suffix(self, suffix: str = "") -> Path:
+    def with_suffix(self, suffix=""):
         """Sets default for suffix to "", since :class:`pathlib.Path` does not have default.
 
         Return a new path with the file suffix changed.  If the path
@@ -1893,7 +1866,7 @@ class PathStat:
     user: str
 
 
-def toiter(obj: Any, always: bool = False, split: str = " ") -> Any:
+def toiter(obj, always=False, split=" "):
     """To iter.
 
     Examples:

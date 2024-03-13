@@ -826,5 +826,5 @@ def parse_str(  # noqa: PLR0911
     return data
 
 
-venv.CORE_VENV_DEPS = ["build", "ipython", "pip", "setuptools", "wheel"]
+venv.CORE_VENV_DEPS = ["build", "IPYTHON", "pip", "setuptools", "wheel"]
 venv.EnvBuilder = EnvBuilder

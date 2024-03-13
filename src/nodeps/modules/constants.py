@@ -9,6 +9,7 @@ __all__ = (
     "GIT",
     "GIT_DEFAULT_SCHEME",
     "GITHUB_DOMAIN",
+    "GITHUB_ID",
     "GITHUB_TOKEN",
     "GITHUB_URL",
     "LINUX",
@@ -17,11 +18,11 @@ __all__ = (
     "NODEPS_EXECUTABLE",
     "NODEPS_PIP_POST_INSTALL_FILENAME",
     "NODEPS_PROJECT_NAME",
-    "NODEPS_PATH",
     "NODEPS_TOP",
     "PY_MAJOR_MINOR",
     "PYTHON_VERSIONS",
     "PYTHON_DEFAULT_VERSION",
+    "RUNNING_IN_VENV",
     "SUDO",
     "USER",
     "EMAIL",
@@ -34,6 +35,8 @@ import pathlib
 import pwd
 import shutil
 import sys
+
+_nodeps_module_dir = pathlib.Path(__file__).parent.parent
 
 AUTHOR = "José Antonio Puértolas Montañés"
 CI = bool(os.environ.get("CI"))
@@ -48,6 +51,8 @@ GIT = os.environ.get("GIT", "j5pu")
 """GitHub user name"""
 GIT_DEFAULT_SCHEME = "https"
 GITHUB_DOMAIN = "github.com"
+GITHUB_ID = "159632576"
+"""GitHub numeric ID."""
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", os.environ.get("GH_TOKEN", os.environ.get("TOKEN")))
 """GitHub Token"""
 GITHUB_URL = {
@@ -70,14 +75,12 @@ MACOS = sys.platform == "darwin"
 """Is macOS? sys.platform == 'darwin'"""
 NODEPS_EXECUTABLE = "p"
 """NoDeps Executable Name"""
-NODEPS_PATH = pathlib.Path(__file__).parent.parent
-"""NoDeps Source Path: src/nodeps"""
 NODEPS_PIP_POST_INSTALL_FILENAME = "_post_install.py"
 """Filename that will be searched after pip installs a package."""
-NODEPS_PROJECT_NAME = "nodeps"
+NODEPS_PROJECT_NAME = _nodeps_module_dir.name
 """NoDeps Project Name"""
 NODEPS_TOP = _p if ((_p := pathlib.Path(
-    os.environ.get("GITHUB_WORKSPACE", NODEPS_PATH.parent.parent))) / ".git").exists() else None
+    os.environ.get("GITHUB_WORKSPACE", _nodeps_module_dir.parent.parent))) / ".git").exists() else None
 """NoDeps Git Repository Top if exists, else None."""
 PY_MAJOR_MINOR = f"{sys.version_info[0]}.{sys.version_info[1]}"
 """Major.Minor Python running version."""
@@ -88,11 +91,13 @@ PYTHON_VERSIONS = (
 """Python versions for venv, etc."""
 PYTHON_DEFAULT_VERSION = PYTHON_VERSIONS[0]
 """Python default version for venv, etc."""
+RUNNING_IN_VENV = sys.base_prefix != sys.prefix
+"""Tue if running in a virtual env."""
 SUDO = str(rv) if (rv := pathlib.Path("/usr/bin/sudo")).exists() else ""
 """Sudo command path if exists."""
 USER = os.getenv("USER", "root")
 """"Environment Variable $USER or root if not USER variable"""
 
-EMAIL = f"63794670+{GIT}@users.noreply.github.com"
+EMAIL = f"{GITHUB_ID}+{GIT}@users.noreply.{GITHUB_DOMAIN}"
 PW_ROOT = pwd.getpwnam("root")
 PW_USER = pwd.getpwnam(USER)

@@ -1,56 +1,12 @@
 """CLI for nodeps."""
-__all__ = (
-    "gh_g",
-    "project_p",
-    "_branch",
-    "_browser",
-    "_build",
-    "_builds",
-    "_buildrequires",
-    "_clean",
-    "_commit",
-    "_completions",
-    "_current",
-    "_dependencies",
-    "_dirty",
-    "_distribution",
-    "_diverge",
-    "_docs",
-    "_extras",
-    "_ipy",
-    "_ipythondir",
-    "_latest",
-    "_mip",
-    "_needpull",
-    "_needpush",
-    "_next",
-    "_publish",
-    "_pull",
-    "_push",
-    "_pypi",
-    "_pytests",
-    "_pythonstartup",
-    "_remote",
-    "_repos",
-    "_requirement",
-    "_requirements",
-    "_secrets",
-    "_secrets_names",
-    "_status",
-    "_superproject",
-    "_tests",
-    "_version",
-    "_venv",
-    "_venvs",
-)
 
 import copy
 import dataclasses
+import pathlib
 import sys
-from pathlib import Path
 from typing import Annotated
 
-from .ipython import IPYTHONDIR, PYTHONSTARTUP, ipy
+from .ipython_dir.profile_default.ipython_config import IPYTHONDIR, PYTHONSTARTUP, ipy
 from .modules import (
     GIT,
     GITHUB_URL,
@@ -115,7 +71,7 @@ def _versions_completions(ctx: typer.Context, args: list[str], incomplete: str):
             yield item
 
 
-_cwd = Path.cwd()
+_cwd = pathlib.Path.cwd()
 _typer_options = {"add_completion": False, "context_settings": {"help_option_names": ["-h", "--help"]}}
 
 gh_g = typer.Typer(no_args_is_help=True, **_typer_options, name="g")
@@ -166,7 +122,7 @@ _venvs = typer.Typer(**_typer_options, name="venvs")
 @gh_g.command(name="admin")
 def admin_gh_g(
         data: Annotated[
-            Path,  # noqa: RUF013
+            pathlib.Path,  # noqa: RUF013
             typer.Argument(help="Url, path or user (to be used with name), default None for cwd."),
         ] = None,
         repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
@@ -181,7 +137,7 @@ def admin_gh_g(
 @project_p.command(name="admin")
 def admin_project_p(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -198,7 +154,7 @@ def admin_project_p(
 @_branch.command(name="branch")
 def branch_gh_g(
         data: Annotated[
-            Path,  # noqa: RUF013
+            pathlib.Path,  # noqa: RUF013
             typer.Argument(help="Url, path or user (to be used with name), default None for cwd."),
         ] = None,
         repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
@@ -211,7 +167,7 @@ def branch_gh_g(
 @project_p.command("branch")
 def branch_project_p(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -226,7 +182,7 @@ def branch_project_p(
 @project_p.command()
 def brew(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -243,7 +199,7 @@ def brew(
 @_browser.command()
 def browser(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -262,7 +218,7 @@ def browser(
 @_build.command()
 def build(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -281,7 +237,7 @@ def build(
 @_builds.command()
 def builds(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -298,7 +254,7 @@ def builds(
 @_buildrequires.command()
 def buildrequires(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -315,7 +271,7 @@ def buildrequires(
 @_current.command(name="current")
 def current_gh_g(
         data: Annotated[
-            Path,  # noqa: RUF013
+            pathlib.Path,  # noqa: RUF013
             typer.Argument(help="Url, path or user (to be used with name), default None for cwd."),
         ] = None,
         repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
@@ -328,7 +284,7 @@ def current_gh_g(
 @project_p.command("current")
 def current_project_p(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -343,7 +299,7 @@ def current_project_p(
 @gh_g.command(name="default")
 def default_gh_g(
         data: Annotated[
-            Path,  # noqa: RUF013
+            pathlib.Path,  # noqa: RUF013
             typer.Argument(help="Url, path or user (to be used with name), default None for cwd."),
         ] = None,
         repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
@@ -357,7 +313,7 @@ def default_gh_g(
 @project_p.command(name="default")
 def default_project_p(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -373,7 +329,7 @@ def default_project_p(
 @_clean.command()
 def clean(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -388,7 +344,7 @@ def clean(
 @gh_g.command(name="commit")
 def commit_gh_g(
         data: Annotated[
-            Path,  # noqa: RUF013
+            pathlib.Path,  # noqa: RUF013
             typer.Argument(help="Url, path or user (to be used with name), default None for cwd."),
         ] = None,
         repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
@@ -405,7 +361,7 @@ def commit_gh_g(
 @_commit.command()
 def commit(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -423,7 +379,7 @@ def commit(
 @_completions.command()
 def completions(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -438,7 +394,7 @@ def completions(
 @project_p.command()
 def coverage(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -454,7 +410,7 @@ def coverage(
 @_dependencies.command()
 def dependencies(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -470,7 +426,7 @@ def dependencies(
 @gh_g.command(name="dirty")
 def dirty_gh_g(
         data: Annotated[
-            Path,  # noqa: RUF013
+            pathlib.Path,  # noqa: RUF013
             typer.Argument(help="Url, path or user (to be used with name), default None for cwd."),
         ] = None,
         repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
@@ -488,7 +444,7 @@ def dirty_gh_g(
 @_dirty.command()
 def dirty(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -507,7 +463,7 @@ def dirty(
 @_distribution.command()
 def distribution(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -522,7 +478,7 @@ def distribution(
 @gh_g.command(name="diverge")
 def diverge_gh_g(
         data: Annotated[
-            Path,  # noqa: RUF013
+            pathlib.Path,  # noqa: RUF013
             typer.Argument(help="Url, path or user (to be used with name), default None for cwd."),
         ] = None,
         repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
@@ -540,7 +496,7 @@ def diverge_gh_g(
 @_diverge.command()
 def diverge(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -558,7 +514,7 @@ def diverge(
 @project_p.command()
 def docker(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -575,7 +531,7 @@ def docker(
 @_docs.command()
 def docs(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -593,7 +549,7 @@ def docs(
 @project_p.command()
 def executable(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -611,7 +567,7 @@ def executable(
 @_extras.command()
 def extras(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -627,7 +583,7 @@ def extras(
 @gh_g.command(name="github")
 def github_gh_g(
         data: Annotated[
-            Path,  # noqa: RUF013
+            pathlib.Path,  # noqa: RUF013
             typer.Argument(help="Url, path or user (to be used with name), default None for cwd."),
         ] = None,
         repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
@@ -642,7 +598,7 @@ def github_gh_g(
 @project_p.command(name="github")
 def github_project_p(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -655,9 +611,10 @@ def github_project_p(
     print_json(data=Project(data, rm=rm).gh.github(rm=rm))
 
 
+@project_p.command()
 @_ipy.command()
 def __ipy():
-    """Run IPython."""
+    """IPython."""
     ipy()
 
 
@@ -671,7 +628,7 @@ def ipythondir():
 @gh_g.command(name="latest")
 def latest_gh_g(
         data: Annotated[
-            Path,  # noqa: RUF013
+            pathlib.Path,  # noqa: RUF013
             typer.Argument(help="Url, path or user (to be used with name), default None for cwd."),
         ] = None,
         repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
@@ -685,7 +642,7 @@ def latest_gh_g(
 @_latest.command()
 def latest(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -706,7 +663,7 @@ def __mip():
 @gh_g.command(name="needpull")
 def needpull_gh_g(
         data: Annotated[
-            Path,  # noqa: RUF013
+            pathlib.Path,  # noqa: RUF013
             typer.Argument(help="Url, path or user (to be used with name), default None for cwd."),
         ] = None,
         repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
@@ -724,7 +681,7 @@ def needpull_gh_g(
 @_needpull.command()
 def needpull(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -742,7 +699,7 @@ def needpull(
 @gh_g.command(name="needpush")
 def needpush_gh_g(
         data: Annotated[
-            Path,  # noqa: RUF013
+            pathlib.Path,  # noqa: RUF013
             typer.Argument(help="Url, path or user (to be used with name), default None for cwd."),
         ] = None,
         repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
@@ -760,7 +717,7 @@ def needpush_gh_g(
 @_needpush.command()
 def needpush(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -778,7 +735,7 @@ def needpush(
 @gh_g.command(name="next")
 def next_gh_g(
         data: Annotated[
-            Path,  # noqa: RUF013
+            pathlib.Path,  # noqa: RUF013
             typer.Argument(help="Url, path or user (to be used with name), default None for cwd."),
         ] = None,
         repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
@@ -794,7 +751,7 @@ def next_gh_g(
 @_next.command(name="next")
 def __next(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -810,7 +767,7 @@ def __next(
 @project_p.command()
 def post(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -826,7 +783,7 @@ def post(
 @gh_g.command(name="public")
 def public_gh_g(
         data: Annotated[
-            Path,  # noqa: RUF013
+            pathlib.Path,  # noqa: RUF013
             typer.Argument(help="Url, path or user (to be used with name), default None for cwd."),
         ] = None,
         repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
@@ -840,7 +797,7 @@ def public_gh_g(
 @project_p.command(name="public")
 def public_project_p(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -856,7 +813,7 @@ def public_project_p(
 @_publish.command()
 def publish(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -876,7 +833,7 @@ def publish(
 @gh_g.command(name="pull")
 def pull_gh_g(
         data: Annotated[
-            Path,  # noqa: RUF013
+            pathlib.Path,  # noqa: RUF013
             typer.Argument(help="Url, path or user (to be used with name), default None for cwd."),
         ] = None,
         repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
@@ -892,7 +849,7 @@ def pull_gh_g(
 @_pull.command()
 def pull(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -908,7 +865,7 @@ def pull(
 @gh_g.command(name="push")
 def push_gh_g(
         data: Annotated[
-            Path,  # noqa: RUF013
+            pathlib.Path,  # noqa: RUF013
             typer.Argument(help="Url, path or user (to be used with name), default None for cwd."),
         ] = None,
         repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
@@ -924,7 +881,7 @@ def push_gh_g(
 @_push.command()
 def push(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -941,7 +898,7 @@ def push(
 @_pypi.command()
 def pypi(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -956,7 +913,7 @@ def pypi(
 @project_p.command()
 def pytest(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -974,7 +931,7 @@ def pytest(
 @_pytests.command()
 def pytests(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -996,7 +953,7 @@ def pythonstartup():
 @gh_g.command(name="remote")
 def remote_gh_g(
         data: Annotated[
-            Path,  # noqa: RUF013
+            pathlib.Path,  # noqa: RUF013
             typer.Argument(help="Url, path or user (to be used with name), default None for cwd."),
         ] = None,
         repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
@@ -1010,7 +967,7 @@ def remote_gh_g(
 @_remote.command()
 def remote(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -1025,7 +982,7 @@ def remote(
 @_repos.command()
 def repos(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -1051,7 +1008,7 @@ def repos(
 @_requirement.command()
 def requirement(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -1076,7 +1033,7 @@ def requirement(
 @_requirements.command()
 def requirements(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -1093,7 +1050,7 @@ def requirements(
 @project_p.command(name="ruff")
 def _ruff(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -1109,7 +1066,7 @@ def _ruff(
 @gh_g.command(name="secrets")
 def secrets_gh_g(
         data: Annotated[
-            Path,  # noqa: RUF013
+            pathlib.Path,  # noqa: RUF013
             typer.Argument(help="Url, path or user (to be used with name), default None for cwd."),
         ] = None,
         repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
@@ -1124,7 +1081,7 @@ def secrets_gh_g(
 @_secrets.command()
 def secrets(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -1139,7 +1096,7 @@ def secrets(
 @gh_g.command(name="secrets-names")
 def secrets_names_gh_g(
         data: Annotated[
-            Path,  # noqa: RUF013
+            pathlib.Path,  # noqa: RUF013
             typer.Argument(help="Url, path or user (to be used with name), default None for cwd."),
         ] = None,
         repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
@@ -1154,7 +1111,7 @@ def secrets_names_gh_g(
 @_secrets_names.command(name="secrets-names")
 def secrets_names(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -1169,7 +1126,7 @@ def secrets_names(
 @gh_g.command(name="status")
 def status_git_g(
         data: Annotated[
-            Path,  # noqa: RUF013
+            pathlib.Path,  # noqa: RUF013
             typer.Argument(help="Url, path or user (to be used with name), default None for cwd."),
         ] = None,
         repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
@@ -1185,7 +1142,7 @@ def status_git_g(
 @_status.command()
 def status(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -1201,7 +1158,7 @@ def status(
 @gh_g.command(name="superproject")
 def superproject_gh_g(
         data: Annotated[
-            Path,  # noqa: RUF013
+            pathlib.Path,  # noqa: RUF013
             typer.Argument(help="Url, path or user (to be used with name), default None for cwd.", ),
         ] = None,
         repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner"),
@@ -1214,7 +1171,7 @@ def superproject_gh_g(
 @_superproject.command()
 def superproject(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -1228,7 +1185,7 @@ def superproject(
 @gh_g.command(name="sync")
 def sync_gh_g(
         data: Annotated[
-            Path,  # noqa: RUF013
+            pathlib.Path,  # noqa: RUF013
             typer.Argument(help="Url, path or user (to be used with name), default None for cwd."),
         ] = None,
         repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
@@ -1241,7 +1198,7 @@ def sync_gh_g(
 @project_p.command(name="sync")
 def __sync(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -1257,7 +1214,7 @@ def __sync(
 def tag_gh_g(
         tag: str,
         data: Annotated[
-            Path,  # noqa: RUF013
+            pathlib.Path,  # noqa: RUF013
             typer.Argument(help="Url, path or user (to be used with name), default None for cwd."),
         ] = None,
         repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner "
@@ -1272,7 +1229,7 @@ def tag_gh_g(
 def __tag(
         tag: str,
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -1287,7 +1244,7 @@ def __tag(
 @project_p.command(name="test")
 def test(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -1308,7 +1265,7 @@ def test(
 @_tests.command(name="tests")
 def tests(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -1326,7 +1283,7 @@ def tests(
 @gh_g.command(name="top")
 def top_gh_g(
         data: Annotated[
-            Path,  # noqa: RUF013
+            pathlib.Path,  # noqa: RUF013
             typer.Argument(help="Url, path or user (to be used with name), default None for cwd.", ),
         ] = None,
         repo: str = typer.Option(None, help="Repo name. If not None it will use data as the owner"),
@@ -1338,7 +1295,7 @@ def top_gh_g(
 @project_p.command()
 def top(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -1352,7 +1309,7 @@ def top(
 @project_p.command(name="tox")
 def _tox(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -1366,7 +1323,7 @@ def _tox(
 @project_p.command()
 def twine(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -1384,7 +1341,7 @@ def twine(
 @_version.command(name="version")
 def __version(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -1400,7 +1357,7 @@ def __version(
 @_venv.command()
 def venv(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -1421,7 +1378,7 @@ def venv(
 @_venvs.command()
 def venvs(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -1438,7 +1395,7 @@ def venvs(
 @project_p.command()
 def write(
         data: Annotated[
-            Path,
+            pathlib.Path,
             typer.Argument(
                 help="Path/file to project or name of project",
                 autocompletion=_repos_completions,
@@ -1458,12 +1415,12 @@ if "sphinx" in sys.modules and __name__ != "__main__":
 
 ```{eval-rst}
 """
-    root = Path(__file__).parent.parent.parent
+    root = pathlib.Path(__file__).parent.parent.parent
     pyproject_toml = root / "pyproject.toml"
     file = root / "docs/usage.md"
     if file.exists():
         original = file.read_text()
-        with Path.open(pyproject_toml, "rb") as f:
+        with pathlib.Path.open(pyproject_toml, "rb") as f:
             toml = tomlkit.load(f)
 
             new = copy.deepcopy(toml)

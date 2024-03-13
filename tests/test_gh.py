@@ -6,7 +6,23 @@ from nodeps import Gh
 from nodeps import Path
 from nodeps import CI
 from nodeps import DOCKER
-from nodeps.__main__ import *
+from nodeps.__main__ import (
+    gh_g,
+    _commit,
+    _next,
+    _latest,
+    _pull,
+    _push,
+    _secrets,
+    _secrets_names,
+    _remote,
+    _needpull,
+    _needpush,
+    _dirty,
+    _diverge,
+    project_p,
+    _superproject,
+)
 from nodeps.fixtures import Repos, repos
 
 runner = CliRunner(mix_stderr=False)

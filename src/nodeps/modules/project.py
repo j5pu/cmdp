@@ -180,7 +180,6 @@ class Project:
                     f"--file={self.brewfile}",
                 ],
                 stdout=subprocess.PIPE,
-                shell=False,
             ).returncode
             self.info(self.brew.__name__)
             return rv
@@ -527,7 +526,7 @@ class Project:
 
         Examples:
             >>> from nodeps import Project
-            >>> from nodeps import NODEPS_PROJECT_NAME, Path, NODEPS_TOP, NODEPS_PATH
+            >>> from nodeps import NODEPS_PROJECT_NAME, Path, NODEPS_TOP
             >>>
             >>> assert NODEPS_PROJECT_NAME in Project.repos()
             >>> assert NODEPS_PROJECT_NAME in Project.repos(ProjectRepos.DICT)

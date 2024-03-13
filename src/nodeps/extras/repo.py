@@ -39,7 +39,7 @@ class Repo(GitRepo):
     'working_tree_dir' is the working tree directory, but will raise AssertionError if we are a bare repository.
 
     Examples:
-        >>> from nodeps import Repo
+        >>> from nodeps.extras.repo import Repo
         >>>
         >>> repo = Repo()  # doctest: +SKIP
         >>> repo.config_writer().set_value("user", "name", "root").release()  # doctest: +SKIP
@@ -74,9 +74,7 @@ class Repo(GitRepo):
     search_parent_directories: dataclasses.InitVar[bool] = True
     """if True, all parent directories will be searched for a valid repo as well."""
 
-    def __post_init__(
-            self, path: AnyPath | None, expand_vars: bool, odbt: type[LooseObjectDB], search_parent_directories: bool
-    ):
+    def __post_init__(self, path, expand_vars, odbt, search_parent_directories):
         """Create a new Repo instance.
 
         Examples:
@@ -122,7 +120,7 @@ class Repo(GitRepo):
         )
 
     @property
-    def git_config(self) -> GitConfigParser:
+    def git_config(self):
         """Wrapper for :func:`git.Repo.config_reader`, so it is already read and can be used.
 
         The configuration will include values from the system, user and repository configuration files.
@@ -146,7 +144,7 @@ class Repo(GitRepo):
         return config
 
     @property
-    def origin_url(self) -> urllib.parse.ParseResult:
+    def origin_url(self):
         """Git Origin URL.
 
         Examples:
@@ -159,6 +157,6 @@ class Repo(GitRepo):
         return urllib.parse.urlparse(self.git_config.get_value('remote "origin"', "url", ""))
 
     @property
-    def top(self) -> pathlib.Path:
+    def top(self):
         """Repo Top Directory Path."""
         return pathlib.Path(self.working_dir)

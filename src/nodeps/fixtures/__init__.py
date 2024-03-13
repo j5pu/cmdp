@@ -43,6 +43,7 @@ from nodeps.modules.path import Path
 
 if TYPE_CHECKING:
     from collections.abc import Generator
+    from types import TracebackType
 
     from _pytest import nodes
     from _pytest.config import Config
@@ -58,8 +59,18 @@ runner: CliRunner = CliRunner(mix_stderr=False)
 @dataclasses.dataclass
 class Cli:
     """Helper class for CLI runner test fixture."""
+    exit_code: int
+    exc_info: tuple[type[BaseException], BaseException, TracebackType] | None
+    exception: BaseException | None
+    rc: int
+    """exit_code."""
     result: Result
-    runner: CliRunner = dataclasses.field(default=runner, init=False)
+    """result instance."""
+    runner: CliRunner
+    stderr: str
+    stderr_bytes: bytes
+    stdout: str
+    stdout_bytes: bytes
 
 
 @dataclasses.dataclass
@@ -86,7 +97,19 @@ def cli(request: SubRequest) -> Cli:
         ...    assert cli.result.exit_code == 0
         ...    assert cli.result.stdout == "main"
     """
-    return Cli(runner.invoke(request.param[0], request.param[1:], catch_exceptions=False))
+    result = runner.invoke(request.param[0], request.param[1:], catch_exceptions=False)
+    return Cli(
+        exit_code=result.exit_code,
+        exc_info=result.exc_info,
+        exception=result.exception,
+        rc=result.exit_code,
+        result=result,
+        runner=result.runner,
+        stderr=result.stderr,
+        stderr_bytes=result.stderr_bytes,
+        stdout=result.stdout,
+        stdout_bytes=result.stdout_bytes,
+    )
 
 
 @pytest.fixture()

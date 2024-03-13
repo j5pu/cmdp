@@ -11,8 +11,12 @@ requires-python = ">=3.11"
 name = "José Antonio Puértolas Montañés"
 email = "63794670+j5pu@users.noreply.github.com"
 
+
+
 [project.entry-points.pytest11]
 git-pytest = "nodeps.fixtures"
+
+
 
 [project.license]
 text = "MIT"
@@ -30,8 +34,7 @@ dev = [
     "build >=1.0.3, <2",
     "hunter >= 3.6.1, <4",
     "icecream >=2.1.3, <3",
-    "ipython >=8.16.0, <9", # pipx
-    "rich >=13.6.0, <14",
+    "nodeps[ipython]",
     "twine >=4.0.2, <5", # pipx
     "tomlkit >= 0.12.1, <1",
     "docrepr >= 0.2.0, <1",
@@ -64,6 +67,12 @@ echo = [
 env = [
     "python-decouple >=3.8, <4",
 ]
+ipython = [
+    "ipython >=8.16.0, <9", # pipx
+    "nodeps[pretty]",
+    "pickleshare"
+]
+
 log = [
     "loguru >=0.7.2, <1",
 ]
@@ -89,6 +98,7 @@ all = [
     "nodeps[cli]",
     "nodeps[echo]",
     "nodeps[env]",
+    "nodeps[ipython]",
     "nodeps[log]",
     "nodeps[pickle]",
     "nodeps[pretty]",
@@ -148,6 +158,8 @@ venvs = "nodeps.__main__:_venvs"
 [project.urls]
 Homepage = "https://github.com/j5pu/nodeps"
 Documentation = "https://nodeps.readthedocs.io"
+
+
 
 [build-system]
 requires = [

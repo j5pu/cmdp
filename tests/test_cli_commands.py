@@ -3,8 +3,29 @@ from pathlib import Path
 import pytest
 from typer.testing import Result
 
-from nodeps.__main__ import *
+from nodeps import IPYTHONDIR
 from nodeps import NODEPS_PROJECT_NAME
+from nodeps import PYTHONSTARTUP
+from nodeps.__main__ import (
+    _branch,
+    _build,
+    _builds,
+    _buildrequires,
+    _current,
+    _dependencies,
+    _distribution,
+    _extras,
+    _ipythondir,
+    _latest,
+    _mip,
+    _next,
+    _pythonstartup,
+    _remote,
+    _repos,
+    _superproject,
+    _version,
+    _venv,
+)
 
 
 @pytest.mark.parametrize("clirun", [[_branch]], indirect=True)
@@ -62,7 +83,7 @@ def test_extras(clirun: Result):
 @pytest.mark.parametrize("clirun", [[_ipythondir]], indirect=True)
 def test_ipythondir(clirun: Result):
     assert clirun.exit_code == 0
-    assert "ipython" in clirun.stdout
+    assert str(IPYTHONDIR) == clirun.stdout.strip("\n")
 
 
 @pytest.mark.parametrize("clirun", [[_latest]], indirect=True)
@@ -84,7 +105,7 @@ def test_next(clirun: Result):
 @pytest.mark.parametrize("clirun", [[_pythonstartup]], indirect=True)
 def test_pythonstartup(clirun: Result):
     assert clirun.exit_code == 0
-    assert "python_startup" in clirun.stdout
+    assert str(PYTHONSTARTUP) == clirun.stdout.strip("\n")
 
 
 @pytest.mark.parametrize("clirun", [[_remote]], indirect=True)

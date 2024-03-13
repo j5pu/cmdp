@@ -257,6 +257,7 @@ def aioloop() -> RunningLoop | None:
 def aioloopid() -> int | None:
     """Get running loop id."""
     try:
+        # noinspection PyUnresolvedReferences
         return asyncio.get_running_loop()._selector
     except RuntimeError:
         return None
@@ -1588,6 +1589,7 @@ def to_camel(text: str, replace: bool = True) -> str:
     Returns:
         Camel text.
     """
+    # noinspection PyTypeChecker
     rv = "".join(map(str.title, toiter(text, split="_")))
     return rv.replace("_", "") if replace else rv
 

@@ -1,4 +1,4 @@
-"""Typings Module."""
+"""Typing's Module."""
 __all__ = (
     "AnyIO",
     "ChainLiteral",
@@ -24,10 +24,12 @@ AnyIO = IO[AnyStr]
 ChainLiteral: TypeAlias = Literal["all", "first", "unique"]
 ExcType: TypeAlias = type[Exception] | tuple[type[Exception], ...]
 GitSchemeLiteral = Literal["git+file", "git+https", "git+ssh", "https", "ssh"]
+# noinspection PyUnresolvedReferences
 ModuleSpec = importlib._bootstrap.ModuleSpec
 OpenIO = BinaryIO | BufferedRandom | BufferedReader | BufferedWriter | FileIO | IO | TextIOWrapper
 PathIsLiteral: TypeAlias = Literal["exists", "is_dir", "is_file"]
 StrOrBytesPath = AnyStr | os.PathLike[str] | os.PathLike[bytes]
 ThreadLock = threading.Lock
+# noinspection PyUnresolvedReferences
 RunningLoop = asyncio.events._RunningLoop
 LockClass = type(ThreadLock())

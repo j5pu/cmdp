@@ -221,8 +221,9 @@ if "pip._internal.operations.install.wheel" in sys.modules:
     pip._internal.req.req_install.InstallRequirement.uninstall = _pip_uninstall_req
 
 if "pipx.commands.common" in sys.modules:
-    # noinspection PyUnboundLocalVariable
+    # noinspection PyUnboundLocalVariable,PyUnresolvedReferences
     pipx.commands.common.run_post_install_actions = _run_post_install_actions
 
 if "setuptools.command.build_py" in sys.modules:
+    # noinspection PyUnresolvedReferences
     setuptools.command.build_py._IncludePackageDataAbuse.warn = _setuptools_build_quiet

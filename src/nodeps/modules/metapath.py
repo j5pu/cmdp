@@ -19,7 +19,7 @@ class PipMetaPathFinder(importlib.abc.MetaPathFinder):
     Examples:
         >>> import sys
         >>> from nodeps import PipMetaPathFinder
-        >>>
+        >>> # noinspection PyTypeChecker
         >>> sys.meta_path.append(PipMetaPathFinder)  # doctest: +SKIP
         >>> # noinspection PyUnresolvedReferences
         >>> import simplejson  # doctest: +SKIP
@@ -59,8 +59,10 @@ def pipmetapathfinder():
         >>> with pipmetapathfinder():  # doctest: +SKIP
         ...    import simplejson  # type: ignore[attr-defined]
     """
+    # noinspection PyTypeChecker
     sys.meta_path.append(PipMetaPathFinder)
     try:
         yield
     finally:
+        # noinspection PyTypeChecker
         sys.meta_path.remove(PipMetaPathFinder)
