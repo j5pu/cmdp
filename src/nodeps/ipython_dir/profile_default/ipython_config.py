@@ -25,6 +25,7 @@ __all__ = (
     "NODEPS_IPYTHON_IMPORT_MODULE",
 )
 
+import contextlib
 import os
 import pathlib
 import platform
@@ -38,6 +39,7 @@ try:
     import IPython.core.shellapp  # type: ignore[attr-defined]
     from IPython.core.getipython import get_ipython  # type: ignore[attr-defined]
     from IPython.core.interactiveshell import PickleShareDB  # type: ignore[attr-defined]
+    from IPython.extensions.autoreload import update_instances  # type: ignore[attr-defined]
     from IPython.extensions.storemagic import refresh_variables  # type: ignore[attr-defined]
     from IPython.terminal.interactiveshell import TerminalInteractiveShell  # type: ignore[attr-defined]
     from IPython.terminal.prompts import Prompts, Token  # type: ignore[attr-defined]
@@ -45,7 +47,7 @@ try:
 except ModuleNotFoundError:
     IPython = PickleShareDB = TerminalInteractiveShell = None
     Prompts = Token = object
-    get_config = get_ipython = refresh_variables = lambda *args: None
+    get_config = get_ipython = refresh_variables = update_instances = lambda *args: None
 
 try:
     import _pydev_bundle.pydev_ipython_console_011  # type: ignore[attr-defined]
@@ -312,6 +314,19 @@ def _refresh_variables(ip: TerminalInteractiveShell):
 
 if "IPython.extensions.storemagic" in sys.modules:
     IPython.extensions.storemagic.refresh_variables = _refresh_variables
+
+
+# </editor-fold>
+
+# <editor-fold desc="update_instances patch">
+def _update_instances(old, new):
+    """Path autoreload."""
+    with contextlib.suppress(TypeError, AttributeError):
+        update_instances(old, new)
+
+
+if "IPython.extensions.autoreload" in sys.modules:
+    IPython.extensions.autoreload.update_instances = _update_instances
 
 
 # </editor-fold>

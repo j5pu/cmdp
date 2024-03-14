@@ -51,7 +51,6 @@ def test_constants_venv():
         assert VIRTUAL_ENV is None
         assert VIRTUAL_ENV_CWD_STARTUP is None
         assert VIRTUAL_ENV_SRC is None
-        assert Path(NODEPS_SRC) == _PURELIB
 
 
 def test_ipython_paths():

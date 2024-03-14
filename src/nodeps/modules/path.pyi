@@ -4,23 +4,42 @@ import dataclasses
 import os
 import pathlib
 import types
-from collections.abc import Generator
-from collections.abc import Iterable
-from collections.abc import Iterator
-from typing import Any
-from typing import AnyStr
-from typing import Generic
-from typing import IO
-from typing import Literal
-from typing import TypeAlias
-from typing import TypeVar
+from collections.abc import Generator, Iterable, Iterator
+from typing import IO, Any, AnyStr, Generic, Literal, TypeAlias, TypeVar, overload
 
-from .typings import PathIsLiteral
-from .typings import StrOrBytesPath
+from .typings import PathIsLiteral, StrOrBytesPath
 
-__all__ = tuple[str, ...]
+__all__: tuple[str, ...] = (
+    "FileConfig",
+    "FrameSimple",
+    "Passwd",
+    "Path",
+    "PathStat",
 
+    "toiter",
+
+    "AnyPath",
+)
 _T = TypeVar("_T")
+
+ModeLiteral: TypeAlias = Literal[
+    "r",
+    "w",
+    "a",
+    "x",
+    "r+",
+    "w+",
+    "a+",
+    "x+",
+    "rt",
+    "wt",
+    "at",
+    "xt",
+    "r+t",
+    "w+t",
+    "a+t",
+    "x+t",
+]
 
 
 @dataclasses.dataclass
@@ -35,13 +54,13 @@ class FrameSimple:
     code: types.CodeType
     frame: types.FrameType
     function: str
-    globals: dict[str, Any]
+    globals: dict[str, Any]  # noqa: A003
     lineno: int
-    locals: dict[str, Any]
+    locals: dict[str, Any]  # noqa: A003
     name: str
     package: str
     path: Path
-    vars: dict[str, Any]
+    vars: dict[str, Any]  # noqa: A003
 
 
 @dataclasses.dataclass
@@ -80,8 +99,6 @@ class Passwd:
 
 
 class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
-    """Path helper class."""
-
     def __call__(
             self,
             name: AnyPath = ...,
@@ -121,8 +138,12 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
 
     def append_text(self, text: str, encoding: str | None = ..., errors: str | None = ...) -> str: ...
 
+    @overload
     @contextlib.contextmanager
     def cd(self) -> Generator[Path, None, None]: ...
+
+    @overload
+    def cd(self) -> Path: ...
 
     def chdir(self) -> Path: ...
 
@@ -251,40 +272,43 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
     @property
     def text(self) -> str: ...
 
+    # noinspection PyNestedDecorators
+    @overload
     @classmethod
     @contextlib.contextmanager
     def tempcd(
             cls, suffix: AnyStr | None = ..., prefix: AnyStr | None = ..., directory: AnyPath | None = ...
     ) -> Generator[Path, None, None]: ...
 
+    # noinspection PyNestedDecorators
+    @overload
+    @classmethod
+    def tempcd(
+            cls, suffix: AnyStr | None = ..., prefix: AnyStr | None = ..., directory: AnyPath | None = ...
+    ) -> Path: ...
+
+    # noinspection PyNestedDecorators
+    @overload
     @classmethod
     @contextlib.contextmanager
     def tempdir(
             cls, suffix: AnyStr | None = ..., prefix: AnyStr | None = ..., directory: AnyPath | AnyStr | None = ...
     ) -> Generator[Path, None, None]: ...
 
+    # noinspection PyNestedDecorators
+    @overload
+    @classmethod
+    def tempdir(
+            cls, suffix: AnyStr | None = ..., prefix: AnyStr | None = ..., directory: AnyPath | AnyStr | None = ...
+    ) -> Path: ...
+
+    # noinspection PyNestedDecorators
+    @overload
     @classmethod
     @contextlib.contextmanager
     def tempfile(
             cls,
-            mode: Literal[
-                "r",
-                "w",
-                "a",
-                "x",
-                "r+",
-                "w+",
-                "a+",
-                "x+",
-                "rt",
-                "wt",
-                "at",
-                "xt",
-                "r+t",
-                "w+t",
-                "a+t",
-                "x+t",
-            ] = ...,
+            mode: ModeLiteral = ...,
             buffering: int = ...,
             encoding: str | None = ...,
             newline: str | None = ...,
@@ -295,6 +319,23 @@ class Path(pathlib.Path, pathlib.PurePosixPath, Generic[_T]):
             *,
             errors: str | None = ...,
     ) -> Generator[Path, None, None]: ...
+
+    # noinspection PyNestedDecorators
+    @overload
+    @classmethod
+    def tempfile(
+            cls,
+            mode: ModeLiteral = ...,
+            buffering: int = ...,
+            encoding: str | None = ...,
+            newline: str | None = ...,
+            suffix: AnyStr | None = ...,
+            prefix: AnyStr | None = ...,
+            directory: AnyPath | None = ...,
+            delete: bool = ...,
+            *,
+            errors: str | None = ...,
+    ) -> Path: ...
 
     def to_parent(self) -> Path: ...
 

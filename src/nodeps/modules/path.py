@@ -819,8 +819,8 @@ class Path(pathlib.Path, pathlib.PurePosixPath):
             >>> Path(__file__).exists()
             True
             >>> with Path.tempcd() as tmp:
-            ...    source = tmp.touch("source")
-            ...    destination = source.ln("destination")
+            ...    source = tmp.touch(tmp / "source")
+            ...    destination = source.ln(tmp / "destination")
             ...    assert destination.is_symlink()
             ...    source.unlink()
             ...    assert destination.exists()
@@ -972,14 +972,14 @@ class Path(pathlib.Path, pathlib.PurePosixPath):
             >>>
             >>> with Path.tempcd() as tmp:
             ...     source = tmp.touch("source")
-            ...     _ = source.ln("destination")
-            ...     destination = source.ln("destination")
+            ...     _ = source.ln(tmp / "destination")
+            ...     destination = source.ln(tmp / "destination")
             ...     assert destination.is_symlink()
             ...     assert destination.resolve() == source.resolve()
             ...     assert destination.readlink().resolve() == source.resolve()
             ...
-            ...     touch = tmp.touch("touch")
-            ...     _ = tmp.ln("touch", force=False)  # doctest: +IGNORE_EXCEPTION_DETAIL
+            ...     touch = tmp.touch(tmp / "touch")
+            ...     _ = tmp.ln(tmp / "destination", force=False)  # doctest: +IGNORE_EXCEPTION_DETAIL
             Traceback (most recent call last):
             FileExistsError:
 
@@ -1623,8 +1623,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath):
         Returns:
             Directory Path.
         """
-        with cls.tempdir(suffix=suffix, prefix=prefix, directory=directory) as tempdir:
-            tempdir.cd()
+        with cls.tempdir(suffix=suffix, prefix=prefix, directory=directory) as tempdir, tempdir.cd():
             try:
                 yield tempdir
             finally:

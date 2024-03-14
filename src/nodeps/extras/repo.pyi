@@ -1,38 +1,19 @@
-"""NoDeps Extras Repo Module."""
-from __future__ import annotations
-
-__all__ = (
-    "Repo",
-)
-
 import dataclasses
 import os
 import pathlib
 import urllib
 import urllib.parse
-from collections.abc import Iterator
-from collections.abc import Mapping
-from collections.abc import Sequence
-from typing import Any
-from typing import BinaryIO
-from typing import IO, AnyStr, TypeAlias
-from typing import Literal
-from typing import TextIO
+from collections.abc import Iterator, Mapping, Sequence
+from typing import IO, Any, AnyStr, BinaryIO, Literal, TextIO, TypeAlias
 
-from git import Commit
-from git import HEAD
-from git import IndexFile
-from git import Reference
-from git import Remote
-from git import Submodule
-from git import SymbolicReference
-from git import TagReference
-from git import Tree
+from git import HEAD, Commit, IndexFile, Reference, Remote, Submodule, SymbolicReference, TagReference, Tree
 from git.repo.base import BlameEntry
-from git.types import CallableProgress
-from git.types import Commit_ish
-from git.types import TBD
-from git.types import Tree_ish
+from git.types import TBD, CallableProgress, Commit_ish, Tree_ish
+
+__all__: tuple[str, ...] = (
+    "Repo",
+)
+
 
 try:
     # nodeps[repo] extras
@@ -43,14 +24,14 @@ try:
     from git.util import IterableList  # type: ignore[attr-defined]
     from gitdb import LooseObjectDB  # type: ignore[attr-defined]
 except ModuleNotFoundError:
-    GitCmd = None
-    GitCmdObjectDB = None
-    GitConfigParser = None
+    GitCmd: TypeAlias = None
+    GitCmdObjectDB: TypeAlias = None
+    GitConfigParser: TypeAlias = None
     GitRepo = object
-    LooseObjectDB = None
+    LooseObjectDB: TypeAlias = None
 
 AnyPath: TypeAlias = os.PathLike | AnyStr | IO[AnyStr]
-Lit_config_levels = Literal["system", "global", "user", "repository"]
+Lit_config_levels: TypeAlias = Literal["system", "global", "user", "repository"]
 PathLike: TypeAlias = os.PathLike | str
 
 
@@ -107,7 +88,7 @@ class Repo(GitRepo):
     def blame_incremental(self, rev: str | HEAD, file: str, **kwargs: Any) -> Iterator[BlameEntry]: ...
 
     @property
-    def branches(self) -> "IterableList[Head]": ...
+    def branches(self) -> IterableList[Head]: ...
 
     def clone(
             self,
@@ -175,15 +156,15 @@ class Repo(GitRepo):
     def has_separate_working_tree(self) -> bool: ...
 
     @property
-    def head(self) -> "HEAD": ...
+    def head(self) -> HEAD: ...
 
     @property
-    def heads(self) -> "IterableList[Head]": ...
+    def heads(self) -> IterableList[Head]: ...
 
     def ignored(self, *paths: PathLike) -> list[str]: ...
 
     @property
-    def index(self) -> "IndexFile": ...
+    def index(self) -> IndexFile: ...
 
     @classmethod
     def init(
@@ -222,30 +203,30 @@ class Repo(GitRepo):
     def merge_base(self, *rev: TBD, **kwargs: Any) -> list[Commit_ish | None]: ...
 
     @property
-    def references(self) -> "IterableList[Reference]": ...
+    def references(self) -> IterableList[Reference]: ...
 
-    def remote(self, name: str = ...) -> "Remote": ...
-
-    @property
-    def remotes(self) -> "IterableList[Remote]": ...
+    def remote(self, name: str = ...) -> Remote: ...
 
     @property
-    def refs(self) -> "IterableList[Reference]": ...
+    def remotes(self) -> IterableList[Remote]: ...
+
+    @property
+    def refs(self) -> IterableList[Reference]: ...
 
     @property
     def origin_url(self) -> urllib.parse.ParseResult: ...
 
-    def submodule(self, name: str) -> "Submodule": ...
+    def submodule(self, name: str) -> Submodule: ...
 
     def submodule_update(self, *args: Any, **kwargs: Any) -> Iterator[Submodule]: ...
 
     @property
-    def submodules(self) -> "IterableList[Submodule]": ...
+    def submodules(self) -> IterableList[Submodule]: ...
 
     def tag(self, path: PathLike) -> TagReference: ...
 
     @property
-    def tags(self) -> "IterableList[TagReference]": ...
+    def tags(self) -> IterableList[TagReference]: ...
 
     def tree(self, rev: Tree_ish | str | None = ...) -> Tree: ...
 

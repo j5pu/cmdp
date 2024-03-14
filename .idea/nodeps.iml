@@ -21,7 +21,7 @@
       <excludeFolder url="file://$MODULE_DIR$/src/nodeps/ipython_dir/profile_default/pid" />
       <excludeFolder url="file://$MODULE_DIR$/src/nodeps/ipython_dir/profile_default/security" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.12 (nodeps)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.11 (nodeps)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="Archive" />
   </component>

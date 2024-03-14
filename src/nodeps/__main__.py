@@ -29,10 +29,8 @@ with pipmetapathfinder():
 
 
 def _scheme_completions(ctx: typer.Context, args: list[str], incomplete: str):
-    from rich.console import Console
-    console = Console(stderr=True)
     if args:
-        console.print(f"{args}")
+        print(f"{args}", file=sys.stderr)
 
     valid = list(GITHUB_URL)
     valid.pop(0)
@@ -43,11 +41,8 @@ def _scheme_completions(ctx: typer.Context, args: list[str], incomplete: str):
 
 
 def _repos_completions(ctx: typer.Context, args: list[str], incomplete: str):
-    from rich.console import Console
-    console = Console(stderr=True)
-
     if args:
-        console.print(f"{args}")
+        print(f"{args}", file=sys.stderr)
 
     provided = ctx.params.get("name") or []
 
@@ -59,11 +54,9 @@ def _repos_completions(ctx: typer.Context, args: list[str], incomplete: str):
 
 
 def _versions_completions(ctx: typer.Context, args: list[str], incomplete: str):
-    from rich.console import Console
-
-    console = Console(stderr=True)
     if args:
-        console.print(f"{args}")
+        print(f"{args}", file=sys.stderr)
+
     valid = PYTHON_VERSIONS
     provided = ctx.params.get("name") or []
     for item in valid:
@@ -1443,8 +1436,13 @@ if "sphinx" in sys.modules and __name__ != "__main__":
                 tomlkit.dump(new, f)
                 print(f"{pyproject_toml}: updated!")
 
-# https://github.com/tiangolo/typer/issues/498
-typer.completion.completion_init()
+try:
+    import typer.completion
+
+    # https://github.com/tiangolo/typer/issues/498
+    typer.completion.completion_init()
+except ModuleNotFoundError:
+    pass
 
 if __name__ == "__main__":
     try:

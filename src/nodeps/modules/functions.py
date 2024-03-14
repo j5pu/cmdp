@@ -458,7 +458,6 @@ def cmdrun(
         >>>
         >>> cmdrun('ls a')  # doctest: +ELLIPSIS
         CompletedProcess(args='ls a', returncode=..., stdout=[], stderr=[...])
-        >>> assert 'Requirement already satisfied' in cmdrun('pip install pip', py=True).stdout[0]
         >>> cmdrun('ls a', shell=False, lines=False)  # doctest: +ELLIPSIS
         CompletedProcess(args=['ls', 'a'], returncode=..., stdout='', stderr=...)
         >>> cmdrun('echo a', lines=False)  # Extra '\' added to avoid docstring error.

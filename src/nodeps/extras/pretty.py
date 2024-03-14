@@ -23,7 +23,9 @@ try:
     CONSOLE = rich.console.Console(color_system="standard")
     RICH_SUPPRESS = {"click", "_pytest", "pluggy", "rich", }
 except ModuleNotFoundError:
-    CONSOLE = Console = None
+    Console = object
+    CONSOLE = None
+    RICH_SUPPRESS = {}
 
 OpenIO = BinaryIO | BufferedRandom | BufferedReader | BufferedWriter | FileIO | IO | TextIOWrapper
 

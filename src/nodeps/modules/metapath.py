@@ -25,7 +25,7 @@ class PipMetaPathFinder(importlib.abc.MetaPathFinder):
         >>> import simplejson  # doctest: +SKIP
     """
 
-    # noinspection PyMethodOverriding,PyMethodParameters
+    # noinspection PyMethodOverriding,PyMethodParameters,PyUnresolvedReferences
     def find_spec(
             fullname: str,
             path: Sequence[str | bytes] | None,
@@ -35,6 +35,7 @@ class PipMetaPathFinder(importlib.abc.MetaPathFinder):
         packages = {
             "decouple": "python-decouple",
             "linkify_it": "linkify-it-py",
+            "typer": "typer[all]",
         }
         exclude = ["cPickle", "ctags", "PIL"]
         if path is None and fullname is not None and fullname not in exclude:
@@ -42,7 +43,8 @@ class PipMetaPathFinder(importlib.abc.MetaPathFinder):
             try:
                 importlib.metadata.Distribution.from_name(package)
             except importlib.metadata.PackageNotFoundError as e:
-                if subprocess.run([sys.executable, "-m", "pip", "install", "-q", package]).returncode == 0:
+                if subprocess.run([sys.executable, "-m", "pip", "install", "-q", package],
+                                  capture_output=True, check=True).returncode == 0:
                     return importlib.import_module(fullname)
                 msg = f"Cannot install: {package=},  {fullname=}"
                 raise RuntimeError(msg) from e
