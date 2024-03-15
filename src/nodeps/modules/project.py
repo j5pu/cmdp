@@ -945,8 +945,7 @@ intersphinx_mapping = {{
                     file.write_text(conf)
                     self.info(f"{self.write.__name__}: {file}")
 
-                requirements = """click
-furo >=2023.9.10, <2024
+                requirements = """furo >=2023.9.10, <2024
 linkify-it-py >=2.0.2, <3
 myst-parser >=2.0.0, <3
 sphinx >=7.2.6, <8
@@ -954,6 +953,7 @@ sphinx-autobuild >=2021.3.14, <2022
 sphinx-click >=5.0.1, <6
 sphinx_autodoc_typehints
 sphinxcontrib-napoleon >=0.7, <1
+typer[all] >= 0.9, <1
 """
                 file = self.docsdir / "requirements.txt"
                 original = file.read_text() if file.is_file() else ""
