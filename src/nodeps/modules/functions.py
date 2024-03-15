@@ -46,6 +46,7 @@ __all__ = (
     "mip",
     "noexc",
     "parent",
+    "printe",
     "returncode",
     "sourcepath",
     "siteimported",
@@ -68,6 +69,7 @@ __all__ = (
 )
 
 import asyncio
+import builtins
 import collections
 import contextlib
 import fnmatch
@@ -92,7 +94,7 @@ import time
 import types
 import urllib.request
 from collections.abc import Callable, Generator, Iterable, Iterator, MutableMapping
-from typing import TYPE_CHECKING, Any, AnyStr, ParamSpec, TextIO, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, AnyStr, Literal, ParamSpec, TextIO, TypeVar, Union, cast
 
 from .constants import (
     EXECUTABLE,
@@ -1325,6 +1327,19 @@ def parent(path: AnyPath = __file__, none: bool = True) -> Path | None:
         Path
     """
     return path.parent if (path := Path(path)).is_file() else path if path.is_dir() else None if none else path.parent
+
+
+def printe(
+        *values: object,
+        sep: str | None = " ",
+        end: str | None = "\n",
+        flush: Literal[False] = False,
+) -> None:
+    """Print to sys.stderr."""
+    print(*values, sep=sep, end=end, file=sys.stderr, flush=flush)
+
+
+builtins.printe = printe
 
 
 def returncode(c: str | list[str], shell: bool = True) -> int:

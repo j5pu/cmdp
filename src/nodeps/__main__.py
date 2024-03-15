@@ -427,6 +427,9 @@ def dirty_gh_g(
         quiet: bool = True,
 ):
     """Is the repo dirty?: 0 if dirty."""
+    print(Gh(data=data, repo=repo).status(quiet=quiet), file=sys.stderr)
+    print(Gh(data=data, repo=repo).status(quiet=quiet).dirty, file=sys.stderr)
+
     if Gh(data=data, repo=repo).status(quiet=quiet).dirty:
         sys.exit(0)
     else:

@@ -364,6 +364,12 @@ To install all extras but [dev] (not including development extras):
 $ pip install nodeps[all]
 ```
 
+## [tests in docker](.cliactions.yaml)
+
+```shell
+./docker/docker.sh 3.11-slim-bash
+```
+
 ## License
 
 Distributed under the terms of the [MIT license][license],
