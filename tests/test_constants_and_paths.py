@@ -11,19 +11,34 @@ import nodeps.ipython_dir.extensions
 import nodeps.ipython_dir.profile_default
 import nodeps.ipython_dir.profile_default.ipython_config
 import nodeps.ipython_dir.profile_default.startup
-
-from nodeps import *
+from nodeps import EXECUTABLE
+from nodeps import EXECUTABLE_SITE
+from nodeps import in_tox
+from nodeps import IPYTHON_CONFIG_FILE
+from nodeps import IPYTHON_EXTENSIONS
+from nodeps import IPYTHON_EXTENSIONS_DIR
+from nodeps import IPYTHON_EXTENSIONS_NODEPS
+from nodeps import IPYTHON_PROFILE_DEFAULT_DIR
+from nodeps import IPYTHON_STARTUP_DIR
+from nodeps import IPYTHON_STARTUP_IPY_FILES
+from nodeps import IPYTHON_STARTUP_PY_FILES
+from nodeps import IPYTHONDIR
+from nodeps import NODEPS_MODULE_PATH
+from nodeps import NODEPS_PROJECT_NAME
+from nodeps import NODEPS_SRC
+from nodeps import NODEPS_TOP
+from nodeps import Path
+from nodeps import PYTHONSTARTUP
+from nodeps import RUNNING_IN_VENV
+from nodeps import VIRTUAL_ENV
+from nodeps import VIRTUAL_ENV_CWD_STARTUP
+from nodeps import VIRTUAL_ENV_SRC
 
 _NODEPS_NAME = "nodeps"
 _PURELIB = Path.purelib()
 _SYS_PREFIX_PATH = Path(sys.prefix)
 _SYS_BASE_PREFIX_PATH = Path(sys.base_prefix)
 _IN_TOX = in_tox()
-
-
-def test_print_all():
-    for _i in (*nodeps.modules.constants.__all__, *nodeps.ipython_dir.profile_default.ipython_config.__all__):
-        print(f"{_i}={globals()[_i]}", file=sys.stderr)
 
 
 @pytest.mark.skipif(_IN_TOX is True, reason='running in tox')

@@ -8,6 +8,7 @@
       <module fileurl="file://$PROJECT_DIR$/../mongodata/.idea/mongodata.iml" filepath="$PROJECT_DIR$/../mongodata/.idea/mongodata.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/nodeps.iml" filepath="$PROJECT_DIR$/.idea/nodeps.iml" />
       <module fileurl="file://$PROJECT_DIR$/../pdf/.idea/pdf.iml" filepath="$PROJECT_DIR$/../pdf/.idea/pdf.iml" />
+      <module fileurl="file://$APPLICATION_HOME_DIR$/plugins/python/helpers/pydev/.idea/pydev.iml" filepath="$APPLICATION_HOME_DIR$/plugins/python/helpers/pydev/.idea/pydev.iml" />
       <module fileurl="file://$PROJECT_DIR$/../Archive/data/rclib/.idea/rclib.iml" filepath="$PROJECT_DIR$/../Archive/data/rclib/.idea/rclib.iml" />
       <module fileurl="file://$PROJECT_DIR$/../secrets/.idea/secrets.iml" filepath="$PROJECT_DIR$/../secrets/.idea/secrets.iml" />
       <module fileurl="file://$PROJECT_DIR$/../shrc/.idea/shrc.iml" filepath="$PROJECT_DIR$/../shrc/.idea/shrc.iml" />

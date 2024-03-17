@@ -5,7 +5,7 @@ except ModuleNotFoundError:
     line_magic = magics_class = lambda *args: None
     Magics = object
 
-from nodeps.ipython_dir.profile_default.ipython_config import (
+from nodeps.ipython_variables import (
     NODEPS_IPYTHON_IMPORT_MODULE,
     RELOAD_EXTENSION,
     IPYTHONType,

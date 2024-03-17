@@ -9,7 +9,7 @@ try:
 except ModuleNotFoundError:
     get_ipython = lambda *args: None  # noqa: E731
 
-from nodeps.ipython_dir.profile_default.ipython_config import NODEPS_IPYTHON_IMPORT_MODULE
+from nodeps.ipython_variables import NODEPS_IPYTHON_IMPORT_MODULE
 
 if NODEPS_IPYTHON_IMPORT_MODULE:
     exec(f"from {NODEPS_IPYTHON_IMPORT_MODULE} import *")  # noqa: S102

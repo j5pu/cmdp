@@ -6,7 +6,8 @@ import pathlib
 import sys
 from typing import Annotated
 
-from .ipython_dir.profile_default.ipython_config import IPYTHONDIR, PYTHONSTARTUP, ipy
+from .ipython_dir.profile_default.ipython_config import ipy
+from .ipython_variables import IPYTHONDIR, PYTHONSTARTUP
 from .modules import (
     GIT,
     GITHUB_URL,

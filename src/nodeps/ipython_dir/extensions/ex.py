@@ -1,6 +1,9 @@
 """Rich install module."""  # noqa: INP001
 
-from nodeps.ipython_dir.profile_default.ipython_config import NODEPS_NAME, IPYTHONType
+from nodeps.ipython_variables import (
+    NODEPS_NAME,
+    IPYTHONType,
+)
 
 
 def load_ipython_extension(i: IPYTHONType):
@@ -33,3 +36,4 @@ def load_ipython_extension(i: IPYTHONType):
     """
     i.ex("import asyncio.base_events; asyncio.base_events.BaseEventLoop.slow_callback_duration = 1.5")
     i.ex(f"from {NODEPS_NAME} import rich_install; rich_install()")
+
