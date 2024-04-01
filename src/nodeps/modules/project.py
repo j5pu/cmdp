@@ -708,23 +708,6 @@ class Project:
 
         return 0
 
-    def version(self, rm: bool = True) -> str:
-        """Version from pyproject.toml, tag, distribution or pypi.
-
-        Args:
-            rm: remove cache
-        """
-        if v := self.pyproject_toml.config.get("project", {}).get("version"):
-            return v
-        if self.gh.top() and (v := self.gh.latest()):
-            return v
-        if d := self.distribution():
-            return d.version
-        if pypi := self.pypi(rm=rm):
-            return pypi["info"]["version"]
-        msg = f"Version not found for {self.name=} {self.directory=}"
-        raise RuntimeWarning(msg)
-
     def venv(
             self,
             version: str = PYTHON_DEFAULT_VERSION,
@@ -773,6 +756,33 @@ class Project:
         else:
             for version in PYTHON_VERSIONS:
                 self.venv(version=version, upgrade=upgrade, quiet=quiet, rm=rm)
+
+
+    def version(self, rm: bool = True) -> str:
+        """Version from pyproject.toml, tag, distribution or pypi.
+
+        Args:
+            rm: remove cache
+        """
+        if v := self.pyproject_toml.config.get("project", {}).get("version"):
+            return v
+        if self.gh.top() and (v := self.gh.latest()):
+            return v
+        if d := self.distribution():
+            return d.version
+        if version_pypi := self.version_pypi(rm=rm):
+            return version_pypi
+        msg = f"Version not found for {self.name=} {self.directory=}"
+        raise RuntimeWarning(msg)
+
+    def version_pypi(self, rm: bool = True) -> str | None:
+        """Pypi version.
+
+        Args:
+            rm: remove cache
+        """
+        if pypi := self.pypi(rm=rm):
+            return pypi["info"]["version"]
 
     def write(self, rm: bool = False):  # noqa: PLR0912, PLR0915
         """Updates setup.cfg (cmdclass, scripts), pyproject.toml and docs conf.py.
