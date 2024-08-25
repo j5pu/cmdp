@@ -1194,7 +1194,7 @@ class Path(pathlib.Path, pathlib.PurePosixPath):
                     return None
         if data is None and not file.is_file():
             return None
-        if data:
+        if data is not None:
             with file.open("wb") as f:
                 pickle.dump(data, f)
                 return data

@@ -3,11 +3,11 @@
 import os
 
 from nodeps.ipython_variables import (
-    IPYTHONconfig,
     IPYTHON,
-    IPYTHONDIR,
     IPYTHON_EXTENSIONS,
     IPYTHON_PROFILE_DEFAULT_DIR,
+    IPYTHONDIR,
+    IPYTHONconfig,
     MyPrompt,
 )
 

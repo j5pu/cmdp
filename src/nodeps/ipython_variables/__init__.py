@@ -36,8 +36,8 @@ __all__ = (
     "PYTHONSTARTUP",
     "PYCHARM_CONSOLE",
     "RELOAD_EXTENSION",
-    "IPYTHON",
     "IPYTHONconfig",
+    "IPYTHON",
     "to_sys_path",
 )
 
@@ -55,10 +55,10 @@ try:
     import IPython.core.shellapp  # type: ignore[attr-defined]
     from IPython.core.application import BaseIPythonApplication  # type: ignore[attr-defined]
     from IPython.core.completer import Completer, IPCompleter  # type: ignore[attr-defined]
+    from IPython.core.events import EventManager, _define_event, available_events  # type: ignore[attr-defined]
     from IPython.core.formatters import BaseFormatter, PlainTextFormatter  # type: ignore[attr-defined]
-    from IPython.core.getipython import get_ipython  # type: ignore[attr-defined]
     from IPython.core.history import HistoryAccessor, HistoryManager  # type: ignore[attr-defined]
-    from IPython.core.interactiveshell import InteractiveShell  # type: ignore[attr-defined]
+    from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC  # type: ignore[attr-defined]
     from IPython.core.magic import MagicsManager  # type: ignore[attr-defined]
     from IPython.core.magics.logging import LoggingMagics  # type: ignore[attr-defined]
     from IPython.core.magics.script import ScriptMagics  # type: ignore[attr-defined]
@@ -72,8 +72,8 @@ try:
     from traitlets.config.application import Application, get_config  # type: ignore[attr-defined]
 
 except ModuleNotFoundError:
-    IPython = None
-    get_config = get_ipython = load_default_config = refresh_variables = update_instances = lambda *args: None
+    IPython = InteractiveShellABC = None
+    _define_event = get_config = load_default_config = refresh_variables = update_instances = lambda *args: None
     Application = BaseFormatter = BaseIPythonApplication = Completer = HistoryAccessor = HistoryManager = \
         InteractiveShell = InteractiveShellApp = IPCompleter = LoggingMagics = MagicsManager = PlainTextFormatter = \
         ProfileDir = Prompts = ScriptMagics = StoreMagics = TerminalInteractiveShell = TerminalIPythonApp = Token = \
@@ -84,9 +84,10 @@ try:
     from _pydev_bundle.pydev_ipython_console_011 import (  # type: ignore[attr-defined]
         PyDebuggerTerminalInteractiveShell,  # type: ignore[attr-defined]
         PyDevTerminalInteractiveShell,  # type: ignore[attr-defined]
+        _PyDevIPythonFrontEnd,  # type: ignore[attr-defined]
     )
 except ModuleNotFoundError:
-    _pydev_bundle = PyDebuggerTerminalInteractiveShell = PyDevTerminalInteractiveShell = object
+    _pydev_bundle = _PyDevIPythonFrontEnd = PyDebuggerTerminalInteractiveShell = PyDevTerminalInteractiveShell = object
 
 
 # <editor-fold desc="IPython Config Type Class">
@@ -197,7 +198,16 @@ if VIRTUAL_ENV:
         # no src but package/package/__init__.py
         NODEPS_IPYTHON_IMPORT_MODULE = top.name
 
-IPYTHON: IPYTHONType = get_ipython()
+try:
+    # noinspection PyUnboundLocalVariable
+    IPYTHON: IPYTHONType = get_ipython()  # type: ignore[attr-defined]
+except NameError:
+    try:
+        from IPython.core.getipython import get_ipython  # type: ignore[attr-defined]
+    except ModuleNotFoundError:
+        get_ipython = lambda *args: None  # noqa: E731
+    IPYTHON: IPYTHONType = get_ipython()
+
 IPYTHONconfig: Config = get_config()
 
 
@@ -314,50 +324,8 @@ if "IPython.extensions.autoreload" in sys.modules:
     # noinspection PyUnboundLocalVariable,PyUnresolvedReferences
     IPython.extensions.autoreload.update_instances = _update_instances
 
-
 # </editor-fold>
 
-
-# <editor-fold desc="IPython PyCharm exec_lines patch">
-def _pydev_ipython_frontend_init(self, is_jupyter_debugger=False):
-    """_pydev_bundle.pydev_ipython_console_011._PyDevIPythonFrontEnd.__init__ patch."""
-    # Create and initialize our IPython instance.
-    self.is_jupyter_debugger = is_jupyter_debugger
-    if is_jupyter_debugger:
-        if hasattr(PyDebuggerTerminalInteractiveShell,
-                   'new_instance') and PyDebuggerTerminalInteractiveShell.new_instance is not None:
-            self.ipython = PyDebuggerTerminalInteractiveShell.new_instance
-        else:
-            # if we already have some InteractiveConsole instance (Python Console: Attach Debugger)
-            # noinspection PyUnresolvedReferences
-            if hasattr(PyDevTerminalInteractiveShell,
-                       '_instance') and PyDevTerminalInteractiveShell._instance is not None:
-                # noinspection PyUnresolvedReferences
-                PyDevTerminalInteractiveShell.clear_instance()
-
-            InteractiveShell.clear_instance()
-            # noinspection PyUnresolvedReferences
-            self.ipython = PyDebuggerTerminalInteractiveShell.instance(config=load_default_config())
-            # noinspection PyUnresolvedReferences
-            PyDebuggerTerminalInteractiveShell.new_instance = PyDebuggerTerminalInteractiveShell._instance
-    elif hasattr(PyDevTerminalInteractiveShell, '_instance') and PyDevTerminalInteractiveShell._instance is not None:
-        self.ipython = PyDevTerminalInteractiveShell._instance
-    else:
-        # noinspection PyUnresolvedReferences
-        self.ipython = PyDevTerminalInteractiveShell.instance(config=load_default_config())
-
-    self._curr_exec_line = 0
-    self._curr_exec_lines = [
-        "IPYTHON = get_ipython()",
-        f"IPYTHON.safe_execfile('{IPYTHON_PYCHARM_STARTUP_FILE!s}', {{}}, raise_exceptions=True)",
-    ]
-
-
-if "_pydev_bundle.pydev_ipython_console_011" in sys.modules:
-    # noinspection PyUnboundLocalVariable,PyUnresolvedReferences
-    _pydev_bundle.pydev_ipython_console_011._PyDevIPythonFrontEnd.__init__ = _pydev_ipython_frontend_init
-
-# </editor-fold>
 
 # <editor-fold desc="PyCharm config patches">
 if "_pydev_bundle.pydev_ipython_console_011" in sys.modules:
@@ -378,6 +346,41 @@ if "_pydev_bundle.pydev_ipython_console_011" in sys.modules:
     _pydev_bundle.pydev_ipython_console_011.PyDevTerminalInteractiveShell.simple_prompt = True
     _pydev_bundle.pydev_ipython_console_011.PyDevTerminalInteractiveShell.true_color = True
     _pydev_bundle.pydev_ipython_console_011.PyDevTerminalInteractiveShell.warn_venv = False
+
+
+# </editor-fold>
+
+
+# <editor-fold desc="PyCharm Patch">
+@_define_event
+def shell_initialized(ip: IPYTHONType):
+    """Fires after initialisation of :class:`~IPython.core.interactiveshell.InteractiveShell`.
+
+    This is before extensions and startup scripts are loaded, so it can only be
+    set by subclassing.
+
+    Parameters
+    ----------
+    ip : :class:`~IPython.core.interactiveshell.InteractiveShell`
+        The newly initialised shell.
+    """
+    # TODO: meter aquí la config de PyCharm, prompt y quitar IPYTHON - probar como he conseguido ipy e pycharm
+    print(f"{shell_initialized}, {ip=}")
+    ip.trio_runner = None
+    if PYCHARM_CONSOLE:
+        ip.safe_execfile(str(IPYTHON_PYCHARM_STARTUP_FILE), ip.user_ns, raise_exceptions=True)
+
+
+def _init_events(self: IPYTHONType):
+    """init_events patch."""
+    self.events = EventManager(self, available_events)
+
+    self.events.register("pre_execute", self._clear_warning_registry)
+    self.events.register("shell_initialized", shell_initialized)
+
+
+if "IPython.core.interactiveshell" in sys.modules:
+    IPython.core.interactiveshell.InteractiveShell.init_events = _init_events
 # </editor-fold>
 
 if "IPython.core.shellapp" in sys.modules:

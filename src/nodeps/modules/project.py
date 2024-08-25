@@ -757,7 +757,6 @@ class Project:
             for version in PYTHON_VERSIONS:
                 self.venv(version=version, upgrade=upgrade, quiet=quiet, rm=rm)
 
-
     def version(self, rm: bool = True) -> str:
         """Version from pyproject.toml, tag, distribution or pypi.
 
@@ -783,6 +782,7 @@ class Project:
         """
         if pypi := self.pypi(rm=rm):
             return pypi["info"]["version"]
+        return None
 
     def write(self, rm: bool = False):  # noqa: PLR0912, PLR0915
         """Updates setup.cfg (cmdclass, scripts), pyproject.toml and docs conf.py.

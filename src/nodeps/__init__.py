@@ -1,12 +1,11 @@
 """NoDeps Helpers and Utils Module."""
-import os  # noqa: I001
+import os
 
 from . import extras, ipython_variables, modules, setup
 from .extras import *
 from .ipython_variables import *
 from .modules import *
 from .setup import *
-from .ipython_dir.profile_default import ipython_pycharm_startup  # DON'T REMOVE  # noqa: F401
 
 os.environ["IPYTHONDIR"] = str(IPYTHONDIR)  # noqa: F405
 os.environ["PIP_ROOT_USER_ACTION"] = "ignore"
